@@ -1,0 +1,25 @@
+{
+  "name": "starter-extension",
+  "version": "0.1.0",
+  "description": "Complete starter/scaffold extension for pm-cli showing all capability types",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc"
+  },
+  "peerDependencies": {
+    "@unbrained/pm-cli": ">=2026.5.0"
+  },
+  "devDependencies": {
+    "@unbrained/pm-cli": "^2026.5.10",
+    "typescript": "^5.0.0"
+  },
+  "keywords": [
+    "pm-cli",
+    "extension",
+    "starter",
+    "scaffold",
+    "template"
+  ],
+  "license": "MIT"
+}

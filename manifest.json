@@ -1,0 +1,17 @@
+{
+  "name": "starter-extension",
+  "version": "0.1.0",
+  "description": "Complete scaffold showing all capability types: commands, schema, hooks, importers, renderers, search, services. Use as a starting template for new extensions.",
+  "author": "@unbrained",
+  "entry": "./dist/index.js",
+  "priority": 99,
+  "capabilities": [
+    "commands",
+    "schema",
+    "hooks",
+    "importers",
+    "renderers",
+    "search",
+    "services"
+  ]
+}
