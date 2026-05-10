@@ -1,6 +1,6 @@
 # starter-extension
 
-Complete scaffold for [pm-cli](https://github.com/unbraind/pm-cli) extensions. Demonstrates all 7 capability types in one file.
+Complete scaffold for [pm-cli](https://github.com/unbraind/pm-cli) extensions. Demonstrates all 8 capability types in one file.
 
 Use this as a starting template for building your own extensions.
 
@@ -22,7 +22,8 @@ pm extension install github.com/unbraind/pm-starter-extension --global
 | 4 | **Importers** | Demo `starter-demo` importer |
 | 5 | **Renderers** | `compact` (TSV) and `markdown-table` renderers |
 | 6 | **Search** | `starter-substring` case-insensitive search |
-| 7 | **Services** | `starter-health` health check service |
+| 7 | **Preflight** | `starter-preflight` workspace health check |
+| 8 | **Services** | `starter-health` health check service |
 
 ## Commands
 
@@ -67,6 +68,7 @@ Each capability is in its own setup function for clarity:
 - `setupImporters(api)` — Register data importers
 - `setupRenderers(api)` — Register output renderers
 - `setupSearch(api)` — Register search providers
+- `setupPreflight(api)` — Register pre-flight checks
 - `setupServices(api)` — Register background services
 
 Delete the capabilities you don't need and update `manifest.json` accordingly.

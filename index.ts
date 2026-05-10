@@ -8,7 +8,8 @@
 //   4. importers  — Programmatic data import
 //   5. renderers  — Custom output formatting
 //   6. search     — Custom search providers
-//   7. services   — Background services and health checks
+//   7. preflight  — Pre-flight checks before commands run
+//   8. services   — Background services and health checks
 //
 // To create a new extension from this scaffold:
 //   1. Copy this directory
@@ -18,11 +19,7 @@
 //   5. npm install && npm run build
 //   6. pm extension install ./your-extension
 
-function defineExtension(ext: any) {
-  return Object.assign({ activate() {} }, ext, {
-    activate(api: any) { ext.activate?.(api); },
-  });
-}
+import { defineExtension } from "@unbrained/pm-cli/sdk";
 
 // ---------------------------------------------------------------------------
 // CAPABILITY 1: COMMANDS
@@ -186,15 +183,15 @@ function setupImporters(api: any): void {
 function setupRenderers(api: any): void {
   if (typeof api.registerRenderer !== "function") return;
 
-  // Compact one-line-per-item renderer
-  api.registerRenderer("compact", (items: any[]) => {
+  // Override the "json" format to add a compact table view
+  api.registerRenderer("json", (items: any[]) => {
     return items
       .map((item) => `${item.id}\t${item.type?.padEnd(8)}\t${item.status?.padEnd(12)}\t${item.title}`)
       .join("\n");
   });
 
-  // Markdown table renderer
-  api.registerRenderer("markdown-table", (items: any[]) => {
+  // Override the "toon" format with a markdown table
+  api.registerRenderer("toon", (items: any[]) => {
     const header = "| ID | Type | Status | Title |";
     const sep = "|---|---|---|---|";
     const rows = items.map(
@@ -212,11 +209,12 @@ function setupSearch(api: any): void {
   if (typeof api.registerSearchProvider !== "function") return;
 
   // Simple substring search provider
-  api.registerSearchProvider("starter-substring", {
-    description: "Case-insensitive substring search across item titles and descriptions",
-    async search(query: string, ctx: any) {
+  api.registerSearchProvider({
+    name: "starter-substring",
+    async query(ctx: any) {
+      const query = ctx.query ?? "";
       const { spawnSync } = await import("node:child_process");
-      const result = spawnSync("pm", ["--path", ctx.pm_root, "list-all", "--json"], {
+      const result = spawnSync("pm", ["--path", ctx.pm_root ?? ".", "list-all", "--json"], {
         encoding: "utf-8",
       });
 
@@ -236,25 +234,36 @@ function setupSearch(api: any): void {
 }
 
 // ---------------------------------------------------------------------------
-// CAPABILITY 7: SERVICES
+// CAPABILITY 7: PREFLIGHT
+// ---------------------------------------------------------------------------
+
+function setupPreflight(api: any): void {
+  if (typeof api.registerPreflight !== "function") return;
+
+  // Preflight override — can modify preflight decisions before a command runs
+  api.registerPreflight(async (ctx: any) => {
+    console.error(`[starter] Preflight check for workspace: ${ctx.pm_root ?? "unknown"}`);
+    // Return the current decision unchanged (pass-through)
+    return {
+      enforce_item_format_gate: ctx.decision?.enforce_item_format_gate ?? true,
+      run_preflight_item_format_sync: ctx.decision?.run_preflight_item_format_sync ?? false,
+      run_extension_migrations: ctx.decision?.run_extension_migrations ?? true,
+      enforce_mandatory_migration_gate: ctx.decision?.enforce_mandatory_migration_gate ?? false,
+    };
+  });
+}
+
+// ---------------------------------------------------------------------------
+// CAPABILITY 8: SERVICES
 // ---------------------------------------------------------------------------
 
 function setupServices(api: any): void {
   if (typeof api.registerService !== "function") return;
 
-  // Health check service
-  api.registerService("starter-health", {
-    description: "Reports starter-extension health and version info",
-    async getStatus() {
-      return {
-        healthy: true,
-        extension: "starter-extension",
-        version: "0.1.0",
-        capabilities: ["commands", "schema", "hooks", "importers", "renderers", "search", "services"],
-        nodeVersion: process.version,
-        uptime: Math.floor(process.uptime()),
-      };
-    },
+  // Override the output_format service to add custom formatting
+  api.registerService("output_format", async (ctx: any) => {
+    console.error("[starter] output_format service override active");
+    return { format: "toon" };
   });
 }
 
@@ -275,9 +284,10 @@ export default defineExtension({
     setupImporters(api);
     setupRenderers(api);
     setupSearch(api);
+    setupPreflight(api);
     setupServices(api);
 
-    console.error("[starter-extension] ✓ All 7 capabilities registered.");
+    console.error("[starter-extension] ✓ All 8 capabilities registered.");
     console.error("[starter-extension] Commands: pm starter greet, pm starter summary");
   },
 });
