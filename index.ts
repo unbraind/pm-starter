@@ -19,7 +19,9 @@
 //   5. npm install && npm run build
 //   6. pm extension install ./your-extension
 
-import { defineExtension } from "@unbrained/pm-cli/sdk";
+import type { defineExtension as defineExtensionType } from "@unbrained/pm-cli/sdk";
+
+const defineExtension: typeof defineExtensionType = ((extension: any) => extension) as any;
 
 // ---------------------------------------------------------------------------
 // CAPABILITY 1: COMMANDS
