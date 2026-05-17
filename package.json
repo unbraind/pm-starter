@@ -1,5 +1,5 @@
 {
-  "name": "starter-extension",
+  "name": "pm-starter-extension",
   "version": "0.1.0",
   "description": "Complete starter/scaffold extension for pm-cli showing all capability types",
   "repository": {

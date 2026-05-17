@@ -1,8 +1,8 @@
 {
-  "name": "starter-extension",
+  "name": "pm-starter-extension",
   "version": "0.1.0",
   "description": "Complete scaffold showing all 8 capability types: commands, schema, hooks, importers, renderers, preflight, search, services. Use as a starting template for new extensions.",
-  "author": "@unbrained",
+  "author": "@unbraind",
   "entry": "./dist/index.js",
   "priority": 99,
   "capabilities": [

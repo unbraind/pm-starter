@@ -1,4 +1,4 @@
-# starter-extension
+# pm-starter-extension
 
 Complete scaffold for [pm-cli](https://github.com/unbraind/pm-cli) extensions. Demonstrates all 8 capability types in one file.
 
@@ -9,7 +9,7 @@ Use this as a starting template for building your own extensions.
 ## Installation
 
 ```bash
-pm extension install github.com/unbraind/pm-starter-extension --global
+pm install github.com/unbraind/pm-starter-extension --project
 ```
 
 ## Capabilities
