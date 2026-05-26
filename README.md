@@ -1,4 +1,4 @@
-# pm-starter-extension
+# pm-starter
 
 Complete scaffold for [pm-cli](https://github.com/unbraind/pm-cli) extensions. Demonstrates all 8 capability types in one file.
 
@@ -9,7 +9,7 @@ Use this as a starting template for building your own extensions.
 ## Installation
 
 ```bash
-pm install github.com/unbraind/pm-starter-extension --project
+pm install github.com/unbraind/pm-starter --project
 ```
 
 ## Capabilities
@@ -43,7 +43,7 @@ pm starter summary --verbose
 
 ```bash
 # 1. Clone this repo
-git clone https://github.com/unbraind/pm-starter-extension.git my-extension
+git clone https://github.com/unbraind/pm-starter.git my-extension
 cd my-extension
 
 # 2. Edit files
@@ -56,7 +56,7 @@ npm install
 npm run build
 
 # 4. Install locally
-pm extension install ./my-extension
+pm install ./my-extension
 ```
 
 ## Architecture
@@ -76,3 +76,7 @@ Delete the capabilities you don't need and update `manifest.json` accordingly.
 ## License
 
 MIT
+
+## Release Automation
+
+This package is release-ready for GitHub, npm, and Bun-compatible installs. CI runs type checking, build, production dependency audit, package packing, Bun install verification, and pm-changelog validation. The daily release workflow publishes only when commits exist after the latest release tag and uses pm-changelog to generate CHANGELOG.md and GitHub release notes.

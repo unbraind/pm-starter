@@ -1,4 +1,4 @@
-// pm-starter-extension — Complete scaffold for pm-cli extensions
+// pm-starter — Complete scaffold for pm-cli extensions
 // Demonstrates all capability types. Copy this file to start a new extension.
 //
 // CAPABILITIES OVERVIEW:
@@ -17,7 +17,7 @@
 //   3. Delete capabilities you don't need
 //   4. Implement your logic
 //   5. npm install && npm run build
-//   6. pm extension install ./your-extension
+//   6. pm install ./your-extension
 const defineExtension = ((extension) => extension);
 // ---------------------------------------------------------------------------
 // CAPABILITY 1: COMMANDS
@@ -239,10 +239,10 @@ function setupServices(api) {
 // EXTENSION ENTRY POINT
 // ---------------------------------------------------------------------------
 export default defineExtension({
-    name: "pm-starter-extension",
+    name: "pm-starter",
     version: "0.1.0",
     activate(api) {
-        console.error("[pm-starter-extension] Activating...");
+        console.error("[pm-starter] Activating...");
         setupCommands(api);
         setupSchema(api);
         setupHooks(api);
@@ -251,8 +251,8 @@ export default defineExtension({
         setupSearch(api);
         setupPreflight(api);
         setupServices(api);
-        console.error("[pm-starter-extension] All 8 capabilities registered.");
-        console.error("[pm-starter-extension] Commands: pm starter greet, pm starter summary");
+        console.error("[pm-starter] All 8 capabilities registered.");
+        console.error("[pm-starter] Commands: pm starter greet, pm starter summary");
     },
 });
 //# sourceMappingURL=index.js.map
