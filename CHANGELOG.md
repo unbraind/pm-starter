@@ -1,12 +1,16 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- Add publish retry + provenance fallback to release workflow ([pm-starter-vcxr](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/tasks/pm-starter-vcxr.toon))
+
 ## 2026.05.27 - 2026-05-27
 
 ### Added
 
 - Add bun-install verification to release workflow ([pm-starter-zai7](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/tasks/pm-starter-zai7.toon))
-
-## 2026.05.26 - 2026-05-26
 
 ### Fixed
 
