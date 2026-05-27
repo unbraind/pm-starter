@@ -275,7 +275,7 @@ function setupServices(api: any): void {
 
 export default defineExtension({
   name: "pm-starter",
-  version: "2026.5.26",
+  version: "2026.5.27",
 
   activate(api: any) {
     console.error("[pm-starter] Activating...");
