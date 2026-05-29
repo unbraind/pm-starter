@@ -1,0 +1,11 @@
+id: pm-starter-yly8
+title: Hands-on functional test pass 2026-05-29 (real data)
+description: ""
+type: Feature
+status: open
+priority: 2
+tags: []
+created_at: "2026-05-29T21:21:45.363Z"
+updated_at: "2026-05-29T21:21:45.363Z"
+author: codex
+body: "Installed into a throwaway pm workspace with real items. All 8 capabilities register cleanly; 'pm starter greet' and 'pm starter summary' run against real workspace data and exit 0. Scaffold is a correct, copy-pasteable reference. No code bugs found. (Minor: activation logs to stderr on every command — intentional for a demonstration/scaffold extension.)"
