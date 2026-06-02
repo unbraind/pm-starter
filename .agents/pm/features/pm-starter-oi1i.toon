@@ -1,0 +1,14 @@
+id: pm-starter-oi1i
+title: Make pm-starter the canonical full ExtensionApi reference
+description: "Rewrite index.ts to demonstrate EVERY ExtensionApi capability with safe, commented DEMO examples; add capability matrix to README; full mock in tests; verify with doctor (0 collisions)."
+type: Feature
+status: closed
+priority: 2
+tags: []
+created_at: "2026-06-02T05:41:21.703Z"
+updated_at: "2026-06-02T07:11:53.567Z"
+author: codex
+notes[1]{created_at,author,text}:
+  "2026-06-02T07:11:53.332Z",codex,"Reference extension now demonstrates ALL 9 SDK capabilities safely. FIXED two output-corrupting defects in the agent draft: (1) registerService('output_format') returned a fabricated {format} that hijacked EVERY command's output -> changed to true pass-through 'return ctx.payload'; (2) toon/json renderer overrides returned JSON for non-demo payloads -> return null so pm falls through to native rendering. Added 'parser' to manifest capabilities (registerParser requires it). Verified: build+tsc+2/2 tests; functional: extension active, 0 activation/blocking failures; pm list renders native TOON (not corrupted); 'starter demo' uses custom renderer; importer/exporter demo commands run; hooks fire under PM_STARTER_HOOKS."
+close_reason: All 9 capabilities demonstrated; output-corruption defects fixed; verified green.
+body: ""

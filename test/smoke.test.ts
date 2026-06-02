@@ -14,15 +14,29 @@ test("extension has required shape", () => {
 test("extension registers at least one capability", () => {
   const registered: string[] = [];
   const noop = () => {};
+  // Mirror the full ExtensionApi so the reference extension can register every
+  // demonstrated capability (this template exercises all of them).
   const api = {
     registerCommand: () => { registered.push("command"); },
-    registerHook: () => { registered.push("hook"); },
-    registerImporter: () => { registered.push("importer"); },
-    registerSchema: () => { registered.push("schema"); },
-    registerRenderer: () => { registered.push("renderer"); },
-    registerSearchProvider: () => { registered.push("search"); },
+    registerParser: () => { registered.push("parser"); },
     registerPreflight: () => { registered.push("preflight"); },
     registerService: () => { registered.push("service"); },
+    registerFlags: () => { registered.push("flags"); },
+    registerItemFields: () => { registered.push("itemFields"); },
+    registerItemTypes: () => { registered.push("itemTypes"); },
+    registerMigration: () => { registered.push("migration"); },
+    registerRenderer: () => { registered.push("renderer"); },
+    registerImporter: () => { registered.push("importer"); },
+    registerExporter: () => { registered.push("exporter"); },
+    registerSearchProvider: () => { registered.push("search"); },
+    registerVectorStoreAdapter: () => { registered.push("vectorStore"); },
+    hooks: {
+      beforeCommand: () => { registered.push("hook:before"); },
+      afterCommand: () => { registered.push("hook:after"); },
+      onWrite: () => { registered.push("hook:onWrite"); },
+      onRead: () => { registered.push("hook:onRead"); },
+      onIndex: () => { registered.push("hook:onIndex"); },
+    },
   };
   extension.activate(api as any);
   assert.ok(registered.length > 0, `extension should register at least one capability, got: ${JSON.stringify(registered)}`);
