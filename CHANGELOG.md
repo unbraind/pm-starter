@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026.6.2 - 2026-06-02
+
+### Added
+
+- Make pm-starter the canonical full ExtensionApi reference ([pm-starter-oi1i](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/features/pm-starter-oi1i.toon))
+
 ## 2026.05.28 - 2026-05-28
 
 ### Added
