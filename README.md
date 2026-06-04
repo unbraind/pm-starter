@@ -1,8 +1,8 @@
 # pm-starter
 
-Complete scaffold for [pm-cli](https://github.com/unbraind/pm-cli) extensions. Demonstrates all 8 capability types in one file.
+The CANONICAL scaffold for [pm-cli](https://github.com/unbraind/pm-cli) extensions. A single, heavily-commented `index.ts` demonstrates **all 9 SDK capability types** with small, SAFE, inert examples.
 
-Use this as a starting template for building your own extensions.
+Use this as a starting template for building your own extensions: copy the capability you need and delete the rest.
 
 ---
 
@@ -14,16 +14,24 @@ pm install github.com/unbraind/pm-starter --project
 
 ## Capabilities
 
-| # | Capability | What it does |
-|---|---|---|
-| 1 | **Commands** | `pm starter greet` and `pm starter summary` |
-| 2 | **Schema** | Title validation (required, ≤ 200 chars) |
-| 3 | **Hooks** | afterCreate, afterClose, beforeUpdate |
-| 4 | **Importers** | Demo `starter-demo` importer |
-| 5 | **Renderers** | `compact` (TSV) and `markdown-table` renderers |
-| 6 | **Search** | `starter-substring` case-insensitive search |
-| 7 | **Preflight** | `starter-preflight` workspace health check |
-| 8 | **Services** | `starter-health` health check service |
+Every capability declared in `manifest.json` is demonstrated in `index.ts`. Each
+maps to one or more `register*`/`hooks.*` calls on the `ExtensionApi`.
+
+| # | Capability | `ExtensionApi` call(s) | What the demo registers |
+|---|---|---|---|
+| 1 | **commands** | `registerCommand` | `pm starter greet`, `pm starter summary`, `pm starter demo` |
+| 2 | **renderers** | `registerRenderer` | `json` + `toon` renderer overrides (reshape only the `starter demo` payload, pass through everything else) |
+| 3 | **hooks** | `hooks.beforeCommand`, `hooks.afterCommand`, `hooks.onWrite`, `hooks.onRead`, `hooks.onIndex` | All five lifecycle hooks (observe-only; opt-in logging via `PM_STARTER_HOOKS`) |
+| 4 | **schema** | `registerItemFields`, `registerItemTypes`, `registerMigration` | Optional fields `starter_origin`/`starter_score`, a `StarterNote` item type, and a no-op migration `pm-starter-0001-noop` |
+| 5 | **importers** | `registerImporter`, `registerExporter` | `pm starter-demo import` (inert dry-run) and `pm starter-demo export` (read-only JSON dump) |
+| 6 | **search** | `registerSearchProvider`, `registerVectorStoreAdapter` | Search provider `starter-substring` and in-memory vector store adapter `starter-memory` |
+| 7 | **parser** | `registerParser` | Identity pass-through parser override for the native `list` command |
+| 8 | **preflight** | `registerPreflight` | Pass-through preflight decision override (no behavior change) |
+| 9 | **services** | `registerService` | Pass-through override of the `output_format` core service |
+
+> **Flags:** the demo commands declare typed `flags`, and `registerFlags("list", …)`
+> adds an inert `--starter-tag` flag to the native `list` command. Flag registration
+> is part of the **commands** capability — it does not need its own manifest entry.
 
 ## Commands
 
@@ -38,6 +46,50 @@ pm starter greet --name Developer --emoji 🚀 --uppercase
 pm starter summary
 pm starter summary --verbose
 ```
+
+### `pm starter demo`
+```bash
+pm starter demo            # structured payload reshaped by the starter renderer
+pm starter demo --json
+```
+
+### Importer / exporter command paths
+
+`registerImporter("starter-demo")` and `registerExporter("starter-demo")` auto-create:
+
+```bash
+pm starter-demo import     # inert dry-run preview
+pm starter-demo export     # read-only JSON dump of items
+```
+
+> Human-facing commands are namespaced under `pm starter …` while the
+> importer/exporter live under `pm starter-demo …` so the two command paths never
+> collide. `pm extension doctor` reports 0 collisions as a result.
+
+## Architecture
+
+Each capability lives in its own `setup*` function for clarity. Delete the ones
+you don't need and prune `manifest.json` to match:
+
+- `setupCommands(api)` — `registerCommand` (with typed flags)
+- `setupRenderers(api)` — `registerRenderer` for `json` / `toon`
+- `setupHooks(api)` — `hooks.beforeCommand/afterCommand/onWrite/onRead/onIndex`
+- `setupSchema(api)` — `registerItemFields` / `registerItemTypes` / `registerMigration`
+- `setupImportExport(api)` — `registerImporter` / `registerExporter`
+- `setupSearch(api)` — `registerSearchProvider` / `registerVectorStoreAdapter`
+- `setupParser(api)` — `registerParser`
+- `setupPreflight(api)` — `registerPreflight`
+- `setupServices(api)` — `registerService`
+- `setupFlags(api)` — `registerFlags`
+
+## The zero-runtime-coupling pattern
+
+Standalone-installed extensions load only their own `dist/` at runtime, so
+`@unbrained/pm-cli` is **not** resolvable as a runtime value. `index.ts` therefore
+imports `defineExtension` as a **type only** and provides a trivial identity
+implementation; the real CLI supplies the live `api` object at activation time.
+For the same reason the `EXIT_CODE` / `CommandError` error contract is
+re-implemented locally rather than imported from the SDK.
 
 ## Creating a New Extension
 
@@ -56,22 +108,8 @@ npm install
 npm run build
 
 # 4. Install locally
-pm install ./my-extension
+pm install ./my-extension --project
 ```
-
-## Architecture
-
-Each capability is in its own setup function for clarity:
-- `setupCommands(api)` — Register CLI commands with flags
-- `setupSchema(api)` — Register validation schemas
-- `setupHooks(api)` — Register lifecycle hooks
-- `setupImporters(api)` — Register data importers
-- `setupRenderers(api)` — Register output renderers
-- `setupSearch(api)` — Register search providers
-- `setupPreflight(api)` — Register pre-flight checks
-- `setupServices(api)` — Register background services
-
-Delete the capabilities you don't need and update `manifest.json` accordingly.
 
 ## License
 

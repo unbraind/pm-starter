@@ -40,4 +40,18 @@ test("extension registers at least one capability", () => {
   };
   extension.activate(api as any);
   assert.ok(registered.length > 0, `extension should register at least one capability, got: ${JSON.stringify(registered)}`);
+
+  // This reference extension demonstrates ALL 9 SDK capability types, so the
+  // mock above must let every register*/hook call fire. Assert each one ran so
+  // the template stays a faithful, complete reference (a dropped capability or a
+  // renamed SDK method surfaces here, not silently at install time).
+  const expected = [
+    "command", "renderer", "hook:before", "hook:after", "hook:onWrite",
+    "hook:onRead", "hook:onIndex", "itemFields", "itemTypes", "migration",
+    "importer", "exporter", "search", "vectorStore", "parser", "preflight",
+    "service", "flags",
+  ];
+  for (const cap of expected) {
+    assert.ok(registered.includes(cap), `extension should register "${cap}" (got: ${JSON.stringify(registered)})`);
+  }
 });

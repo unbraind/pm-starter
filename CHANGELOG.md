@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+- Fix README to document all 9 capabilities accurately + strengthen smoke test ([pm-starter-xwkh](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/chores/pm-starter-xwkh.toon))
+
 ## 2026.06.02 - 2026-06-02
 
 ### Added

@@ -1,0 +1,14 @@
+id: pm-starter-xwkh
+title: Fix README to document all 9 capabilities accurately + strengthen smoke test
+description: "README claimed 8 capability types and listed stale command/hook/renderer names; reconcile to the 9 capabilities the manifest+index.ts already demonstrate (commands, renderers, hooks, schema, importers, search, parser, preflight, services) with correct registered names (importer/exporter command paths starter-demo, search provider starter-substring, vector store starter-memory, the five api.hooks.* hook names). Fix manifest description 8->9. Strengthen smoke test to assert every register*/hook fires."
+type: Chore
+status: closed
+priority: 2
+tags: []
+created_at: "2026-06-04T05:40:49.985Z"
+updated_at: "2026-06-04T05:41:16.536Z"
+author: codex
+comments[1]{created_at,author,text}:
+  "2026-06-04T05:41:08.863Z",codex,"Rewrote README capability table to list all 9 types with exact ExtensionApi calls and registered names (commands: starter greet/summary/demo; renderers: json+toon; hooks: beforeCommand/afterCommand/onWrite/onRead/onIndex; schema: starter_origin/starter_score, StarterNote, pm-starter-0001-noop; importers: pm starter-demo import/export; search: starter-substring + starter-memory vector store; parser/preflight/services pass-through). Documented registerFlags --starter-tag under commands + added zero-runtime-coupling section. Fixed manifest description 8->9. Strengthened smoke test to assert all register*/hook calls fire. build+typecheck+test green; installed into scratch workspace: activated:true, 0 collisions, renderer override + commands verified live."
+close_reason: README/manifest/test fixes complete; build+typecheck+test green; functional activation proven in scratch workspace
+body: ""
