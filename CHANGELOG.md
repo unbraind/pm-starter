@@ -4,6 +4,7 @@
 
 ### Other
 
+- Harden release readiness checks ([pm-starter-q3m0](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/chores/pm-starter-q3m0.toon))
 - Strengthen starter SDK capability smoke coverage ([pm-starter-u0c7](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/chores/pm-starter-u0c7.toon))
 - Align package dependencies to pm CLI/SDK 2026.6.6 ([pm-starter-u1tx](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/chores/pm-starter-u1tx.toon))
 
