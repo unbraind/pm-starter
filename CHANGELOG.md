@@ -1,6 +1,12 @@
 # Changelog
 
-## 2026.6.4 - 2026-06-04
+## Unreleased
+
+### Other
+
+- Align package dependencies to pm CLI/SDK 2026.6.6 ([pm-starter-u1tx](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/chores/pm-starter-u1tx.toon))
+
+## 2026.06.04 - 2026-06-04
 
 ### Fixed
 
