@@ -1,6 +1,13 @@
 # Changelog
 
-## 2026.6.4 - 2026-06-04
+## Unreleased
+
+### Other
+
+- Strengthen starter SDK capability smoke coverage ([pm-starter-u0c7](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/chores/pm-starter-u0c7.toon))
+- Align package dependencies to pm CLI/SDK 2026.6.6 ([pm-starter-u1tx](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/chores/pm-starter-u1tx.toon))
+
+## 2026.06.04 - 2026-06-04
 
 ### Fixed
 
