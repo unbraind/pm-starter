@@ -13,11 +13,14 @@ test("extension has required shape", () => {
 
 test("extension registers at least one capability", () => {
   const registered: string[] = [];
-  const noop = () => {};
+  const commands: Record<string, any> = {};
+  const renderers: Record<string, (ctx: any) => unknown> = {};
+  let importer: ((ctx: any) => unknown) | undefined;
+  let exporter: ((ctx: any) => unknown) | undefined;
   // Mirror the full ExtensionApi so the reference extension can register every
   // demonstrated capability (this template exercises all of them).
   const api = {
-    registerCommand: () => { registered.push("command"); },
+    registerCommand: (command: any) => { registered.push("command"); commands[command.name] = command; },
     registerParser: () => { registered.push("parser"); },
     registerPreflight: () => { registered.push("preflight"); },
     registerService: () => { registered.push("service"); },
@@ -25,9 +28,9 @@ test("extension registers at least one capability", () => {
     registerItemFields: () => { registered.push("itemFields"); },
     registerItemTypes: () => { registered.push("itemTypes"); },
     registerMigration: () => { registered.push("migration"); },
-    registerRenderer: () => { registered.push("renderer"); },
-    registerImporter: () => { registered.push("importer"); },
-    registerExporter: () => { registered.push("exporter"); },
+    registerRenderer: (format: string, renderer: (ctx: any) => unknown) => { registered.push("renderer"); renderers[format] = renderer; },
+    registerImporter: (_name: string, handler: (ctx: any) => unknown) => { registered.push("importer"); importer = handler; },
+    registerExporter: (_name: string, handler: (ctx: any) => unknown) => { registered.push("exporter"); exporter = handler; },
     registerSearchProvider: () => { registered.push("search"); },
     registerVectorStoreAdapter: () => { registered.push("vectorStore"); },
     hooks: {
@@ -54,4 +57,14 @@ test("extension registers at least one capability", () => {
   for (const cap of expected) {
     assert.ok(registered.includes(cap), `extension should register "${cap}" (got: ${JSON.stringify(registered)})`);
   }
+
+  assert.deepStrictEqual(Object.keys(commands).sort(), ["starter demo", "starter greet", "starter summary"]);
+  assert.strictEqual(commands["starter greet"].flags.length, 3);
+  assert.strictEqual(renderers.json({ result: { other: true } }), null);
+  assert.match(
+    String(renderers.toon({ result: { starter_demo: true, item_count: 1, sample: [{ id: "pm-1", status: "open", title: "Demo" }] } })),
+    /pm-starter demo/
+  );
+  assert.ok(importer, "starter importer should be captured");
+  assert.ok(exporter, "starter exporter should be captured");
 });
