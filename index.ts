@@ -512,7 +512,7 @@ function setupFlags(api: any): void {
 
 export default defineExtension({
   name: "pm-starter",
-  version: "2026.6.4",
+  version: "2026.6.7",
 
   activate(api: any) {
     // Register every capability group. Each helper is defensive enough to be
