@@ -473,7 +473,7 @@ function setupFlags(api) {
 // ---------------------------------------------------------------------------
 export default defineExtension({
     name: "pm-starter",
-    version: "2026.6.7",
+    version: "2026.6.8",
     activate(api) {
         // Register every capability group. Each helper is defensive enough to be
         // safely deleted when you fork this scaffold for a real extension.
