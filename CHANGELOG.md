@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Other
+
+- Daily Release publish step runs prepublishOnly post-tag: align npm publish with --ignore-scripts ([pm-starter-5wig](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/tasks/pm-starter-5wig.toon))
+
 ## 2026.06.07 - 2026-06-07
 
 ### Other
