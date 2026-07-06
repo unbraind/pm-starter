@@ -58,8 +58,12 @@ test("extension registers at least one capability", () => {
     assert.ok(registered.includes(cap), `extension should register "${cap}" (got: ${JSON.stringify(registered)})`);
   }
 
-  assert.deepStrictEqual(Object.keys(commands).sort(), ["starter demo", "starter greet", "starter summary"]);
+  assert.deepStrictEqual(Object.keys(commands).sort(), ["starter context", "starter demo", "starter greet", "starter plan", "starter search", "starter setup", "starter summary"]);
   assert.strictEqual(commands["starter greet"].flags.length, 3);
+  assert.ok(commands["starter plan"].failure_hints && commands["starter plan"].failure_hints.length > 0, "starter plan should have failure_hints");
+  assert.ok(commands["starter search"].arguments && commands["starter search"].arguments.length > 0, "starter search should declare arguments");
+  assert.strictEqual(commands["starter setup"].flags.length, 3);
+  assert.ok(commands["starter summary"].failure_hints && commands["starter summary"].failure_hints.length > 0, "starter summary should have failure_hints");
   assert.strictEqual(renderers.json({ result: { other: true } }), null);
   assert.match(
     String(renderers.toon({ result: { starter_demo: true, item_count: 1, sample: [{ id: "pm-1", status: "open", title: "Demo" }] } })),
@@ -67,4 +71,108 @@ test("extension registers at least one capability", () => {
   );
   assert.ok(importer, "starter importer should be captured");
   assert.ok(exporter, "starter exporter should be captured");
+});
+
+test("starter plan throws USAGE error when no id is provided", async () => {
+  const commands: Record<string, any> = {};
+  const api = {
+    registerCommand: (command: any) => { commands[command.name] = command; },
+    registerParser: () => {},
+    registerPreflight: () => {},
+    registerService: () => {},
+    registerFlags: () => {},
+    registerItemFields: () => {},
+    registerItemTypes: () => {},
+    registerMigration: () => {},
+    registerRenderer: () => {},
+    registerImporter: () => {},
+    registerExporter: () => {},
+    registerSearchProvider: () => {},
+    registerVectorStoreAdapter: () => {},
+    hooks: { beforeCommand: () => {}, afterCommand: () => {}, onWrite: () => {}, onRead: () => {}, onIndex: () => {} },
+  };
+  extension.activate(api as any);
+
+  // No ID provided -> should throw CommandError with exitCode USAGE (2)
+  await assert.rejects(
+    async () => commands["starter plan"].run({ args: [], options: {}, pm_root: "." }),
+    (err: any) => err.exitCode === 2,
+  );
+});
+
+test("starter search throws USAGE error when no keywords are provided", async () => {
+  const commands: Record<string, any> = {};
+  const api = {
+    registerCommand: (command: any) => { commands[command.name] = command; },
+    registerParser: () => {},
+    registerPreflight: () => {},
+    registerService: () => {},
+    registerFlags: () => {},
+    registerItemFields: () => {},
+    registerItemTypes: () => {},
+    registerMigration: () => {},
+    registerRenderer: () => {},
+    registerImporter: () => {},
+    registerExporter: () => {},
+    registerSearchProvider: () => {},
+    registerVectorStoreAdapter: () => {},
+    hooks: { beforeCommand: () => {}, afterCommand: () => {}, onWrite: () => {}, onRead: () => {}, onIndex: () => {} },
+  };
+  extension.activate(api as any);
+
+  await assert.rejects(
+    async () => commands["starter search"].run({ args: [], options: {}, pm_root: "." }),
+    (err: any) => err.exitCode === 2,
+  );
+});
+
+test("starter setup throws USAGE error when --name is missing in non-interactive mode", async () => {
+  const commands: Record<string, any> = {};
+  const api = {
+    registerCommand: (command: any) => { commands[command.name] = command; },
+    registerParser: () => {},
+    registerPreflight: () => {},
+    registerService: () => {},
+    registerFlags: () => {},
+    registerItemFields: () => {},
+    registerItemTypes: () => {},
+    registerMigration: () => {},
+    registerRenderer: () => {},
+    registerImporter: () => {},
+    registerExporter: () => {},
+    registerSearchProvider: () => {},
+    registerVectorStoreAdapter: () => {},
+    hooks: { beforeCommand: () => {}, afterCommand: () => {}, onWrite: () => {}, onRead: () => {}, onIndex: () => {} },
+  };
+  extension.activate(api as any);
+
+  await assert.rejects(
+    async () => commands["starter setup"].run({ args: [], options: {}, pm_root: "." }),
+    (err: any) => err.exitCode === 2,
+  );
+});
+
+test("starter setup interactive mode returns guided steps", async () => {
+  const commands: Record<string, any> = {};
+  const api = {
+    registerCommand: (command: any) => { commands[command.name] = command; },
+    registerParser: () => {},
+    registerPreflight: () => {},
+    registerService: () => {},
+    registerFlags: () => {},
+    registerItemFields: () => {},
+    registerItemTypes: () => {},
+    registerMigration: () => {},
+    registerRenderer: () => {},
+    registerImporter: () => {},
+    registerExporter: () => {},
+    registerSearchProvider: () => {},
+    registerVectorStoreAdapter: () => {},
+    hooks: { beforeCommand: () => {}, afterCommand: () => {}, onWrite: () => {}, onRead: () => {}, onIndex: () => {} },
+  };
+  extension.activate(api as any);
+
+  const result = await commands["starter setup"].run({ args: [], options: { interactive: true }, pm_root: "." });
+  assert.strictEqual(result.interactive, true);
+  assert.ok(result.steps.includes("scaffold"));
 });

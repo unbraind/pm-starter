@@ -29,12 +29,18 @@
 //   registerService            setupServices          "services"
 //   registerFlags              setupFlags             "commands"
 //
+// NEW in 2026.7.6 SDK: the `failure_hints` field on command definitions surfaces
+// actionable hints when a command fails; the `--interactive` flag pattern shown
+// below demonstrates guided setup; and the new `starter plan`, `starter
+// context`, and `starter search` demo commands showcase pm's core plan
+// workflow, context snapshot, and search capabilities respectively.
+//
 // NOTE on naming / collisions: `registerImporter("starter-demo")` auto-creates
 // the command path `pm starter-demo import`, and `registerExporter("starter-demo")`
 // creates `pm starter-demo export`. We therefore namespace our human-facing
-// commands under `pm starter ...` (greet/summary/demo) so they never collide
-// with the importer/exporter command paths under `pm starter-demo ...`.
-// `pm extension doctor` reports 0 collisions as a result.
+// commands under `pm starter ...` (greet/summary/demo/plan/context/search)
+// so they never collide with the importer/exporter command paths under
+// `pm starter-demo ...`. `pm extension doctor` reports 0 collisions as a result.
 //
 // ---------------------------------------------------------------------------
 import { spawnSync } from "node:child_process";
@@ -60,6 +66,9 @@ export const EXIT_CODE = {
     USAGE: 2,
     NOT_FOUND: 3,
 };
+// NOTE: NOT_FOUND is used by `starter plan` when a plan ID does not exist,
+// and USAGE is used by `starter plan`, `starter search`, and `starter setup`
+// when required arguments are missing.
 export class CommandError extends Error {
     exitCode;
     constructor(message, exitCode = EXIT_CODE.GENERIC_FAILURE) {
@@ -148,11 +157,17 @@ function setupCommands(api) {
         },
     });
     // DEMO: registerCommand — a command that calls back into `pm` (read-only).
+    // Uses `failure_hints` (SDK 2026.7.6+) to surface actionable guidance when the
+    // command exits non-zero.
     api.registerCommand({
         name: "starter summary",
         description: "Show a quick workspace summary using `pm stats`.",
         intent: "demonstrate calling pm from an extension",
         examples: ["pm starter summary", "pm starter summary --verbose"],
+        failure_hints: [
+            "Ensure the workspace is initialized: run `pm init` first.",
+            "Verify the tracker path is correct with `pm --path <dir> stats`.",
+        ],
         flags: [
             { long: "--verbose", description: "Include a per-type breakdown", type: "boolean" },
         ],
@@ -163,14 +178,18 @@ function setupCommands(api) {
             if (result.status !== 0) {
                 // Throw a CommandError (carrying an exitCode) so the CLI exits non-zero
                 // exactly ONCE rather than re-invoking this handler.
-                throw new CommandError("`pm stats` failed", EXIT_CODE.GENERIC_FAILURE);
+                const stderr = result.stderr?.trim() || result.stdout?.trim() || "";
+                const hint = stderr ? ` (${stderr.split("\n")[0]})` : "";
+                throw new CommandError(`pm starter summary: \`pm stats --json\` failed${hint}. ` +
+                    "Run `pm init` to initialize the workspace, or check `pm --path <dir> stats`.", EXIT_CODE.GENERIC_FAILURE);
             }
             let stats;
             try {
                 stats = JSON.parse(result.stdout);
             }
             catch {
-                throw new CommandError("Could not parse `pm stats --json` output.");
+                throw new CommandError("pm starter summary: could not parse `pm stats --json` output. " +
+                    "The pm CLI may be an incompatible version; check `pm --version`.");
             }
             const total = stats.totals?.items ?? 0;
             const byStatus = stats.by_status ?? {};
@@ -198,6 +217,9 @@ function setupCommands(api) {
         description: "Emit a small structured result that the starter renderer reshapes.",
         intent: "demonstrate a command result flowing through a custom renderer",
         examples: ["pm starter demo", "pm starter demo --json"],
+        failure_hints: [
+            "The demo reads items via `pm list-all --json`; ensure the workspace is initialized.",
+        ],
         async run(ctx) {
             const items = readPmItems(ctx.pm_root);
             // Return a small, predictable shape the renderer override can recognize.
@@ -206,6 +228,278 @@ function setupCommands(api) {
                 item_count: items.length,
                 sample: items.slice(0, 3).map((i) => ({ id: i.id, title: i.title, status: i.status })),
             };
+        },
+    });
+    // DEMO: registerCommand — plan workflow command.
+    // Calls `pm plan show <id> --json` to demonstrate integration with pm's
+    // agent-optimized plan workflow (create, steps, dependencies, approve,
+    // materialize). The command is read-only: it fetches a plan and prints a
+    // compact summary.
+    api.registerCommand({
+        name: "starter plan",
+        description: "Show a plan item and its steps using `pm plan show`.",
+        intent: "demonstrate integration with pm's plan workflow",
+        examples: [
+            "pm starter plan pm-cli-website-6t9b",
+            "pm starter plan pm-cli-website-6t9b --steps",
+            "pm starter plan pm-cli-website-6t9b --json",
+        ],
+        failure_hints: [
+            "Provide a valid plan item ID: pm starter plan <id>.",
+            "Create a plan first with: pm plan create --title \"My plan\".",
+            "The item must be of type Plan; check with: pm get <id>.",
+        ],
+        arguments: [
+            { name: "id", required: true, description: "Plan item ID to inspect" },
+        ],
+        flags: [
+            { long: "--steps", description: "Include a per-step breakdown", type: "boolean" },
+        ],
+        async run(ctx) {
+            const planId = ctx.args?.[0] || optionString(ctx.options, "id");
+            if (!planId) {
+                throw new CommandError("pm starter plan: a plan item ID is required.\n" +
+                    "  Usage: pm starter plan <id>\n" +
+                    "  Example: pm starter plan pm-cli-website-6t9b\n" +
+                    "  Tip: create a plan with `pm plan create --title \"My plan\"`.", EXIT_CODE.USAGE);
+            }
+            const result = spawnSync("pm", ["--path", ctx.pm_root, "plan", "show", planId, "--json"], { encoding: "utf-8" });
+            if (result.status !== 0) {
+                const stderr = result.stderr?.trim() || "";
+                const detail = stderr ? `: ${stderr.split("\n")[0]}` : "";
+                throw new CommandError(`pm starter plan: \`pm plan show ${planId}\` failed${detail}. ` +
+                    "Verify the ID is a Plan item: `pm get ${planId}`.", EXIT_CODE.NOT_FOUND);
+            }
+            let plan;
+            try {
+                plan = JSON.parse(result.stdout);
+            }
+            catch {
+                throw new CommandError(`pm starter plan: could not parse plan output for ${planId}.`);
+            }
+            const title = plan.title ?? plan.metadata?.title ?? planId;
+            const mode = plan.mode ?? plan.metadata?.mode ?? "?";
+            const steps = plan.steps ?? plan.metadata?.steps ?? [];
+            console.error(`\n  Plan: ${title} (${planId})`);
+            console.error(`  Mode: ${mode}`);
+            console.error(`  Steps: ${steps.length}`);
+            if (optionEnabled(ctx.options, "steps") && steps.length > 0) {
+                console.error(`\n  Step breakdown:`);
+                for (const step of steps) {
+                    const done = step.status === "completed" || step.completed ? "[x]" : "[ ]";
+                    console.error(`    ${done} ${step.order ?? "?"}. ${step.title ?? step.id}`);
+                }
+            }
+            return { plan_id: planId, title, mode, step_count: steps.length, steps };
+        },
+    });
+    // DEMO: registerCommand — context snapshot command.
+    // Calls `pm context --json` to demonstrate integration with pm's token-efficient
+    // project context snapshot, which aggregates focus items, agenda, activity,
+    // and next-work recommendations.
+    api.registerCommand({
+        name: "starter context",
+        description: "Show a compact project context snapshot via `pm context`.",
+        intent: "demonstrate integration with pm's context snapshot",
+        examples: [
+            "pm starter context",
+            "pm starter context --depth deep",
+            "pm starter context --format json",
+        ],
+        failure_hints: [
+            "Ensure the workspace is initialized: run `pm init` first.",
+            "Context requires at least one item; create one with `pm create`.",
+        ],
+        flags: [
+            { long: "--depth", value_name: "level", description: "Context depth: brief|standard|deep|full", type: "string" },
+        ],
+        async run(ctx) {
+            const depth = optionString(ctx.options, "depth");
+            const pmArgs = ["--path", ctx.pm_root, "context", "--json"];
+            if (depth)
+                pmArgs.push("--depth", depth);
+            const result = spawnSync("pm", pmArgs, { encoding: "utf-8" });
+            if (result.status !== 0) {
+                const stderr = result.stderr?.trim() || "";
+                const detail = stderr ? `: ${stderr.split("\n")[0]}` : "";
+                throw new CommandError(`pm starter context: \`pm context\` failed${detail}. ` +
+                    "Run `pm init` to initialize the workspace.", EXIT_CODE.GENERIC_FAILURE);
+            }
+            let contextData;
+            try {
+                contextData = JSON.parse(result.stdout);
+            }
+            catch {
+                throw new CommandError("pm starter context: could not parse `pm context --json` output.");
+            }
+            // Print a compact human-readable summary.
+            const focus = contextData.focus ?? contextData.project_focus ?? [];
+            const agenda = contextData.agenda ?? [];
+            const activity = contextData.activity ?? [];
+            console.error(`\n  Context Snapshot`);
+            console.error(`  ================`);
+            console.error(`  Focus items: ${Array.isArray(focus) ? focus.length : 0}`);
+            console.error(`  Agenda entries: ${Array.isArray(agenda) ? agenda.length : 0}`);
+            console.error(`  Activity entries: ${Array.isArray(activity) ? activity.length : 0}`);
+            if (Array.isArray(focus) && focus.length > 0) {
+                console.error(`\n  Focus:`);
+                for (const item of focus.slice(0, 5)) {
+                    console.error(`    ${item.id ?? "?"}  ${item.title ?? "(untitled)"}  [${item.status ?? "?"}]`);
+                }
+            }
+            return contextData;
+        },
+    });
+    // DEMO: registerCommand — search command.
+    // Calls `pm search --json` to demonstrate integration with pm's keyword,
+    // semantic, or hybrid search.
+    api.registerCommand({
+        name: "starter search",
+        description: "Search items via `pm search` and show compact results.",
+        intent: "demonstrate integration with pm's search capabilities",
+        examples: [
+            "pm starter search authentication",
+            "pm starter search \"bug fix\" --mode hybrid",
+            "pm starter search --mode semantic deployment",
+            "pm starter search \"release\" --json",
+        ],
+        failure_hints: [
+            "Provide search keywords: pm starter search <keywords...>.",
+            "Valid modes: keyword (default), semantic, hybrid.",
+            "Ensure items exist in the workspace; create one with `pm create`.",
+        ],
+        arguments: [
+            { name: "keywords", required: true, variadic: true, description: "Keyword query tokens" },
+        ],
+        flags: [
+            { long: "--mode", value_name: "mode", description: "Search mode: keyword|semantic|hybrid (default: keyword)", type: "string" },
+            { long: "--limit", value_name: "n", description: "Max results to display (default: 10)", type: "number" },
+        ],
+        async run(ctx) {
+            const keywords = ctx.args ?? [];
+            if (keywords.length === 0) {
+                throw new CommandError("pm starter search: at least one keyword is required.\n" +
+                    "  Usage: pm starter search <keywords...>\n" +
+                    "  Example: pm starter search authentication\n" +
+                    "  Modes: --mode keyword|semantic|hybrid", EXIT_CODE.USAGE);
+            }
+            const mode = optionString(ctx.options, "mode");
+            const limitRaw = optionString(ctx.options, "limit");
+            const limit = limitRaw ? parseInt(limitRaw, 10) || 10 : 10;
+            const pmArgs = ["--path", ctx.pm_root, "search", "--json"];
+            if (mode)
+                pmArgs.push("--mode", mode);
+            pmArgs.push("--", ...keywords);
+            const result = spawnSync("pm", pmArgs, { encoding: "utf-8" });
+            if (result.status !== 0) {
+                const stderr = result.stderr?.trim() || "";
+                const detail = stderr ? `: ${stderr.split("\n")[0]}` : "";
+                throw new CommandError(`pm starter search: \`pm search\` failed${detail}.`, EXIT_CODE.GENERIC_FAILURE);
+            }
+            let searchResult;
+            try {
+                searchResult = JSON.parse(result.stdout);
+            }
+            catch {
+                throw new CommandError("pm starter search: could not parse `pm search --json` output.");
+            }
+            const hits = searchResult.hits ?? searchResult.results ?? [];
+            console.error(`\n  Search Results (${hits.length} hit(s))`);
+            console.error(`  =======================`);
+            for (const hit of hits.slice(0, limit)) {
+                const id = hit.id ?? "?";
+                const score = typeof hit.score === "number" ? hit.score.toFixed(2) : "?";
+                const title = hit.title ?? "(untitled)";
+                console.error(`    ${id}  [${score}]  ${title}`);
+            }
+            if (hits.length === 0) {
+                console.error(`  No results. Try a different query or mode.`);
+                console.error(`  Tip: use --mode hybrid for broader retrieval.`);
+            }
+            return { query: keywords.join(" "), mode: mode || "keyword", hits, total: hits.length };
+        },
+    });
+    // DEMO: registerCommand — interactive guided setup.
+    // The --interactive flag walks the user through configuring their extension
+    // scaffold step by step. This demonstrates the guided setup pattern.
+    api.registerCommand({
+        name: "starter setup",
+        description: "Guided setup helper for scaffolding a new pm extension.",
+        intent: "demonstrate the --interactive guided-setup flag pattern",
+        examples: [
+            "pm starter setup --interactive",
+            "pm starter setup --name my-ext --capability commands",
+            "pm starter setup --name my-ext --capability commands,search,hooks",
+        ],
+        failure_hints: [
+            "Provide a name: pm starter setup --name <name>.",
+            "Use --interactive for step-by-step guided setup.",
+        ],
+        flags: [
+            { long: "--interactive", description: "Run an interactive guided setup wizard", type: "boolean" },
+            { long: "--name", value_name: "name", description: "Extension name (e.g. my-ext)", type: "string" },
+            { long: "--capability", value_name: "caps", description: "Comma-separated capabilities to scaffold (e.g. commands,search)", type: "string" },
+        ],
+        async run(ctx) {
+            const interactive = optionEnabled(ctx.options, "interactive");
+            const name = optionString(ctx.options, "name");
+            const capabilityInput = optionString(ctx.options, "capability");
+            if (interactive) {
+                // Interactive mode: emit a guided checklist the user/agent can follow.
+                console.error("\n  pm-starter Interactive Setup Wizard");
+                console.error("  ===================================");
+                console.error("");
+                console.error("  This wizard will guide you through scaffolding a new pm extension.");
+                console.error("");
+                console.error("  Step 1: Choose an extension name");
+                console.error("    pm starter setup --name <your-extension-name>");
+                console.error("");
+                console.error("  Step 2: Choose capabilities to include");
+                console.error("    Available: commands, renderers, hooks, schema, importers, search, parser, preflight, services");
+                console.error("    pm starter setup --name <name> --capability commands,search");
+                console.error("");
+                console.error("  Step 3: Scaffold your extension");
+                console.error("    1. Clone: git clone https://github.com/unbraind/pm-starter.git <name>");
+                console.error("    2. Edit manifest.json: update name, description, capabilities");
+                console.error("    3. Edit index.ts: keep only the setup* functions for your capabilities");
+                console.error("    4. Edit package.json: update name and version");
+                console.error("    5. Build: npm install && npm run build");
+                console.error("    6. Install: pm install ./<name> --project");
+                console.error("");
+                console.error("  Step 4: Verify");
+                console.error("    pm extension doctor   # check for collisions");
+                console.error("    pm <name> greet       # smoke test");
+                console.error("");
+                return { interactive: true, steps: ["name", "capability", "scaffold", "verify"] };
+            }
+            if (!name) {
+                throw new CommandError("pm starter setup: --name is required (or use --interactive for guided setup).\n" +
+                    "  Usage: pm starter setup --name <name> --capability <caps>\n" +
+                    "  Example: pm starter setup --name my-ext --capability commands,search\n" +
+                    "  Interactive: pm starter setup --interactive", EXIT_CODE.USAGE);
+            }
+            const capabilities = capabilityInput
+                ? capabilityInput.split(",").map((c) => c.trim()).filter(Boolean)
+                : ["commands"];
+            const validCaps = ["commands", "renderers", "hooks", "schema", "importers", "search", "parser", "preflight", "services"];
+            const invalid = capabilities.filter((c) => !validCaps.includes(c));
+            if (invalid.length > 0) {
+                throw new CommandError(`pm starter setup: invalid capability '${invalid[0]}'.\n` +
+                    `  Valid capabilities: ${validCaps.join(", ")}`, EXIT_CODE.USAGE);
+            }
+            console.error(`\n  Extension Scaffold Plan`);
+            console.error(`  =======================`);
+            console.error(`  Name: ${name}`);
+            console.error(`  Capabilities: ${capabilities.join(", ")}`);
+            console.error(`\n  Files to edit:`);
+            console.error(`    1. manifest.json  -> name: "${name}", capabilities: [${capabilities.map((c) => `"${c}"`).join(", ")}]`);
+            console.error(`    2. index.ts       -> keep setup* functions for: ${capabilities.join(", ")}`);
+            console.error(`    3. package.json   -> name: "${name}"`);
+            console.error(`\n  Next steps:`);
+            console.error(`    npm install && npm run build`);
+            console.error(`    pm install ./${name} --project`);
+            console.error(`    pm extension doctor`);
+            return { name, capabilities, scaffolded: false, interactive: false };
         },
     });
 }
