@@ -1,5 +1,16 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+- Fix release CI ordering (publish-before-tag) ([pm-starter-3hxr](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/tasks/pm-starter-3hxr.toon))
+
+### Other
+
+- Align Node engine with pm CLI runtime ([pm-starter-z28y](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/tasks/pm-starter-z28y.toon))
+- Regenerate CHANGELOG after pm close item ([pm-starter-4mkx](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/tasks/pm-starter-4mkx.toon))
+
 ## 2026.6.13 - 2026-06-13
 
 ### Other
