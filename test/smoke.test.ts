@@ -1,7 +1,26 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import extension from "../dist/index.js";
+import extension, { optionPositiveInteger } from "../dist/index.js";
+
+function createMockApi(commands: Record<string, any> = {}): any {
+  return {
+    registerCommand: (command: any) => { commands[command.name] = command; },
+    registerParser: () => {},
+    registerPreflight: () => {},
+    registerService: () => {},
+    registerFlags: () => {},
+    registerItemFields: () => {},
+    registerItemTypes: () => {},
+    registerMigration: () => {},
+    registerRenderer: () => {},
+    registerImporter: () => {},
+    registerExporter: () => {},
+    registerSearchProvider: () => {},
+    registerVectorStoreAdapter: () => {},
+    hooks: { beforeCommand: () => {}, afterCommand: () => {}, onWrite: () => {}, onRead: () => {}, onIndex: () => {} },
+  };
+}
 
 test("extension has required shape", () => {
   assert.ok(extension, "module should export a default value");
@@ -75,22 +94,7 @@ test("extension registers at least one capability", () => {
 
 test("starter plan throws USAGE error when no id is provided", async () => {
   const commands: Record<string, any> = {};
-  const api = {
-    registerCommand: (command: any) => { commands[command.name] = command; },
-    registerParser: () => {},
-    registerPreflight: () => {},
-    registerService: () => {},
-    registerFlags: () => {},
-    registerItemFields: () => {},
-    registerItemTypes: () => {},
-    registerMigration: () => {},
-    registerRenderer: () => {},
-    registerImporter: () => {},
-    registerExporter: () => {},
-    registerSearchProvider: () => {},
-    registerVectorStoreAdapter: () => {},
-    hooks: { beforeCommand: () => {}, afterCommand: () => {}, onWrite: () => {}, onRead: () => {}, onIndex: () => {} },
-  };
+  const api = createMockApi(commands);
   extension.activate(api as any);
 
   // No ID provided -> should throw CommandError with exitCode USAGE (2)
@@ -102,22 +106,7 @@ test("starter plan throws USAGE error when no id is provided", async () => {
 
 test("starter search throws USAGE error when no keywords are provided", async () => {
   const commands: Record<string, any> = {};
-  const api = {
-    registerCommand: (command: any) => { commands[command.name] = command; },
-    registerParser: () => {},
-    registerPreflight: () => {},
-    registerService: () => {},
-    registerFlags: () => {},
-    registerItemFields: () => {},
-    registerItemTypes: () => {},
-    registerMigration: () => {},
-    registerRenderer: () => {},
-    registerImporter: () => {},
-    registerExporter: () => {},
-    registerSearchProvider: () => {},
-    registerVectorStoreAdapter: () => {},
-    hooks: { beforeCommand: () => {}, afterCommand: () => {}, onWrite: () => {}, onRead: () => {}, onIndex: () => {} },
-  };
+  const api = createMockApi(commands);
   extension.activate(api as any);
 
   await assert.rejects(
@@ -128,22 +117,7 @@ test("starter search throws USAGE error when no keywords are provided", async ()
 
 test("starter setup throws USAGE error when --name is missing in non-interactive mode", async () => {
   const commands: Record<string, any> = {};
-  const api = {
-    registerCommand: (command: any) => { commands[command.name] = command; },
-    registerParser: () => {},
-    registerPreflight: () => {},
-    registerService: () => {},
-    registerFlags: () => {},
-    registerItemFields: () => {},
-    registerItemTypes: () => {},
-    registerMigration: () => {},
-    registerRenderer: () => {},
-    registerImporter: () => {},
-    registerExporter: () => {},
-    registerSearchProvider: () => {},
-    registerVectorStoreAdapter: () => {},
-    hooks: { beforeCommand: () => {}, afterCommand: () => {}, onWrite: () => {}, onRead: () => {}, onIndex: () => {} },
-  };
+  const api = createMockApi(commands);
   extension.activate(api as any);
 
   await assert.rejects(
@@ -154,25 +128,18 @@ test("starter setup throws USAGE error when --name is missing in non-interactive
 
 test("starter setup interactive mode returns guided steps", async () => {
   const commands: Record<string, any> = {};
-  const api = {
-    registerCommand: (command: any) => { commands[command.name] = command; },
-    registerParser: () => {},
-    registerPreflight: () => {},
-    registerService: () => {},
-    registerFlags: () => {},
-    registerItemFields: () => {},
-    registerItemTypes: () => {},
-    registerMigration: () => {},
-    registerRenderer: () => {},
-    registerImporter: () => {},
-    registerExporter: () => {},
-    registerSearchProvider: () => {},
-    registerVectorStoreAdapter: () => {},
-    hooks: { beforeCommand: () => {}, afterCommand: () => {}, onWrite: () => {}, onRead: () => {}, onIndex: () => {} },
-  };
+  const api = createMockApi(commands);
   extension.activate(api as any);
 
   const result = await commands["starter setup"].run({ args: [], options: { interactive: true }, pm_root: "." });
   assert.strictEqual(result.interactive, true);
   assert.ok(result.steps.includes("scaffold"));
+});
+
+test("positive integer options honor numeric and string SDK values", () => {
+  assert.strictEqual(optionPositiveInteger({ limit: 3 }, 10, "limit"), 3);
+  assert.strictEqual(optionPositiveInteger({ limit: "4" }, 10, "limit"), 4);
+  assert.strictEqual(optionPositiveInteger({ limit: -5 }, 10, "limit"), 10);
+  assert.strictEqual(optionPositiveInteger({ limit: "1.5" }, 10, "limit"), 10);
+  assert.strictEqual(optionPositiveInteger({ limit: "invalid" }, 10, "limit"), 10);
 });

@@ -100,6 +100,23 @@ export function optionString(options, ...keys) {
     }
     return undefined;
 }
+/** Read a positive integer option from either the SDK's numeric or string form. */
+export function optionPositiveInteger(options, fallback, ...keys) {
+    for (const k of keys) {
+        const value = options[k];
+        const parsed = typeof value === "number"
+            ? value
+            : typeof value === "string" && value.trim().length > 0
+                ? Number(value)
+                : Number.NaN;
+        if (Number.isInteger(parsed) && parsed > 0)
+            return parsed;
+    }
+    return fallback;
+}
+function isObject(value) {
+    return value !== null && typeof value === "object" && !Array.isArray(value);
+}
 /**
  * Safely read all items from the workspace by shelling out to `pm`. Returns an
  * empty array on any failure so demos never throw at activation/read time.
@@ -191,6 +208,9 @@ function setupCommands(api) {
                 throw new CommandError("pm starter summary: could not parse `pm stats --json` output. " +
                     "The pm CLI may be an incompatible version; check `pm --version`.");
             }
+            if (!isObject(stats)) {
+                throw new CommandError("pm starter summary: invalid `pm stats --json` output format.");
+            }
             const total = stats.totals?.items ?? 0;
             const byStatus = stats.by_status ?? {};
             console.error(`\n  Workspace Summary\n  =================`);
@@ -263,12 +283,12 @@ function setupCommands(api) {
                     "  Example: pm starter plan pm-cli-website-6t9b\n" +
                     "  Tip: create a plan with `pm plan create --title \"My plan\"`.", EXIT_CODE.USAGE);
             }
-            const result = spawnSync("pm", ["--path", ctx.pm_root, "plan", "show", planId, "--json"], { encoding: "utf-8" });
+            const result = spawnSync("pm", ["--path", ctx.pm_root, "plan", "show", planId, "--depth", "standard", "--json"], { encoding: "utf-8" });
             if (result.status !== 0) {
                 const stderr = result.stderr?.trim() || "";
                 const detail = stderr ? `: ${stderr.split("\n")[0]}` : "";
                 throw new CommandError(`pm starter plan: \`pm plan show ${planId}\` failed${detail}. ` +
-                    "Verify the ID is a Plan item: `pm get ${planId}`.", EXIT_CODE.NOT_FOUND);
+                    `Verify the ID is a Plan item: \`pm get ${planId}\`.`, EXIT_CODE.NOT_FOUND);
             }
             let plan;
             try {
@@ -277,9 +297,14 @@ function setupCommands(api) {
             catch {
                 throw new CommandError(`pm starter plan: could not parse plan output for ${planId}.`);
             }
-            const title = plan.title ?? plan.metadata?.title ?? planId;
-            const mode = plan.mode ?? plan.metadata?.mode ?? "?";
-            const steps = plan.steps ?? plan.metadata?.steps ?? [];
+            if (!isObject(plan)) {
+                throw new CommandError(`pm starter plan: invalid plan output format for ${planId}.`);
+            }
+            const planData = isObject(plan.plan) ? plan.plan : plan;
+            const title = planData.title ?? planData.metadata?.title ?? planId;
+            const mode = planData.mode ?? planData.metadata?.mode ?? "?";
+            const stepsValue = planData.steps ?? planData.metadata?.steps ?? [];
+            const steps = Array.isArray(stepsValue) ? stepsValue : [];
             console.error(`\n  Plan: ${title} (${planId})`);
             console.error(`  Mode: ${mode}`);
             console.error(`  Steps: ${steps.length}`);
@@ -304,7 +329,7 @@ function setupCommands(api) {
         examples: [
             "pm starter context",
             "pm starter context --depth deep",
-            "pm starter context --format json",
+            "pm starter context --json",
         ],
         failure_hints: [
             "Ensure the workspace is initialized: run `pm init` first.",
@@ -332,8 +357,11 @@ function setupCommands(api) {
             catch {
                 throw new CommandError("pm starter context: could not parse `pm context --json` output.");
             }
+            if (!isObject(contextData)) {
+                throw new CommandError("pm starter context: invalid `pm context --json` output format.");
+            }
             // Print a compact human-readable summary.
-            const focus = contextData.focus ?? contextData.project_focus ?? [];
+            const focus = contextData.focus ?? contextData.project_focus ?? contextData.low_level ?? [];
             const agenda = contextData.agenda ?? [];
             const activity = contextData.activity ?? [];
             console.error(`\n  Context Snapshot`);
@@ -384,8 +412,7 @@ function setupCommands(api) {
                     "  Modes: --mode keyword|semantic|hybrid", EXIT_CODE.USAGE);
             }
             const mode = optionString(ctx.options, "mode");
-            const limitRaw = optionString(ctx.options, "limit");
-            const limit = limitRaw ? parseInt(limitRaw, 10) || 10 : 10;
+            const limit = optionPositiveInteger(ctx.options, 10, "limit");
             const pmArgs = ["--path", ctx.pm_root, "search", "--json"];
             if (mode)
                 pmArgs.push("--mode", mode);
@@ -403,7 +430,11 @@ function setupCommands(api) {
             catch {
                 throw new CommandError("pm starter search: could not parse `pm search --json` output.");
             }
-            const hits = searchResult.hits ?? searchResult.results ?? [];
+            if (!isObject(searchResult)) {
+                throw new CommandError("pm starter search: invalid `pm search --json` output format.");
+            }
+            const hitsValue = searchResult.hits ?? searchResult.results ?? searchResult.items ?? [];
+            const hits = Array.isArray(hitsValue) ? hitsValue : [];
             console.error(`\n  Search Results (${hits.length} hit(s))`);
             console.error(`  =======================`);
             for (const hit of hits.slice(0, limit)) {
