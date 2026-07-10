@@ -1,0 +1,15 @@
+id: pm-starter-rcbt
+title: Ecosystem release readiness pass 2026-07-06
+description: "July 6, 2026 fleet readiness pass for the pm package ecosystem."
+type: Task
+status: in_progress
+priority: 1
+tags[4]: agent-audit,context-management,ecosystem,release-readiness
+created_at: "2026-07-06T15:33:34.751Z"
+updated_at: "2026-07-10T10:44:39.285Z"
+assignee: codex
+author: codex
+acceptance_criteria: Package uses current pm CLI/SDK and pm-changelog; release/check scripts pass; pm items capture decisions; no tracked secrets/private data are introduced; GitHub PR/release state is reviewed.
+comments[1]{created_at,author,text}:
+  "2026-07-10T10:44:39.284Z",codex,"PR #16 finishing pass (2026-07-10): reviewed all 13 inline bot findings from Gemini, Greptile, and Cubic. Fixed typed numeric/string --limit handling with positive-integer validation; added regression coverage for numeric 3, string 4, negative, fractional, and invalid inputs. Added controlled CommandError validation for null/non-object JSON from stats, plan, context, and search. Fixed the literal ${planId} recovery hint and the invalid context --format json example. Extracted the repeated command-test API mock.\n\nReal CLI verification used /tmp/fx-pm-starter with pm 2026.7.10. The recipe's `pm init .` initialized the workspace root while project discovery expected .agents/pm, so I additionally ran `pm init .agents/pm`; local install then activated with 0 activation failures and `timeout 20 pm --help` exited 0. Created three real tasks and a two-step plan. Functional testing exposed and fixed two further current-CLI response-shape bugs: search uses `items`, and plan show nests data under `plan` and requires `--depth standard` for steps. After reinstall: `pm starter search authentication --limit 1` reported 2 hits but printed exactly one row; `pm starter plan pm-jtgx --steps` showed title \"Verification plan\", mode draft, and both Inspect/Report steps; context showed 4 focus items; summary showed 4 total items. Malformed `pm starter search` exited 2 without a stack trace; invalid plan ID exited 3 once and the recovery hint contained the actual ID. Negative --limit safely fell back to 10 and exited 0.\n\nCompared unchanged defaults against a built origin/main worktree using cloned tracker data: `pm starter greet` and `pm starter demo --json` both had byte-identical output (diff exit 0). Final build and test passed 7/7; changelog full regeneration produced no diff and changelog:check passed. Decisions: all inline findings were valid; null payloads are rejected rather than silently treated as empty, while an invalid/non-positive limit falls back to the documented default 10.\n"
+body: "Track the July 6, 2026 fleet pass: align package metadata with latest pm CLI/SDK and pm-changelog, verify daily release automation, run build/test/audit/package checks with real workspace data where practical, inspect GitHub state, and record privacy/history findings without changing pm-cli itself."
