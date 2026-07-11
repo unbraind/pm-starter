@@ -1,6 +1,6 @@
 {
   "name": "pm-starter",
-  "version": "2026.7.10",
+  "version": "2026.7.11",
   "description": "Complete scaffold showing all 9 capability types: commands, renderers, hooks, schema, importers, search, parser, preflight, services. Includes plan workflow, context, and search integration examples plus guided setup. Use as a starting template for new extensions.",
   "author": "@unbraind",
   "entry": "./dist/index.js",
