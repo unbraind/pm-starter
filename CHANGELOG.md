@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- Hands-on functional test pass 2026-05-29 (real data) ([pm-starter-yly8](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/features/pm-starter-yly8.toon))
+
+### Other
+
+- Harden release bun-verify so registry-mirror lag cannot block the GitHub release ([pm-starter-p9ez](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/chores/pm-starter-p9ez.toon))
+
 ## 2026.7.6 - 2026-07-06
 
 ### Fixed
