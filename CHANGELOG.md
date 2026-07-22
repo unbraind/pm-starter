@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Other
+
+- Adopt pm field-aware merge driver for multi-agent branch-merge safety ([pm-starter-ey52](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/chores/pm-starter-ey52.toon))
+
 ## 2026.7.19 - 2026-07-19
 
 ### Added
