@@ -17,11 +17,6 @@ export declare function optionEnabled(options: Record<string, unknown>, ...keys:
 export declare function optionString(options: Record<string, unknown>, ...keys: string[]): string | undefined;
 /** Read a positive integer option from either the SDK's numeric or string form. */
 export declare function optionPositiveInteger(options: Record<string, unknown>, fallback: number, ...keys: string[]): number;
-/**
- * Safely read all items from the workspace by shelling out to `pm`. Returns an
- * empty array on any failure so demos never throw at activation/read time.
- * This is the SAFE read pattern every demo reuses.
- */
 export declare function readPmItems(pmRoot: string): Array<Record<string, any>>;
 declare const _default: {
     name: string;

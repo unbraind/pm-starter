@@ -122,8 +122,32 @@ function isObject(value) {
  * empty array on any failure so demos never throw at activation/read time.
  * This is the SAFE read pattern every demo reuses.
  */
+// Node's spawnSync defaults to a 1 MiB stdout cap, which a mature tracker's JSON
+// dump passes at a few hundred items. Past that the child is killed with ENOBUFS,
+// status null and EMPTY stderr, so the failure surfaces with nothing to diagnose
+// (and at larger sizes stdout is genuinely truncated mid-document).
+// 64 MiB matches the cap the sibling pm packages settled on.
+const PM_JSON_MAX_BUFFER = 64 * 1024 * 1024;
+/** Name the real cause of a failed `pm` read. A stdout overrun kills the child
+ * with `status: null` and EMPTY stderr, so without this the failure surfaces as
+ * an unexplained error (or, worse, as an empty result set). */
+function describePmReadFailure(error) {
+    const code = error.code;
+    if (code === "ENOBUFS") {
+        return `pm output exceeded the ${PM_JSON_MAX_BUFFER} byte read buffer. `
+            + "The workspace is larger than this integration's read limit; narrow the "
+            + "operation or raise PM_JSON_MAX_BUFFER.";
+    }
+    return `pm read failed: ${error.message}`;
+}
 export function readPmItems(pmRoot) {
-    const result = spawnSync("pm", ["--path", pmRoot, "list-all", "--json", "--include-body"], { encoding: "utf-8" });
+    const result = spawnSync("pm", ["--path", pmRoot, "list-all", "--json", "--include-body"], { encoding: "utf-8", maxBuffer: PM_JSON_MAX_BUFFER });
+    // Keep the never-throw contract, but do not let a read failure masquerade as an
+    // empty workspace — a silent [] here reads as "no items" to every demo.
+    if (result.error) {
+        console.error(`pm-starter: could not read pm items — ${describePmReadFailure(result.error)}`);
+        return [];
+    }
     if (result.status !== 0)
         return [];
     try {
