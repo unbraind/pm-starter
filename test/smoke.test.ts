@@ -143,3 +143,88 @@ test("positive integer options honor numeric and string SDK values", () => {
   assert.strictEqual(optionPositiveInteger({ limit: "1.5" }, 10, "limit"), 10);
   assert.strictEqual(optionPositiveInteger({ limit: "invalid" }, 10, "limit"), 10);
 });
+
+// --- pm read buffer -----------------------------------------------------------
+// The 64 MiB cap and its ENOBUFS diagnostic are a failure *contract*: a read that
+// outgrows the buffer must not be reported as an empty workspace. The cap is env
+// configurable, which makes the branch testable for real — no spawnSync mocking.
+
+test("readPmItems honors PM_JSON_MAX_BUFFER and reports an overrun instead of returning a silent empty array", async (t) => {
+  const { mkdtempSync, rmSync } = await import("node:fs");
+  const { tmpdir } = await import("node:os");
+  const { join } = await import("node:path");
+  const { execFileSync } = await import("node:child_process");
+  const { readPmItems } = await import("../dist/index.js");
+
+  const dir = mkdtempSync(join(tmpdir(), "pm-starter-buffer-"));
+  t.after(() => rmSync(dir, { recursive: true, force: true }));
+
+  const pmRoot = join(dir, ".agents", "pm");
+  try {
+    execFileSync("pm", ["init", "--pm-path", pmRoot], { cwd: dir, stdio: "ignore" });
+    execFileSync("pm", ["create", "--pm-path", pmRoot, "--type", "issue", "--title", "Buffer probe item", "--author", "test"], { cwd: dir, stdio: "ignore" });
+  } catch {
+    t.skip("pm CLI unavailable");
+    return;
+  }
+
+  // Sanity: the default cap reads the workspace.
+  assert.ok(readPmItems(pmRoot).length >= 1, "default cap should read the item");
+
+  const messages: string[] = [];
+  const originalError = console.error;
+  const originalCap = process.env.PM_JSON_MAX_BUFFER;
+  console.error = (...values: unknown[]) => messages.push(values.join(" "));
+  // 64 bytes cannot hold any item payload, so the read overruns deterministically.
+  process.env.PM_JSON_MAX_BUFFER = "64";
+  try {
+    const items = readPmItems(pmRoot);
+    assert.deepEqual(items, [], "the never-throw contract must still hold");
+    assert.ok(
+      messages.some((message) => /read buffer/.test(message)),
+      `overrun must be reported, not silent; saw: ${messages.join(" | ")}`
+    );
+  } finally {
+    console.error = originalError;
+    if (originalCap === undefined) delete process.env.PM_JSON_MAX_BUFFER;
+    else process.env.PM_JSON_MAX_BUFFER = originalCap;
+  }
+});
+
+test("a malformed PM_JSON_MAX_BUFFER falls back to the default instead of imposing a tiny cap", async (t) => {
+  // parseInt("64MiB") === 64 would have imposed a 64-BYTE cap and broken every
+  // ordinary read while appearing to honor the documented fallback.
+  const { mkdtempSync, rmSync } = await import("node:fs");
+  const { tmpdir } = await import("node:os");
+  const { join } = await import("node:path");
+  const { execFileSync } = await import("node:child_process");
+  const { readPmItems } = await import("../dist/index.js");
+
+  const dir = mkdtempSync(join(tmpdir(), "pm-starter-badcap-"));
+  t.after(() => rmSync(dir, { recursive: true, force: true }));
+  const pmRoot = join(dir, ".agents", "pm");
+  try {
+    execFileSync("pm", ["init", "--pm-path", pmRoot], { cwd: dir, stdio: "ignore" });
+    execFileSync("pm", ["create", "--pm-path", pmRoot, "--type", "issue", "--title", "Fallback probe item", "--author", "test"], { cwd: dir, stdio: "ignore" });
+  } catch {
+    t.skip("pm CLI unavailable");
+    return;
+  }
+
+  const originalCap = process.env.PM_JSON_MAX_BUFFER;
+  try {
+    for (const malformed of ["64MiB", "64 MB", "abc", "-1", "0", "6.5", ""]) {
+      process.env.PM_JSON_MAX_BUFFER = malformed;
+      assert.ok(
+        readPmItems(pmRoot).length >= 1,
+        `PM_JSON_MAX_BUFFER=${JSON.stringify(malformed)} must fall back to the default, not cap the read`
+      );
+    }
+    // A valid explicit value is still honored.
+    process.env.PM_JSON_MAX_BUFFER = String(32 * 1024 * 1024);
+    assert.ok(readPmItems(pmRoot).length >= 1, "a valid explicit cap should still read the workspace");
+  } finally {
+    if (originalCap === undefined) delete process.env.PM_JSON_MAX_BUFFER;
+    else process.env.PM_JSON_MAX_BUFFER = originalCap;
+  }
+});
