@@ -142,8 +142,11 @@ function isObject(value: unknown): value is Record<string, any> {
  * without an import-order dependency. Invalid or non-positive values fall back to
  * the default rather than silently disabling the guard. */
 function pmJsonMaxBuffer(): number {
-  const raw = Number.parseInt(process.env.PM_JSON_MAX_BUFFER ?? "", 10);
-  return Number.isFinite(raw) && raw > 0 ? raw : 64 * 1024 * 1024;
+  // Number(), not parseInt(): parseInt("64MiB") silently yields 64, which would
+  // impose a 64-BYTE cap and break every ordinary read while appearing to honor
+  // the documented invalid-value fallback. Number() rejects the whole string.
+  const raw = Number(process.env.PM_JSON_MAX_BUFFER);
+  return Number.isSafeInteger(raw) && raw > 0 ? raw : 64 * 1024 * 1024;
 }
 
 /** Name the real cause of a failed `pm` read. A stdout overrun kills the child
@@ -152,9 +155,10 @@ function pmJsonMaxBuffer(): number {
 function describePmReadFailure(error: Error, limitBytes: number): string {
   const code = (error as NodeJS.ErrnoException).code;
   if (code === "ENOBUFS") {
+    // This read is always the full workspace, so "narrow the operation" would be a
+    // dead instruction here — name only the lever the reader actually has.
     return `pm output exceeded the ${limitBytes} byte read buffer. `
-      + "The workspace is larger than this integration's read limit; narrow the "
-      + "operation or raise PM_JSON_MAX_BUFFER.";
+      + "Raise PM_JSON_MAX_BUFFER (in bytes) to increase the read limit for this workspace.";
   }
   return `pm read failed: ${error.message}`;
 }
