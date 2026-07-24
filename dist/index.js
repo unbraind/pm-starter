@@ -117,17 +117,19 @@ export function optionPositiveInteger(options, fallback, ...keys) {
 function isObject(value) {
     return value !== null && typeof value === "object" && !Array.isArray(value);
 }
-/**
- * Safely read all items from the workspace by shelling out to `pm`. Returns an
- * empty array on any failure so demos never throw at activation/read time.
- * This is the SAFE read pattern every demo reuses.
- */
 // Node's spawnSync defaults to a 1 MiB stdout cap, which a mature tracker's JSON
 // dump passes at a few hundred items. Past that the child is killed with ENOBUFS,
 // status null and EMPTY stderr, so the failure surfaces with nothing to diagnose
 // (and at larger sizes stdout is genuinely truncated mid-document).
 // 64 MiB matches the cap the sibling pm packages settled on.
-const PM_JSON_MAX_BUFFER = 64 * 1024 * 1024;
+const PM_JSON_MAX_BUFFER = resolvePmJsonMaxBuffer();
+/** 64 MiB by default; override with the `PM_JSON_MAX_BUFFER` env var (bytes) for
+ * workspaces larger than that. Invalid or non-positive values fall back to the
+ * default rather than silently disabling the guard. */
+function resolvePmJsonMaxBuffer() {
+    const raw = Number.parseInt(process.env.PM_JSON_MAX_BUFFER ?? "", 10);
+    return Number.isFinite(raw) && raw > 0 ? raw : 64 * 1024 * 1024;
+}
 /** Name the real cause of a failed `pm` read. A stdout overrun kills the child
  * with `status: null` and EMPTY stderr, so without this the failure surfaces as
  * an unexplained error (or, worse, as an empty result set). */
@@ -140,6 +142,11 @@ function describePmReadFailure(error) {
     }
     return `pm read failed: ${error.message}`;
 }
+/**
+ * Safely read all items from the workspace by shelling out to `pm`. Returns an
+ * empty array on any failure so demos never throw at activation/read time.
+ * This is the SAFE read pattern every demo reuses.
+ */
 export function readPmItems(pmRoot) {
     const result = spawnSync("pm", ["--path", pmRoot, "list-all", "--json", "--include-body"], { encoding: "utf-8", maxBuffer: PM_JSON_MAX_BUFFER });
     // Keep the never-throw contract, but do not let a read failure masquerade as an
@@ -148,8 +155,13 @@ export function readPmItems(pmRoot) {
         console.error(`pm-starter: could not read pm items — ${describePmReadFailure(result.error)}`);
         return [];
     }
-    if (result.status !== 0)
+    // Same reasoning for a genuine nonzero exit: an empty array is indistinguishable
+    // from an empty workspace, so report stderr rather than discarding it.
+    if (result.status !== 0) {
+        console.error(`pm-starter: could not read pm items (pm exited ${result.status}) — `
+            + (result.stderr?.trim() || "no stderr output"));
         return [];
+    }
     try {
         const parsed = JSON.parse(result.stdout);
         if (Array.isArray(parsed))
