@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Other
+
+- Enable governance duplicate-detection advisory mode and adopt pm-cli 2026.7.25 ([pm-starter-tfh8](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/chores/pm-starter-tfh8.toon))
+
 ## 2026.7.25 - 2026-07-25
 
 ### Fixed
