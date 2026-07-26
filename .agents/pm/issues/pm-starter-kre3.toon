@@ -1,0 +1,18 @@
+id: pm-starter-kre3
+title: "Starter template used any throughout, hiding three wrong SDK contracts and three unguarded pm reads"
+description: ""
+type: Issue
+status: closed
+priority: 1
+tags: []
+created_at: "2026-07-26T00:11:47.285Z"
+updated_at: "2026-07-26T00:11:48.996Z"
+closed_at: "2026-07-26T00:11:48.995Z"
+author: claude
+notes[4]{created_at,author,text}:
+  "2026-07-26T00:11:47.635Z",claude,"Same defect family as pm-ts-starter-v5gs; both starter templates carried it, so a package copied from either inherited the wrong contracts. Typing api/ctx against the real SDK types surfaced all of it."
+  "2026-07-26T00:11:48.007Z",claude,"CONTRACTS: (1) search provider returned { results, query } - the contract is SearchProviderHit[] | { hits } and a hit is { id, score }, so every caller got zero hits; (2) vector store query returned { results: [...] } where the contract is a bare VectorStoreQueryHit[]; (3) the onIndex hook logged ctx.count/ctx.path, neither of which exists on OnIndexHookContext (it has mode and total_items)."
+  "2026-07-26T00:11:48.331Z",claude,"READS: three spawnSync calls (stats, plan show, search) passed no maxBuffer and so inherited Nodes 1 MiB default. readPmItems already used the pmJsonMaxBuffer guard; the other three did not, and an overrun there kills the child with status null and EMPTY stderr. All now use the same guard."
+  "2026-07-26T00:11:48.637Z",claude,"The any was also hiding in isObject, which narrowed to Record<string, any> - so every guarded access re-entered any. Narrowed to Record<string, unknown> and added readPath/readString so untrusted pm --json output is walked rather than asserted; that matters because the shape depends on whichever pm build the user has installed. Renderer output verified byte-identical through the SDK harness, including the non-ours passthrough."
+close_reason: Typed against real SDK contracts; three contract defects and three unguarded reads fixed
+body: ""

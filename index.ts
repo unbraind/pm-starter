@@ -46,7 +46,25 @@
 
 import { spawnSync } from "node:child_process";
 
-import type { defineExtension as defineExtensionType } from "@unbrained/pm-cli/sdk";
+import type {
+  AfterCommandHookContext,
+  BeforeCommandHookContext,
+  CommandHandlerContext,
+  ExtensionApi,
+  ImportExportContext,
+  OnIndexHookContext,
+  OnReadHookContext,
+  OnWriteHookContext,
+  PreflightOverrideContext,
+  ParserOverrideContext,
+  RendererOverrideContext,
+  SearchProviderQueryContext,
+  ServiceOverrideContext,
+  SchemaMigrationRunContext,
+  VectorStoreQueryContext,
+  VectorStoreUpsertContext,
+  defineExtension as defineExtensionType,
+} from "@unbrained/pm-cli/sdk";
 
 // Standalone-installed extensions load ONLY their own `dist/` at runtime, so
 // `@unbrained/pm-cli` is not resolvable as a runtime value. We therefore use the
@@ -128,8 +146,31 @@ export function optionPositiveInteger(
   return fallback;
 }
 
-function isObject(value: unknown): value is Record<string, any> {
+function isObject(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+
+/**
+ * Read a nested value out of already-parsed, untrusted `pm --json` output.
+ *
+ * The demos consume JSON produced by whichever pm build the user has installed,
+ * so its shape is an assumption rather than a guarantee. Walking it returns
+ * `undefined` at the first non-object hop instead of asserting a type that a
+ * different CLI version may not produce.
+ */
+function readPath(value: unknown, ...keys: string[]): unknown {
+  let current = value;
+  for (const key of keys) {
+    if (!isObject(current)) return undefined;
+    current = current[key];
+  }
+  return current;
+}
+
+/** Read a nested string, falling back when the path is absent or not a string. */
+function readString(value: unknown, keys: string[], fallback: string): string {
+  const found = readPath(value, ...keys);
+  return typeof found === "string" ? found : fallback;
 }
 
 // Node's spawnSync defaults to a 1 MiB stdout cap, which a mature tracker's JSON
@@ -168,7 +209,7 @@ function describePmReadFailure(error: Error, limitBytes: number): string {
  * empty array on any failure so demos never throw at activation/read time.
  * This is the SAFE read pattern every demo reuses.
  */
-export function readPmItems(pmRoot: string): Array<Record<string, any>> {
+export function readPmItems(pmRoot: string): Array<Record<string, unknown>> {
   const maxBuffer = pmJsonMaxBuffer();
   const result = spawnSync(
     "pm",
@@ -207,7 +248,7 @@ export function readPmItems(pmRoot: string): Array<Record<string, any>> {
 // `greet` and `summary` are kept for backward compatibility.
 // ---------------------------------------------------------------------------
 
-function setupCommands(api: any): void {
+function setupCommands(api: ExtensionApi): void {
   // DEMO: registerCommand — a self-contained command with typed flags.
   // Because this command declares a `flags` array, the manifest MUST also list
   // the "schema" capability (the flag schema), in addition to "commands".
@@ -225,7 +266,7 @@ function setupCommands(api: any): void {
       { long: "--emoji", value_name: "emoji", description: "Emoji to include (default: wave)", type: "string" },
       { long: "--uppercase", description: "Uppercase the output", type: "boolean" },
     ],
-    async run(ctx: any) {
+    async run(ctx: CommandHandlerContext) {
       const name = optionString(ctx.options, "name") || "World";
       const emoji = optionString(ctx.options, "emoji") || "👋";
       const upper = optionEnabled(ctx.options, "uppercase");
@@ -252,9 +293,10 @@ function setupCommands(api: any): void {
     flags: [
       { long: "--verbose", description: "Include a per-type breakdown", type: "boolean" },
     ],
-    async run(ctx: any) {
+    async run(ctx: CommandHandlerContext) {
       const result = spawnSync("pm", ["--path", ctx.pm_root, "stats", "--json"], {
         encoding: "utf-8",
+        maxBuffer: pmJsonMaxBuffer(),
       });
       if (result.status !== 0) {
         // Throw a CommandError (carrying an exitCode) so the CLI exits non-zero
@@ -267,7 +309,7 @@ function setupCommands(api: any): void {
           EXIT_CODE.GENERIC_FAILURE,
         );
       }
-      let stats: any;
+      let stats: unknown;
       try {
         stats = JSON.parse(result.stdout);
       } catch {
@@ -279,8 +321,9 @@ function setupCommands(api: any): void {
       if (!isObject(stats)) {
         throw new CommandError("pm starter summary: invalid `pm stats --json` output format.");
       }
-      const total = stats.totals?.items ?? 0;
-      const byStatus = stats.by_status ?? {};
+      const totalValue = readPath(stats, "totals", "items");
+      const total = typeof totalValue === "number" ? totalValue : 0;
+      const byStatus = isObject(stats.by_status) ? stats.by_status : {};
       console.error(`\n  Workspace Summary\n  =================`);
       console.error(`  Total items: ${total}`);
       for (const [status, count] of Object.entries(byStatus)) {
@@ -307,7 +350,7 @@ function setupCommands(api: any): void {
     failure_hints: [
       "The demo reads items via `pm list-all --json`; ensure the workspace is initialized.",
     ],
-    async run(ctx: any) {
+    async run(ctx: CommandHandlerContext) {
       const items = readPmItems(ctx.pm_root);
       // Return a small, predictable shape the renderer override can recognize.
       return {
@@ -343,7 +386,7 @@ function setupCommands(api: any): void {
     flags: [
       { long: "--steps", description: "Include a per-step breakdown", type: "boolean" },
     ],
-    async run(ctx: any) {
+    async run(ctx: CommandHandlerContext) {
       const planId = ctx.args?.[0] || optionString(ctx.options, "id");
       if (!planId) {
         throw new CommandError(
@@ -357,7 +400,7 @@ function setupCommands(api: any): void {
       const result = spawnSync(
         "pm",
         ["--path", ctx.pm_root, "plan", "show", planId, "--depth", "standard", "--json"],
-        { encoding: "utf-8" },
+        { encoding: "utf-8", maxBuffer: pmJsonMaxBuffer() },
       );
       if (result.status !== 0) {
         const stderr = result.stderr?.trim() || "";
@@ -368,7 +411,7 @@ function setupCommands(api: any): void {
           EXIT_CODE.NOT_FOUND,
         );
       }
-      let plan: any;
+      let plan: unknown;
       try {
         plan = JSON.parse(result.stdout);
       } catch {
@@ -380,9 +423,9 @@ function setupCommands(api: any): void {
         throw new CommandError(`pm starter plan: invalid plan output format for ${planId}.`);
       }
       const planData = isObject(plan.plan) ? plan.plan : plan;
-      const title = planData.title ?? planData.metadata?.title ?? planId;
-      const mode = planData.mode ?? planData.metadata?.mode ?? "?";
-      const stepsValue = planData.steps ?? planData.metadata?.steps ?? [];
+      const title = readString(planData, ["title"], readString(planData, ["metadata", "title"], planId));
+      const mode = readString(planData, ["mode"], readString(planData, ["metadata", "mode"], "?"));
+      const stepsValue = readPath(planData, "steps") ?? readPath(planData, "metadata", "steps") ?? [];
       const steps = Array.isArray(stepsValue) ? stepsValue : [];
       console.error(`\n  Plan: ${title} (${planId})`);
       console.error(`  Mode: ${mode}`);
@@ -418,11 +461,11 @@ function setupCommands(api: any): void {
     flags: [
       { long: "--depth", value_name: "level", description: "Context depth: brief|standard|deep|full", type: "string" },
     ],
-    async run(ctx: any) {
+    async run(ctx: CommandHandlerContext) {
       const depth = optionString(ctx.options, "depth");
       const pmArgs = ["--path", ctx.pm_root, "context", "--json"];
       if (depth) pmArgs.push("--depth", depth);
-      const result = spawnSync("pm", pmArgs, { encoding: "utf-8" });
+      const result = spawnSync("pm", pmArgs, { encoding: "utf-8", maxBuffer: pmJsonMaxBuffer() });
       if (result.status !== 0) {
         const stderr = result.stderr?.trim() || "";
         const detail = stderr ? `: ${stderr.split("\n")[0]}` : "";
@@ -432,7 +475,7 @@ function setupCommands(api: any): void {
           EXIT_CODE.GENERIC_FAILURE,
         );
       }
-      let contextData: any;
+      let contextData: unknown;
       try {
         contextData = JSON.parse(result.stdout);
       } catch {
@@ -487,7 +530,7 @@ function setupCommands(api: any): void {
       { long: "--mode", value_name: "mode", description: "Search mode: keyword|semantic|hybrid (default: keyword)", type: "string" },
       { long: "--limit", value_name: "n", description: "Max results to display (default: 10)", type: "number" },
     ],
-    async run(ctx: any) {
+    async run(ctx: CommandHandlerContext) {
       const keywords = ctx.args ?? [];
       if (keywords.length === 0) {
         throw new CommandError(
@@ -503,7 +546,7 @@ function setupCommands(api: any): void {
       const pmArgs = ["--path", ctx.pm_root, "search", "--json"];
       if (mode) pmArgs.push("--mode", mode);
       pmArgs.push("--", ...keywords);
-      const result = spawnSync("pm", pmArgs, { encoding: "utf-8" });
+      const result = spawnSync("pm", pmArgs, { encoding: "utf-8", maxBuffer: pmJsonMaxBuffer() });
       if (result.status !== 0) {
         const stderr = result.stderr?.trim() || "";
         const detail = stderr ? `: ${stderr.split("\n")[0]}` : "";
@@ -512,7 +555,7 @@ function setupCommands(api: any): void {
           EXIT_CODE.GENERIC_FAILURE,
         );
       }
-      let searchResult: any;
+      let searchResult: unknown;
       try {
         searchResult = JSON.parse(result.stdout);
       } catch {
@@ -562,7 +605,7 @@ function setupCommands(api: any): void {
       { long: "--name", value_name: "name", description: "Extension name (e.g. my-ext)", type: "string" },
       { long: "--capability", value_name: "caps", description: "Comma-separated capabilities to scaffold (e.g. commands,search)", type: "string" },
     ],
-    async run(ctx: any) {
+    async run(ctx: CommandHandlerContext) {
       const interactive = optionEnabled(ctx.options, "interactive");
       const name = optionString(ctx.options, "name");
       const capabilityInput = optionString(ctx.options, "capability");
@@ -647,32 +690,34 @@ function setupCommands(api: any): void {
 // default serialization so we never break unrelated commands.
 // ---------------------------------------------------------------------------
 
-function setupRenderers(api: any): void {
+function setupRenderers(api: ExtensionApi): void {
   // DEMO: registerRenderer("json") — reshape ONLY our own `starter demo`
   // payload. A renderer override is registered per-format and is invoked for
   // EVERY command using that format, so for anything that isn't our payload we
   // return a non-string (null): pm then falls through to its native renderer
   // and no other command's output is altered. This is the safe pattern — never
   // globally hijack toon/json output from a shared extension.
-  api.registerRenderer("json", (ctx: any) => {
+  api.registerRenderer("json", (ctx: RendererOverrideContext) => {
     const result = ctx.result;
-    if (result && typeof result === "object" && (result as any).starter_demo) {
+    if (isObject(result) && result.starter_demo) {
       return JSON.stringify({ rendered_by: "pm-starter", ...result }, null, 2);
     }
-    return null as any; // not ours → native rendering
+    return null; // not ours → native rendering
   });
 
   // DEMO: registerRenderer("toon") — a compact line view for OUR payload only;
   // null for everything else so native TOON rendering is preserved.
-  api.registerRenderer("toon", (ctx: any) => {
+  api.registerRenderer("toon", (ctx: RendererOverrideContext) => {
     const result = ctx.result;
-    if (result && typeof result === "object" && (result as any).starter_demo) {
-      const r = result as any;
-      const lines = [`pm-starter demo — ${r.item_count} item(s)`];
-      for (const s of r.sample ?? []) lines.push(`  ${s.id}\t${s.status}\t${s.title}`);
+    if (isObject(result) && result.starter_demo) {
+      const lines = [`pm-starter demo — ${String(result.item_count ?? 0)} item(s)`];
+      const sample = Array.isArray(result.sample) ? result.sample : [];
+      for (const entry of sample) {
+        lines.push(`  ${readString(entry, ["id"], "?")}\t${readString(entry, ["status"], "?")}\t${readString(entry, ["title"], "?")}`);
+      }
       return lines.join("\n");
     }
-    return null as any; // not ours → native rendering
+    return null; // not ours → native rendering
   });
 }
 
@@ -684,33 +729,33 @@ function setupRenderers(api: any): void {
 // adds noise to an unrelated workspace.
 // ---------------------------------------------------------------------------
 
-function setupHooks(api: any): void {
+function setupHooks(api: ExtensionApi): void {
   const enabled = () => Boolean(process.env.PM_STARTER_HOOKS);
   const log = (msg: string) => { if (enabled()) console.error(`[pm-starter] ${msg}`); };
 
   // DEMO: hooks.beforeCommand — runs before any command handler.
-  api.hooks.beforeCommand((ctx: any) => {
+  api.hooks.beforeCommand((ctx: BeforeCommandHookContext) => {
     log(`beforeCommand: ${ctx.command} ${(ctx.args ?? []).join(" ")}`.trimEnd());
   });
 
   // DEMO: hooks.afterCommand — runs after a command, with ok/error/result.
-  api.hooks.afterCommand((ctx: any) => {
+  api.hooks.afterCommand((ctx: AfterCommandHookContext) => {
     log(`afterCommand: ${ctx.command} -> ${ctx.ok ? "ok" : `error: ${ctx.error ?? "?"}`}`);
   });
 
   // DEMO: hooks.onWrite — fires when pm writes an item file to disk.
-  api.hooks.onWrite((ctx: any) => {
+  api.hooks.onWrite((ctx: OnWriteHookContext) => {
     log(`onWrite: ${ctx.op} ${ctx.scope} ${ctx.path}`);
   });
 
   // DEMO: hooks.onRead — fires when pm reads an item file.
-  api.hooks.onRead((ctx: any) => {
+  api.hooks.onRead((ctx: OnReadHookContext) => {
     log(`onRead: ${ctx?.path ?? "(item)"}`);
   });
 
   // DEMO: hooks.onIndex — fires when pm (re)indexes items for search.
-  api.hooks.onIndex((ctx: any) => {
-    log(`onIndex: ${(ctx && (ctx.count ?? ctx.path)) ?? "(index event)"}`);
+  api.hooks.onIndex((ctx: OnIndexHookContext) => {
+    log(`onIndex: mode=${ctx.mode} total_items=${ctx.total_items ?? "(unreported)"}`);
   });
 }
 
@@ -722,7 +767,7 @@ function setupHooks(api: any): void {
 // by creating items of the new type.
 // ---------------------------------------------------------------------------
 
-function setupSchema(api: any): void {
+function setupSchema(api: ExtensionApi): void {
   // DEMO: registerItemFields — declare optional custom fields so the workspace
   // knows about them (and tooling/validation can surface them).
   api.registerItemFields([
@@ -748,7 +793,7 @@ function setupSchema(api: any): void {
     id: "pm-starter-0001-noop",
     description: "DEMO: inert starter migration (no-op; records that it ran).",
     // The runtime calls up() during migration runs. We do nothing destructive.
-    up(_ctx: any) {
+    up(_ctx: SchemaMigrationRunContext) {
       // Intentionally a no-op. Return a benign summary.
       return { migrated: 0, note: "pm-starter demo migration is a no-op" };
     },
@@ -765,11 +810,11 @@ function setupSchema(api: any): void {
 // the reference inert); the exporter only reads and prints.
 // ---------------------------------------------------------------------------
 
-function setupImportExport(api: any): void {
+function setupImportExport(api: ExtensionApi): void {
   // DEMO: registerImporter — `pm starter-demo import`.
   // Inert by design: it describes what a real importer WOULD do and returns a
   // dry-run-style summary. Swap the body for real parse + `pm create` calls.
-  api.registerImporter("starter-demo", async (ctx: any) => {
+  api.registerImporter("starter-demo", async (ctx: ImportExportContext) => {
     const source = optionString(ctx.options || {}, "file", "url") || "(no source given)";
     console.error(
       `[pm-starter] DEMO importer: would import from ${source}. ` +
@@ -781,7 +826,7 @@ function setupImportExport(api: any): void {
   // DEMO: registerExporter — `pm starter-demo export`.
   // Read-only: serializes the current items to a compact JSON payload and
   // prints it (or returns it for --json hosts). Never writes to disk.
-  api.registerExporter("starter-demo", async (ctx: any) => {
+  api.registerExporter("starter-demo", async (ctx: ImportExportContext) => {
     const items = readPmItems(ctx.pm_root);
     const payload = items.map((i) => ({
       id: i.id,
@@ -798,21 +843,26 @@ function setupImportExport(api: any): void {
 // DEMO: search (registerSearchProvider + registerVectorStoreAdapter)
 // ---------------------------------------------------------------------------
 
-function setupSearch(api: any): void {
-  // DEMO: registerSearchProvider — a simple, dependency-free substring matcher
-  // over title + body. Reads items via `pm` and filters in-process.
+function setupSearch(api: ExtensionApi): void {
+  // DEMO: registerSearchProvider — a dependency-free substring matcher over
+  // title + body. `SearchProviderQueryContext` already carries the workspace's
+  // documents, so a provider never reads the tracker itself; an earlier version
+  // spawned a `pm` subprocess per query for data the host had already supplied.
   api.registerSearchProvider({
     name: "starter-substring",
-    async query(ctx: any) {
-      const q = String(ctx?.query ?? "").toLowerCase();
-      const items = readPmItems(ctx?.pm_root ?? ".");
-      const results = !q
-        ? []
-        : items.filter((i) => {
-            const hay = `${i.title ?? ""} ${i.body ?? ""} ${i.description ?? ""}`.toLowerCase();
-            return hay.includes(q);
-          });
-      return { results, query: q };
+    query(ctx: SearchProviderQueryContext) {
+      const q = ctx.query.toLowerCase();
+      if (!q) return { hits: [] };
+      // The contract is `SearchProviderHit[] | { hits }`: a hit is an
+      // { id, score } pair, not a raw item. Returning items under a `results`
+      // key yields zero hits for every caller.
+      const hits = ctx.documents.flatMap((document) => {
+        const haystack = `${document.metadata.title ?? ""} ${document.body}`.toLowerCase();
+        return haystack.includes(q)
+          ? [{ id: document.metadata.id, score: 1, matched_fields: ["title", "body"] }]
+          : [];
+      });
+      return { hits };
     },
   });
 
@@ -828,13 +878,13 @@ function setupSearch(api: any): void {
   };
   api.registerVectorStoreAdapter({
     name: "starter-memory",
-    async upsert(ctx: any) {
+    upsert(ctx: VectorStoreUpsertContext) {
       const id = String(ctx?.id ?? "");
       const text = String(ctx?.text ?? ctx?.title ?? "");
       if (id) store.set(id, pseudoEmbed(text));
       return { upserted: id ? 1 : 0 };
     },
-    async query(ctx: any) {
+    query(ctx: VectorStoreQueryContext) {
       // Return nearest by simple dot-product over the in-memory vectors.
       const qVec = pseudoEmbed(String(ctx?.query ?? ""));
       const scored = [...store.entries()].map(([id, v]) => ({
@@ -842,7 +892,9 @@ function setupSearch(api: any): void {
         score: v.reduce((s, x, i) => s + x * (qVec[i] ?? 0), 0),
       }));
       scored.sort((a, b) => b.score - a.score);
-      return { results: scored.slice(0, ctx?.limit ?? 5) };
+      // VectorStoreQueryHit[] is a bare array — wrapping it in an object
+      // typechecked as `any` before and returned nothing usable to pm.
+      return scored.slice(0, ctx?.limit ?? 5);
     },
   });
 }
@@ -855,9 +907,9 @@ function setupSearch(api: any): void {
 // (a safe identity transform) so the reference never alters real behavior.
 // ---------------------------------------------------------------------------
 
-function setupParser(api: any): void {
+function setupParser(api: ExtensionApi): void {
   // DEMO: registerParser — identity pass-through for the native `list` command.
-  api.registerParser("list", (ctx: any) => {
+  api.registerParser("list", (ctx: ParserOverrideContext) => {
     // A real override might inject a default flag, e.g. force --json. Here we
     // simply return args/options unchanged so behavior is identical.
     return { args: ctx?.args ?? [], options: ctx?.options ?? {} };
@@ -872,9 +924,9 @@ function setupParser(api: any): void {
 // runtime's existing decision (or sane defaults), changing nothing.
 // ---------------------------------------------------------------------------
 
-function setupPreflight(api: any): void {
+function setupPreflight(api: ExtensionApi): void {
   // DEMO: registerPreflight — pass-through decision (no behavior change).
-  api.registerPreflight((ctx: any) => {
+  api.registerPreflight((ctx: PreflightOverrideContext) => {
     const d = ctx?.decision ?? {};
     return {
       enforce_item_format_gate: d.enforce_item_format_gate ?? true,
@@ -893,12 +945,12 @@ function setupPreflight(api: any): void {
 // existing/default format, demonstrating the hook point without changing output.
 // ---------------------------------------------------------------------------
 
-function setupServices(api: any): void {
+function setupServices(api: ExtensionApi): void {
   // DEMO: registerService — a TRUE pass-through for the "output_format"
   // service. A service override replaces a core service for the whole CLI, so
   // the only safe demonstration is to return the incoming payload UNCHANGED
   // (returning a fabricated value here would corrupt every command's output).
-  api.registerService("output_format", (ctx: any) => {
+  api.registerService("output_format", (ctx: ServiceOverrideContext) => {
     return ctx?.payload;
   });
 }
@@ -911,7 +963,7 @@ function setupServices(api: any): void {
 // parser/hook demos don't act on it — it exists purely to show the wiring.
 // ---------------------------------------------------------------------------
 
-function setupFlags(api: any): void {
+function setupFlags(api: ExtensionApi): void {
   // DEMO: registerFlags — augment the native `list` command with a demo flag.
   api.registerFlags("list", [
     {
@@ -931,7 +983,7 @@ export default defineExtension({
   name: "pm-starter",
   version: "2026.7.25",
 
-  activate(api: any) {
+  activate(api: ExtensionApi) {
     // Register every capability group. Each helper is defensive enough to be
     // safely deleted when you fork this scaffold for a real extension.
     setupCommands(api);       // registerCommand

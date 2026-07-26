@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- Starter template used any throughout, hiding three wrong SDK contracts and three unguarded pm reads ([pm-starter-kre3](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/issues/pm-starter-kre3.toon))
+
 ### Other
 
 - Enable governance duplicate-detection advisory mode and adopt pm-cli 2026.7.25 ([pm-starter-tfh8](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/chores/pm-starter-tfh8.toon))
