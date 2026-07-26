@@ -1,3 +1,4 @@
+import type { ExtensionApi } from "@unbrained/pm-cli/sdk";
 export declare const EXIT_CODE: {
     readonly GENERIC_FAILURE: 1;
     readonly USAGE: 2;
@@ -22,11 +23,11 @@ export declare function optionPositiveInteger(options: Record<string, unknown>, 
  * empty array on any failure so demos never throw at activation/read time.
  * This is the SAFE read pattern every demo reuses.
  */
-export declare function readPmItems(pmRoot: string): Array<Record<string, any>>;
+export declare function readPmItems(pmRoot: string): Array<Record<string, unknown>>;
 declare const _default: {
     name: string;
     version: string;
-    activate(api: any): void;
+    activate(api: ExtensionApi): void;
 };
 export default _default;
 //# sourceMappingURL=index.d.ts.map

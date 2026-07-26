@@ -117,6 +117,28 @@ export function optionPositiveInteger(options, fallback, ...keys) {
 function isObject(value) {
     return value !== null && typeof value === "object" && !Array.isArray(value);
 }
+/**
+ * Read a nested value out of already-parsed, untrusted `pm --json` output.
+ *
+ * The demos consume JSON produced by whichever pm build the user has installed,
+ * so its shape is an assumption rather than a guarantee. Walking it returns
+ * `undefined` at the first non-object hop instead of asserting a type that a
+ * different CLI version may not produce.
+ */
+function readPath(value, ...keys) {
+    let current = value;
+    for (const key of keys) {
+        if (!isObject(current))
+            return undefined;
+        current = current[key];
+    }
+    return current;
+}
+/** Read a nested string, falling back when the path is absent or not a string. */
+function readString(value, keys, fallback) {
+    const found = readPath(value, ...keys);
+    return typeof found === "string" ? found : fallback;
+}
 // Node's spawnSync defaults to a 1 MiB stdout cap, which a mature tracker's JSON
 // dump passes at a few hundred items. Past that the child is killed with ENOBUFS,
 // status null and EMPTY stderr, so the failure surfaces with nothing to diagnose
@@ -232,6 +254,7 @@ function setupCommands(api) {
         async run(ctx) {
             const result = spawnSync("pm", ["--path", ctx.pm_root, "stats", "--json"], {
                 encoding: "utf-8",
+                maxBuffer: pmJsonMaxBuffer(),
             });
             if (result.status !== 0) {
                 // Throw a CommandError (carrying an exitCode) so the CLI exits non-zero
@@ -252,8 +275,9 @@ function setupCommands(api) {
             if (!isObject(stats)) {
                 throw new CommandError("pm starter summary: invalid `pm stats --json` output format.");
             }
-            const total = stats.totals?.items ?? 0;
-            const byStatus = stats.by_status ?? {};
+            const totalValue = readPath(stats, "totals", "items");
+            const total = typeof totalValue === "number" ? totalValue : 0;
+            const byStatus = isObject(stats.by_status) ? stats.by_status : {};
             console.error(`\n  Workspace Summary\n  =================`);
             console.error(`  Total items: ${total}`);
             for (const [status, count] of Object.entries(byStatus)) {
@@ -324,7 +348,7 @@ function setupCommands(api) {
                     "  Example: pm starter plan pm-cli-website-6t9b\n" +
                     "  Tip: create a plan with `pm plan create --title \"My plan\"`.", EXIT_CODE.USAGE);
             }
-            const result = spawnSync("pm", ["--path", ctx.pm_root, "plan", "show", planId, "--depth", "standard", "--json"], { encoding: "utf-8" });
+            const result = spawnSync("pm", ["--path", ctx.pm_root, "plan", "show", planId, "--depth", "standard", "--json"], { encoding: "utf-8", maxBuffer: pmJsonMaxBuffer() });
             if (result.status !== 0) {
                 const stderr = result.stderr?.trim() || "";
                 const detail = stderr ? `: ${stderr.split("\n")[0]}` : "";
@@ -342,9 +366,9 @@ function setupCommands(api) {
                 throw new CommandError(`pm starter plan: invalid plan output format for ${planId}.`);
             }
             const planData = isObject(plan.plan) ? plan.plan : plan;
-            const title = planData.title ?? planData.metadata?.title ?? planId;
-            const mode = planData.mode ?? planData.metadata?.mode ?? "?";
-            const stepsValue = planData.steps ?? planData.metadata?.steps ?? [];
+            const title = readString(planData, ["title"], readString(planData, ["metadata", "title"], planId));
+            const mode = readString(planData, ["mode"], readString(planData, ["metadata", "mode"], "?"));
+            const stepsValue = readPath(planData, "steps") ?? readPath(planData, "metadata", "steps") ?? [];
             const steps = Array.isArray(stepsValue) ? stepsValue : [];
             console.error(`\n  Plan: ${title} (${planId})`);
             console.error(`  Mode: ${mode}`);
@@ -384,7 +408,7 @@ function setupCommands(api) {
             const pmArgs = ["--path", ctx.pm_root, "context", "--json"];
             if (depth)
                 pmArgs.push("--depth", depth);
-            const result = spawnSync("pm", pmArgs, { encoding: "utf-8" });
+            const result = spawnSync("pm", pmArgs, { encoding: "utf-8", maxBuffer: pmJsonMaxBuffer() });
             if (result.status !== 0) {
                 const stderr = result.stderr?.trim() || "";
                 const detail = stderr ? `: ${stderr.split("\n")[0]}` : "";
@@ -458,7 +482,7 @@ function setupCommands(api) {
             if (mode)
                 pmArgs.push("--mode", mode);
             pmArgs.push("--", ...keywords);
-            const result = spawnSync("pm", pmArgs, { encoding: "utf-8" });
+            const result = spawnSync("pm", pmArgs, { encoding: "utf-8", maxBuffer: pmJsonMaxBuffer() });
             if (result.status !== 0) {
                 const stderr = result.stderr?.trim() || "";
                 const detail = stderr ? `: ${stderr.split("\n")[0]}` : "";
@@ -592,7 +616,7 @@ function setupRenderers(api) {
     // globally hijack toon/json output from a shared extension.
     api.registerRenderer("json", (ctx) => {
         const result = ctx.result;
-        if (result && typeof result === "object" && result.starter_demo) {
+        if (isObject(result) && result.starter_demo) {
             return JSON.stringify({ rendered_by: "pm-starter", ...result }, null, 2);
         }
         return null; // not ours → native rendering
@@ -601,11 +625,12 @@ function setupRenderers(api) {
     // null for everything else so native TOON rendering is preserved.
     api.registerRenderer("toon", (ctx) => {
         const result = ctx.result;
-        if (result && typeof result === "object" && result.starter_demo) {
-            const r = result;
-            const lines = [`pm-starter demo — ${r.item_count} item(s)`];
-            for (const s of r.sample ?? [])
-                lines.push(`  ${s.id}\t${s.status}\t${s.title}`);
+        if (isObject(result) && result.starter_demo) {
+            const lines = [`pm-starter demo — ${String(result.item_count ?? 0)} item(s)`];
+            const sample = Array.isArray(result.sample) ? result.sample : [];
+            for (const entry of sample) {
+                lines.push(`  ${readString(entry, ["id"], "?")}\t${readString(entry, ["status"], "?")}\t${readString(entry, ["title"], "?")}`);
+            }
             return lines.join("\n");
         }
         return null; // not ours → native rendering
@@ -640,7 +665,7 @@ function setupHooks(api) {
     });
     // DEMO: hooks.onIndex — fires when pm (re)indexes items for search.
     api.hooks.onIndex((ctx) => {
-        log(`onIndex: ${(ctx && (ctx.count ?? ctx.path)) ?? "(index event)"}`);
+        log(`onIndex: mode=${ctx.mode} total_items=${ctx.total_items ?? "(unreported)"}`);
     });
 }
 // ---------------------------------------------------------------------------
@@ -718,20 +743,26 @@ function setupImportExport(api) {
 // DEMO: search (registerSearchProvider + registerVectorStoreAdapter)
 // ---------------------------------------------------------------------------
 function setupSearch(api) {
-    // DEMO: registerSearchProvider — a simple, dependency-free substring matcher
-    // over title + body. Reads items via `pm` and filters in-process.
+    // DEMO: registerSearchProvider — a dependency-free substring matcher over
+    // title + body. `SearchProviderQueryContext` already carries the workspace's
+    // documents, so a provider never reads the tracker itself; an earlier version
+    // spawned a `pm` subprocess per query for data the host had already supplied.
     api.registerSearchProvider({
         name: "starter-substring",
-        async query(ctx) {
-            const q = String(ctx?.query ?? "").toLowerCase();
-            const items = readPmItems(ctx?.pm_root ?? ".");
-            const results = !q
-                ? []
-                : items.filter((i) => {
-                    const hay = `${i.title ?? ""} ${i.body ?? ""} ${i.description ?? ""}`.toLowerCase();
-                    return hay.includes(q);
-                });
-            return { results, query: q };
+        query(ctx) {
+            const q = ctx.query.toLowerCase();
+            if (!q)
+                return { hits: [] };
+            // The contract is `SearchProviderHit[] | { hits }`: a hit is an
+            // { id, score } pair, not a raw item. Returning items under a `results`
+            // key yields zero hits for every caller.
+            const hits = ctx.documents.flatMap((document) => {
+                const haystack = `${document.metadata.title ?? ""} ${document.body}`.toLowerCase();
+                return haystack.includes(q)
+                    ? [{ id: document.metadata.id, score: 1, matched_fields: ["title", "body"] }]
+                    : [];
+            });
+            return { hits };
         },
     });
     // DEMO: registerVectorStoreAdapter — an in-memory, deterministic adapter so
@@ -747,14 +778,14 @@ function setupSearch(api) {
     };
     api.registerVectorStoreAdapter({
         name: "starter-memory",
-        async upsert(ctx) {
+        upsert(ctx) {
             const id = String(ctx?.id ?? "");
             const text = String(ctx?.text ?? ctx?.title ?? "");
             if (id)
                 store.set(id, pseudoEmbed(text));
             return { upserted: id ? 1 : 0 };
         },
-        async query(ctx) {
+        query(ctx) {
             // Return nearest by simple dot-product over the in-memory vectors.
             const qVec = pseudoEmbed(String(ctx?.query ?? ""));
             const scored = [...store.entries()].map(([id, v]) => ({
@@ -762,7 +793,9 @@ function setupSearch(api) {
                 score: v.reduce((s, x, i) => s + x * (qVec[i] ?? 0), 0),
             }));
             scored.sort((a, b) => b.score - a.score);
-            return { results: scored.slice(0, ctx?.limit ?? 5) };
+            // VectorStoreQueryHit[] is a bare array — wrapping it in an object
+            // typechecked as `any` before and returned nothing usable to pm.
+            return scored.slice(0, ctx?.limit ?? 5);
         },
     });
 }
