@@ -2,6 +2,12 @@
 
 ## 2026.7.26 - 2026-07-26
 
+### Removed
+
+- Adopt pm-cli 2026.7.26 typed authoring contracts and remove the any-cast defineExtension shim ([pm-starter-fafo](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/tasks/pm-starter-fafo.toon))
+
+## 2026.7.26 - 2026-07-26
+
 ### Fixed
 
 - Starter template used any throughout, hiding three wrong SDK contracts and three unguarded pm reads ([pm-starter-kre3](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/issues/pm-starter-kre3.toon))
