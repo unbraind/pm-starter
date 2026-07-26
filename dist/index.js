@@ -49,7 +49,6 @@ import { spawnSync } from "node:child_process";
 // zero-runtime-coupling pattern: import `defineExtension` as a TYPE only and
 // provide a trivial identity implementation. The real CLI supplies the live
 // `api` object at activation time.
-const defineExtension = ((extension) => extension);
 // ---------------------------------------------------------------------------
 // Error contract (re-implemented locally — DO NOT import from the SDK)
 //
@@ -870,6 +869,15 @@ function setupFlags(api) {
 // ---------------------------------------------------------------------------
 // EXTENSION ENTRY POINT
 // ---------------------------------------------------------------------------
+/**
+ * Local stand-in for the SDK's `defineExtension` identity helper.
+ *
+ * Declared here rather than imported so this package keeps a type-only
+ * dependency on `@unbrained/pm-cli` and adds no runtime module edge. The
+ * generic constraint is the SDK's own, so the extension object is contract-
+ * checked against {@link ExtensionModule} exactly as the imported helper would.
+ */
+const defineExtension = (module) => module;
 export default defineExtension({
     name: "pm-starter",
     version: "2026.7.26",

@@ -44,6 +44,7 @@
 //
 // ---------------------------------------------------------------------------
 
+import type { ExtensionModule } from "@unbrained/pm-cli/sdk/authoring";
 import { spawnSync } from "node:child_process";
 
 import type {
@@ -63,7 +64,6 @@ import type {
   SchemaMigrationRunContext,
   VectorStoreQueryContext,
   VectorStoreUpsertContext,
-  defineExtension as defineExtensionType,
 } from "@unbrained/pm-cli/sdk";
 
 // Standalone-installed extensions load ONLY their own `dist/` at runtime, so
@@ -71,7 +71,6 @@ import type {
 // zero-runtime-coupling pattern: import `defineExtension` as a TYPE only and
 // provide a trivial identity implementation. The real CLI supplies the live
 // `api` object at activation time.
-const defineExtension: typeof defineExtensionType = ((extension: any) => extension) as any;
 
 // ---------------------------------------------------------------------------
 // Error contract (re-implemented locally — DO NOT import from the SDK)
@@ -978,6 +977,16 @@ function setupFlags(api: ExtensionApi): void {
 // ---------------------------------------------------------------------------
 // EXTENSION ENTRY POINT
 // ---------------------------------------------------------------------------
+
+/**
+ * Local stand-in for the SDK's `defineExtension` identity helper.
+ *
+ * Declared here rather than imported so this package keeps a type-only
+ * dependency on `@unbrained/pm-cli` and adds no runtime module edge. The
+ * generic constraint is the SDK's own, so the extension object is contract-
+ * checked against {@link ExtensionModule} exactly as the imported helper would.
+ */
+const defineExtension = <TModule extends ExtensionModule>(module: TModule): TModule => module;
 
 export default defineExtension({
   name: "pm-starter",
