@@ -6,11 +6,12 @@ status: open
 priority: 1
 tags: []
 created_at: "2026-07-27T15:12:20.344Z"
-updated_at: "2026-07-27T15:12:34.598Z"
+updated_at: "2026-07-27T15:23:25.080Z"
 author: claude-code
-notes[4]{created_at,author,text}:
+notes[5]{created_at,author,text}:
   "2026-07-27T15:12:33.649Z",claude-code,"Reproduced against real data in a throwaway workspace: seeded one Task, ran pm list which printed the item, installed pm-starter, then pm list printed global/format/options instead. After changing the decline path to return handled false, pm list printed the item again."
   "2026-07-27T15:12:33.973Z",claude-code,"Root cause of a confusing intermediate result: the harness test first reported handled true with result handled false, because pm-starter node_modules still had pm-cli 2026.7.26 which contains NO isServiceOverrideDecision predicate. After bumping to 2026.7.27 the predicate exists and the runner correctly reports handled false. That is why the fix and the dependency adoption ship together."
   "2026-07-27T15:12:34.284Z",claude-code,"Regression test added to test/smoke.test.ts using the REAL SDK harness createExtensionTestHarness plus runRegisteredServiceOverrideForTest rather than the hand-rolled api double the file used before. The old double registered registerService as a no-op that discarded the override, so its return value was never evaluated and this whole bug class was invisible to the suite. Falsification verified: reverting the source to the old ctx.payload form makes the new test fail (9 pass 1 fail) and restoring the fix makes it pass (10 pass 0 fail)."
   "2026-07-27T15:12:34.598Z",claude-code,"Gates: build, typecheck, check, 10/10 tests, changelog:full regenerated after git fetch --tags --force."
+  "2026-07-27T15:23:25.079Z",claude-code,"Greptile review on PR 40 correctly caught that package.json said 2026.7.27 while manifest.json and the extension's self-reported version in index.ts still said 2026.7.26, so the installed extension would report a stale version. Fixed by aligning manifest.json and the index.ts version constant and rebuilding. The agent-driven bumps in pm-changelog, pm-gantt-chart and pm-graph had already updated manifest.json correctly; this was a gap in the hand-run bump script, which only rewrote package.json."
 body: ""
