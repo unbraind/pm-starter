@@ -1,5 +1,8 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import test from "node:test";
+
+import { createExtensionTestHarness, runRegisteredServiceOverrideForTest } from "@unbrained/pm-cli/sdk/testing";
 
 import extension, { optionPositiveInteger } from "../dist/index.js";
 
@@ -227,4 +230,101 @@ test("a malformed PM_JSON_MAX_BUFFER falls back to the default instead of imposi
     if (originalCap === undefined) delete process.env.PM_JSON_MAX_BUFFER;
     else process.env.PM_JSON_MAX_BUFFER = originalCap;
   }
+});
+
+// ---------------------------------------------------------------------------
+// Regression: the `output_format` service override MUST decline payloads it
+// does not claim, via the `{ handled: false }` decision.
+//
+// Before pm-cli 2026.7.27 an override could decline by returning the inbound
+// `context.payload`, and this extension did exactly that. In 2026.7.27 an
+// override's bare return value IS what the host renders, so echoing the payload
+// made EVERY command in a workspace with this extension installed print the
+// whole command context (`global`, `format`, `options`, ...) instead of its own
+// result. Filed upstream as unbraind/pm-cli#776.
+//
+// This is exercised through pm's REAL service runner rather than a hand-rolled
+// api double: the previous double discarded the registered override entirely, so
+// its return value was never evaluated and the regression was invisible to the
+// test suite.
+// ---------------------------------------------------------------------------
+
+test("output_format override declines unclaimed payloads instead of echoing the context", async () => {
+  const harness = await createExtensionTestHarness(extension, {
+    name: "pm-starter",
+    capabilities: ["commands", "renderers", "hooks", "schema", "importers", "search", "parser", "preflight", "services"],
+  });
+  assert.deepEqual(harness.activation.failed, [], "activation must not fail");
+
+  // The override must actually be registered for the `output_format` service.
+  harness.assertServiceOverride({ name: "output_format" });
+
+  const payload = { command: "list", format: "toon", result: { items: [{ id: "probe-1" }], count: 1 } };
+  const outcome = await runRegisteredServiceOverrideForTest(harness.activation.services, {
+    service: "output_format",
+    command: "list",
+    payload,
+  } as Parameters<typeof runRegisteredServiceOverrideForTest>[1]);
+
+  assert.equal(
+    outcome.handled,
+    false,
+    "a pass-through override must report handled:false so the host renders the payload itself"
+  );
+  // On a decline pm's runner deliberately echoes the ORIGINAL payload back as
+  // `result` (see resolveServiceOverrideValue) and the host then renders it
+  // itself. What must never happen is `handled: true`, which hands the host our
+  // return value verbatim.
+  assert.deepEqual(outcome.result, payload, "a declined payload must be returned to the host untouched");
+  assert.deepEqual(outcome.warnings, [], "declining must not emit service-override warnings");
+});
+
+// ---------------------------------------------------------------------------
+// Regression: the extension's self-reported version MUST equal the package
+// version.
+//
+// The version lives in three places that must always agree: package.json,
+// manifest.json, and the version constant in index.ts — which is what gets
+// compiled into the committed dist/index.js and is what a host reads for
+// runtime diagnostics (`pm extension --manage`). The 2026.7.27 bump updated
+// package.json but left the extension export at 2026.7.26 (caught by Greptile
+// on PR #40), so an installed pm-starter reported the WRONG release. The
+// extension must NOT read package.json at runtime (standalone installs resolve
+// only their own dist/), so the constant is deliberately duplicated — this
+// test is the pin that keeps the copies from drifting on the next bump.
+//
+// The extension under test is imported from ../dist/index.js, so this also
+// fails if source and committed dist/ are out of sync.
+// ---------------------------------------------------------------------------
+
+/** Read the string `version` field of a JSON file relative to this test file. */
+function readJsonVersion(relativeUrl: string): string {
+  const parsed: unknown = JSON.parse(readFileSync(new URL(relativeUrl, import.meta.url), "utf-8"));
+  if (typeof parsed !== "object" || parsed === null) {
+    throw new Error(`${relativeUrl}: expected a JSON object`);
+  }
+  const version = (parsed as { version?: unknown }).version;
+  if (typeof version !== "string" || version.length === 0) {
+    throw new Error(`${relativeUrl}: missing a non-empty string "version" field`);
+  }
+  return version;
+}
+
+test("extension self-reported version matches package.json and manifest.json", () => {
+  // dist-test/smoke.test.js is one directory deeper than test/smoke.test.ts,
+  // so both resolve to the repo-root files either way.
+  const packageVersion = readJsonVersion("../package.json");
+  const manifestVersion = readJsonVersion("../manifest.json");
+
+  assert.strictEqual(
+    extension.version,
+    packageVersion,
+    `extension reports "${extension.version}" but package.json declares "${packageVersion}" — ` +
+      "the version constant in index.ts (and the rebuilt dist/) must track every version bump",
+  );
+  assert.strictEqual(
+    manifestVersion,
+    packageVersion,
+    `manifest.json declares "${manifestVersion}" but package.json declares "${packageVersion}"`,
+  );
 });

@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+- Extension reports a stale runtime version after the 2026.7.27 bump ([pm-starter-1atg](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/issues/pm-starter-1atg.toon))
+
 ## 2026.7.27 - 2026-07-27
 
 ### Removed
