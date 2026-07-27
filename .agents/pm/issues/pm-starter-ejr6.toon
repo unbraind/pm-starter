@@ -1,0 +1,16 @@
+id: pm-starter-ejr6
+title: Fix the output_format service override so it declines unclaimed payloads instead of echoing the command context
+description: "Under pm-cli 2026.7.27 an output_format service override's bare return value IS what the host renders. This extension declined by returning the inbound ctx.payload, which the 2026.7.27 host no longer reads as not-handled, so every command in any workspace with pm-starter installed printed the whole command context with global, format and options keys instead of its own result. Verified against real data: pm list showed one seeded item before install and the context object after install, and printed the item correctly again after the fix. The decline path now returns the ServiceOverrideDecision object handled false, which pm's isServiceOverrideDecision predicate accepts only when handled is false and the object has exactly that one key. Filed upstream as unbraind/pm-cli#776 because the semantics changed under a Fixed changelog entry with no migration note and because ServiceOverrideDecision is not exported from the public SDK surface, so a standalone extension that cannot resolve the SDK at runtime has no way to type the return. This matters most for pm-starter specifically because it is the reference template handed to every new extension author. Paired with the 2026.7.27 dependency adoption in the same change because 2026.7.26 has no isServiceOverrideDecision at all, so the regression test can only exercise the real contract once the dependency is bumped."
+type: Issue
+status: open
+priority: 1
+tags: []
+created_at: "2026-07-27T15:12:20.344Z"
+updated_at: "2026-07-27T15:12:34.598Z"
+author: claude-code
+notes[4]{created_at,author,text}:
+  "2026-07-27T15:12:33.649Z",claude-code,"Reproduced against real data in a throwaway workspace: seeded one Task, ran pm list which printed the item, installed pm-starter, then pm list printed global/format/options instead. After changing the decline path to return handled false, pm list printed the item again."
+  "2026-07-27T15:12:33.973Z",claude-code,"Root cause of a confusing intermediate result: the harness test first reported handled true with result handled false, because pm-starter node_modules still had pm-cli 2026.7.26 which contains NO isServiceOverrideDecision predicate. After bumping to 2026.7.27 the predicate exists and the runner correctly reports handled false. That is why the fix and the dependency adoption ship together."
+  "2026-07-27T15:12:34.284Z",claude-code,"Regression test added to test/smoke.test.ts using the REAL SDK harness createExtensionTestHarness plus runRegisteredServiceOverrideForTest rather than the hand-rolled api double the file used before. The old double registered registerService as a no-op that discarded the override, so its return value was never evaluated and this whole bug class was invisible to the suite. Falsification verified: reverting the source to the old ctx.payload form makes the new test fail (9 pass 1 fail) and restoring the fix makes it pass (10 pass 0 fail)."
+  "2026-07-27T15:12:34.598Z",claude-code,"Gates: build, typecheck, check, 10/10 tests, changelog:full regenerated after git fetch --tags --force."
+body: ""

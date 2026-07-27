@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
+import { createExtensionTestHarness, runRegisteredServiceOverrideForTest } from "@unbrained/pm-cli/sdk/testing";
+
 import extension, { optionPositiveInteger } from "../dist/index.js";
 
 function createMockApi(commands: Record<string, any> = {}): any {
@@ -227,4 +229,51 @@ test("a malformed PM_JSON_MAX_BUFFER falls back to the default instead of imposi
     if (originalCap === undefined) delete process.env.PM_JSON_MAX_BUFFER;
     else process.env.PM_JSON_MAX_BUFFER = originalCap;
   }
+});
+
+// ---------------------------------------------------------------------------
+// Regression: the `output_format` service override MUST decline payloads it
+// does not claim, via the `{ handled: false }` decision.
+//
+// Before pm-cli 2026.7.27 an override could decline by returning the inbound
+// `context.payload`, and this extension did exactly that. In 2026.7.27 an
+// override's bare return value IS what the host renders, so echoing the payload
+// made EVERY command in a workspace with this extension installed print the
+// whole command context (`global`, `format`, `options`, ...) instead of its own
+// result. Filed upstream as unbraind/pm-cli#776.
+//
+// This is exercised through pm's REAL service runner rather than a hand-rolled
+// api double: the previous double discarded the registered override entirely, so
+// its return value was never evaluated and the regression was invisible to the
+// test suite.
+// ---------------------------------------------------------------------------
+
+test("output_format override declines unclaimed payloads instead of echoing the context", async () => {
+  const harness = await createExtensionTestHarness(extension, {
+    name: "pm-starter",
+    capabilities: ["commands", "renderers", "hooks", "schema", "importers", "search", "parser", "preflight", "services"],
+  });
+  assert.deepEqual(harness.activation.failed, [], "activation must not fail");
+
+  // The override must actually be registered for the `output_format` service.
+  harness.assertServiceOverride({ name: "output_format" });
+
+  const payload = { command: "list", format: "toon", result: { items: [{ id: "probe-1" }], count: 1 } };
+  const outcome = await runRegisteredServiceOverrideForTest(harness.activation.services, {
+    service: "output_format",
+    command: "list",
+    payload,
+  } as Parameters<typeof runRegisteredServiceOverrideForTest>[1]);
+
+  assert.equal(
+    outcome.handled,
+    false,
+    "a pass-through override must report handled:false so the host renders the payload itself"
+  );
+  // On a decline pm's runner deliberately echoes the ORIGINAL payload back as
+  // `result` (see resolveServiceOverrideValue) and the host then renders it
+  // itself. What must never happen is `handled: true`, which hands the host our
+  // return value verbatim.
+  assert.deepEqual(outcome.result, payload, "a declined payload must be returned to the host untouched");
+  assert.deepEqual(outcome.warnings, [], "declining must not emit service-override warnings");
 });

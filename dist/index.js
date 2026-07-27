@@ -836,17 +836,27 @@ function setupPreflight(api) {
 // DEMO: services (registerService)
 //
 // A service override lets an extension supply/augment a named internal service.
-// We override "output_format" with an inert pass-through that returns the
-// existing/default format, demonstrating the hook point without changing output.
+// We override "output_format" with an inert pass-through that declines every
+// payload, demonstrating the hook point without changing any command's output.
 // ---------------------------------------------------------------------------
 function setupServices(api) {
     // DEMO: registerService — a TRUE pass-through for the "output_format"
     // service. A service override replaces a core service for the whole CLI, so
-    // the only safe demonstration is to return the incoming payload UNCHANGED
-    // (returning a fabricated value here would corrupt every command's output).
-    api.registerService("output_format", (ctx) => {
-        return ctx?.payload;
-    });
+    // the only safe demonstration is to decline the payload and let the host
+    // render it exactly as it would without this extension.
+    //
+    // Declining MUST return the `{ handled: false }` decision. Returning the
+    // inbound `ctx.payload` is NOT a pass-through: as of @unbrained/pm-cli
+    // 2026.7.27 an override's bare return value IS what the host renders, so
+    // echoing the payload makes EVERY command print the whole command context
+    // (`global`, `format`, `options`, …) instead of its own result.
+    //
+    // The SDK ships `declineServiceOverride()` (sdk/authoring) which returns
+    // exactly this object, but it is a runtime value and a standalone-installed
+    // extension cannot resolve the SDK at runtime (see the note at the top of this
+    // file), so the decision is written as a literal. The matching
+    // `ServiceOverrideDecision` type is not part of the public SDK surface.
+    api.registerService("output_format", (_ctx) => ({ handled: false }));
 }
 // ---------------------------------------------------------------------------
 // DEMO: flags (registerFlags)
