@@ -4,7 +4,7 @@ import test from "node:test";
 
 import { createExtensionTestHarness, runRegisteredServiceOverrideForTest } from "@unbrained/pm-cli/sdk/testing";
 
-import extension, { optionPositiveInteger } from "../dist/index.js";
+import extension, { optionPositiveInteger, readPmItems } from "../index.ts";
 
 function createMockApi(commands: Record<string, any> = {}): any {
   return {
@@ -157,7 +157,6 @@ test("readPmItems honors PM_JSON_MAX_BUFFER and reports an overrun instead of re
   const { tmpdir } = await import("node:os");
   const { join } = await import("node:path");
   const { execFileSync } = await import("node:child_process");
-  const { readPmItems } = await import("../dist/index.js");
 
   const dir = mkdtempSync(join(tmpdir(), "pm-starter-buffer-"));
   t.after(() => rmSync(dir, { recursive: true, force: true }));
@@ -201,7 +200,6 @@ test("a malformed PM_JSON_MAX_BUFFER falls back to the default instead of imposi
   const { tmpdir } = await import("node:os");
   const { join } = await import("node:path");
   const { execFileSync } = await import("node:child_process");
-  const { readPmItems } = await import("../dist/index.js");
 
   const dir = mkdtempSync(join(tmpdir(), "pm-starter-badcap-"));
   t.after(() => rmSync(dir, { recursive: true, force: true }));
@@ -293,8 +291,8 @@ test("output_format override declines unclaimed payloads instead of echoing the 
 // only their own dist/), so the constant is deliberately duplicated — this
 // test is the pin that keeps the copies from drifting on the next bump.
 //
-// The extension under test is imported from ../dist/index.js, so this also
-// fails if source and committed dist/ are out of sync.
+// The extension under test is imported from ../index.ts, so this also fails
+// if the source version constant drifts from package.json / manifest.json.
 // ---------------------------------------------------------------------------
 
 /** Read the string `version` field of a JSON file relative to this test file. */
