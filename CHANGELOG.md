@@ -1,10 +1,14 @@
 # Changelog
 
-## Unreleased
+## 2026.7.28 - 2026-07-28
 
 ### Fixed
 
 - Extension reports a stale runtime version after the 2026.7.27 bump ([pm-starter-1atg](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/issues/pm-starter-1atg.toon))
+
+### Other
+
+- Adopt pm-cli 2026.7.28 ([pm-starter-evym](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/chores/pm-starter-evym.toon))
 
 ## 2026.7.27 - 2026-07-27
 
