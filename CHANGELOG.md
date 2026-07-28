@@ -1,14 +1,5 @@
 # Changelog
 
-## Unreleased
-
-### Other
-
-- Full-cycle hardening wave: pm-starter ([pm-starter-se0g](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/tasks/pm-starter-se0g.toon))
-- Production-readiness audit 2026-05-28 ([pm-starter-rmnj](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/tasks/pm-starter-rmnj.toon))
-- Adopt --respect-item-release in changelog scripts and bump pm-changelog to 2026.7.24 ([pm-starter-toz4](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/chores/pm-starter-toz4.toon))
-- Ecosystem release readiness pass 2026-07-06 ([pm-starter-rcbt](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/tasks/pm-starter-rcbt.toon))
-
 ## 2026.7.28 - 2026-07-28
 
 ### Fixed
@@ -41,6 +32,10 @@
 
 - pm item reads are capped at Node's 1 MiB spawnSync default, so a mature tracker fails with no diagnosis ([pm-starter-y8hb](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/issues/pm-starter-y8hb.toon))
 
+### Other
+
+- Adopt --respect-item-release in changelog scripts and bump pm-changelog to 2026.7.24 ([pm-starter-toz4](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/chores/pm-starter-toz4.toon))
+
 ## 2026.7.23 - 2026-07-23
 
 ### Fixed
@@ -61,6 +56,12 @@
 
 - Harden release bun-verify so registry-mirror lag cannot block the GitHub release ([pm-starter-p9ez](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/chores/pm-starter-p9ez.toon))
 
+## 2026.7.10 - 2026-07-10
+
+### Other
+
+- Ecosystem release readiness pass 2026-07-06 ([pm-starter-rcbt](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/tasks/pm-starter-rcbt.toon))
+
 ## 2026.7.6 - 2026-07-06
 
 ### Fixed
@@ -77,6 +78,12 @@
 ### Other
 
 - Daily Release publish step runs prepublishOnly post-tag: align npm publish with --ignore-scripts ([pm-starter-5wig](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/tasks/pm-starter-5wig.toon))
+
+## 2026.6.8 - 2026-06-08
+
+### Other
+
+- Full-cycle hardening wave: pm-starter ([pm-starter-se0g](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/tasks/pm-starter-se0g.toon))
 
 ## 2026.6.7 - 2026-06-07
 
@@ -97,6 +104,12 @@
 ### Added
 
 - Make pm-starter the canonical full ExtensionApi reference ([pm-starter-oi1i](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/features/pm-starter-oi1i.toon))
+
+## 2026.5.30 - 2026-05-30
+
+### Other
+
+- Production-readiness audit 2026-05-28 ([pm-starter-rmnj](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/tasks/pm-starter-rmnj.toon))
 
 ## 2026.5.28 - 2026-05-28
 
