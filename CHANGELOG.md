@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+### Other
+
+- Full-cycle hardening wave: pm-starter ([pm-starter-se0g](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/tasks/pm-starter-se0g.toon))
+- Production-readiness audit 2026-05-28 ([pm-starter-rmnj](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/tasks/pm-starter-rmnj.toon))
+- Adopt --respect-item-release in changelog scripts and bump pm-changelog to 2026.7.24 ([pm-starter-toz4](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/chores/pm-starter-toz4.toon))
+- Ecosystem release readiness pass 2026-07-06 ([pm-starter-rcbt](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/tasks/pm-starter-rcbt.toon))
+
 ## 2026.7.28 - 2026-07-28
 
 ### Fixed
