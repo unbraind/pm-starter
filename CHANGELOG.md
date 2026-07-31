@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+- Release commits discard the rebuilt dist, so the git-install path serves the previous version ([pm-starter-sthp](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/issues/pm-starter-sthp.toon))
+
 ## 2026.7.29 - 2026-07-29
 
 ### Added
