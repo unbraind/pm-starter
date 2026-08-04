@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Other
+
+- Declare renderer ownership so the host enforces scoping the package only applied at runtime ([pm-starter-nf9u](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/tasks/pm-starter-nf9u.toon))
+
 ## 2026.8.4 - 2026-08-04
 
 ### Other

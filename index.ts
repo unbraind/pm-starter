@@ -689,26 +689,42 @@ function setupCommands(api: ExtensionApi): void {
 // default serialization so we never break unrelated commands.
 // ---------------------------------------------------------------------------
 
+/** Result shape emitted by the `starter demo` command that the renderers reshape. */
+interface StarterDemoResult {
+  starter_demo: true;
+  item_count?: number;
+  sample?: unknown[];
+}
+
+/** Determine whether an unknown command result is a `starter demo` payload. */
+function isStarterDemoResult(value: unknown): value is StarterDemoResult {
+  return isObject(value) && value.starter_demo === true;
+}
+
 function setupRenderers(api: ExtensionApi): void {
   // DEMO: registerRenderer("json") — reshape ONLY our own `starter demo`
-  // payload. A renderer override is registered per-format and is invoked for
-  // EVERY command using that format, so for anything that isn't our payload we
-  // return a non-string (null): pm then falls through to its native renderer
-  // and no other command's output is altered. This is the safe pattern — never
-  // globally hijack toon/json output from a shared extension.
+  // payload. The ownership object below makes the host enforce the command
+  // path and result discriminator before the callback runs, so an unrelated
+  // command never reaches it. The runtime null return stays as defence in
+  // depth: ownership is enforced by the host, the null return by the package.
+  const rendererOwnership = {
+    commands: ["starter demo"],
+    resultDiscriminator: isStarterDemoResult,
+  };
+
   api.registerRenderer("json", (ctx: RendererOverrideContext) => {
     const result = ctx.result;
-    if (isObject(result) && result.starter_demo) {
+    if (isStarterDemoResult(result)) {
       return JSON.stringify({ rendered_by: "pm-starter", ...result }, null, 2);
     }
     return null; // not ours → native rendering
-  });
+  }, rendererOwnership);
 
   // DEMO: registerRenderer("toon") — a compact line view for OUR payload only;
   // null for everything else so native TOON rendering is preserved.
   api.registerRenderer("toon", (ctx: RendererOverrideContext) => {
     const result = ctx.result;
-    if (isObject(result) && result.starter_demo) {
+    if (isStarterDemoResult(result)) {
       const lines = [`pm-starter demo — ${String(result.item_count ?? 0)} item(s)`];
       const sample = Array.isArray(result.sample) ? result.sample : [];
       for (const entry of sample) {
@@ -717,7 +733,7 @@ function setupRenderers(api: ExtensionApi): void {
       return lines.join("\n");
     }
     return null; // not ours → native rendering
-  });
+  }, rendererOwnership);
 }
 
 // ---------------------------------------------------------------------------
