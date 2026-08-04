@@ -1,10 +1,15 @@
 # Changelog
 
-## 2026.8.4 - 2026-08-04
+## Unreleased
 
 ### Other
 
 - Declare renderer ownership so the host enforces scoping the package only applied at runtime ([pm-starter-nf9u](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/tasks/pm-starter-nf9u.toon))
+
+## 2026.8.4 - 2026-08-04
+
+### Other
+
 - Resolve pm-changelog to the release that derives release dates in UTC ([pm-starter-9fbt](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/chores/pm-starter-9fbt.toon))
 
 ## 2026.7.31 - 2026-07-31
