@@ -4,6 +4,7 @@
 
 ### Fixed
 
+- Gate durable PM project health in CI on pm CLI 2026.8.6 ([pm-starter-cskq](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/issues/pm-starter-cskq.toon))
 - Fix review findings: two assertions that could never fail, an unawaited output capture, and a duplicated test ([pm-starter-d5zy](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/tasks/pm-starter-d5zy.toon))
 
 ### Other
