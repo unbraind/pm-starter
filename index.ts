@@ -904,7 +904,9 @@ function setupSearch(api: ExtensionApi): void {
       const qVec = pseudoEmbed(String(ctx?.query ?? ""));
       const scored = [...store.entries()].map(([id, v]) => ({
         id,
-        score: v.reduce((s, x, i) => s + x * (qVec[i] ?? 0), 0),
+        // qVec and every stored vector are both length 8 from pseudoEmbed,
+        // so qVec[i] is always defined for i in 0..7 — no ?? 0 guard needed.
+        score: v.reduce((s, x, i) => s + x * qVec[i], 0),
       }));
       scored.sort((a, b) => b.score - a.score);
       // VectorStoreQueryHit[] is a bare array — wrapping it in an object

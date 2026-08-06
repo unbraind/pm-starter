@@ -1,0 +1,18 @@
+id: pm-starter-d5zy
+title: "Fix review findings: two assertions that could never fail, an unawaited output capture, and a duplicated test"
+description: ""
+type: Task
+status: closed
+priority: 2
+tags: []
+created_at: "2026-08-06T21:17:58.144Z"
+updated_at: "2026-08-06T21:18:07.959Z"
+closed_at: "2026-08-06T21:18:07.940Z"
+completed_at: "2026-08-06T21:18:07.940Z"
+author: pi-agent
+acceptance_criteria: "Guard the tsc --showConfig JSON.parse in scripts/coverage-gate.ts so empty/non-JSON stdout fails with the gate's own message; make test captureOutput async and await the callback before restoring console; replace assert.ok(typeof score, \"number\") with assert.strictEqual; replace assert.ok(true) fallback test with observable-output assertions; delete the duplicated vector-store upsert test; assert buildFixture status===0 and rethrow createFixture symlink errors unless target exists; use path.delimiter and skip the fake-npx test on Windows; confirm the no-lcov test is deterministic; coverage stays 100/100/100 with ignore empty"
+resolution: fixed
+expected_result: "release:check passes all six gates; coverage measured 100.00/100.00/100.00 with coverageGate.ignore empty; mutation checks on findings 3 and 4 fail when behaviour is broken."
+actual_result: "release:check passes (exit 0); coverage 100.00/100.00/100.00 with ignore []; mutation finding 3 fails with 'string' !== 'number' when score is stringified; mutation finding 4 fails with 'Total items: 1' when fallback returns 1; both reverted."
+close_reason: "All eight CodeRabbit findings addressed: guarded the --showConfig parse against empty/non-JSON stdout; made captureOutput async so post-await logs are captured; replaced the typeof-score assert.ok with strictEqual; rewrote the assert.ok(true) fallback test to assert Total items: 0 and no status line; deleted the duplicated vector-store upsert test; asserted buildFixture status===0 and rethrow createFixture symlink errors unless the target exists; used path.delimiter and skip-on-Windows for the fake-npx test; confirmed the no-lcov test is deterministic (20x standalone + 20x shuffled full suite, 20/20 each). Mutation checks prove findings 3 and 4 now fail on broken behaviour."
+body: ""

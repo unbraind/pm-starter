@@ -1,5 +1,18 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+- Reject non-object tsconfig output in the exact coverage gate ([pm-starter-3a6b](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/issues/pm-starter-3a6b.toon))
+- Gate durable PM project health in CI on pm CLI 2026.8.6 ([pm-starter-cskq](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/issues/pm-starter-cskq.toon))
+- Fix review findings: two assertions that could never fail, an unawaited output capture, and a duplicated test ([pm-starter-d5zy](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/tasks/pm-starter-d5zy.toon))
+
+### Other
+
+- Bring the coverage gate entry shim under the coverage gate itself ([pm-starter-64jd](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/tasks/pm-starter-64jd.toon))
+- Raise the coverage gate to a measured 100/100/100 and bring scripts/coverage-gate.ts under it ([pm-starter-5bvm](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/tasks/pm-starter-5bvm.toon))
+
 ## 2026.8.5 - 2026-08-05
 
 ### Other

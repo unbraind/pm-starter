@@ -1,0 +1,20 @@
+id: pm-starter-64jd
+title: Bring the coverage gate entry shim under the coverage gate itself
+description: "Raising the gate to a measured 100/100/100 introduced scripts/run-coverage-gate.ts, a small entry shim that converts a thrown error into a clean message and a non-zero exit. It is NOT listed in coverageGate.sources, so the gate does not measure it and its catch branch is unverified runtime code sitting outside the gate that is supposed to be total. This is disclosed rather than hidden: the two files the gate does measure are genuinely at 100. Covering it in place is awkward because importing the shim executes the gate immediately, and spawning it as a subprocess would not report in-process coverage, which is likely why it was left out. The honest fix is probably to move the error handling into an exported function that a test can call directly, leaving the shim as a single unconditional call."
+type: Task
+status: closed
+priority: 2
+tags: []
+created_at: "2026-08-06T20:44:17.688Z"
+updated_at: "2026-08-06T20:58:31.540Z"
+closed_at: "2026-08-06T20:58:31.519Z"
+completed_at: "2026-08-06T20:58:31.519Z"
+author: "harness:claude-code"
+acceptance_criteria: "scripts/run-coverage-gate.ts is either listed in coverageGate.sources and covered to 100 line, branch and function, or its error-handling logic is folded into a tested function so no untested runtime code exists outside the gate"
+resolution: fixed
+expected_result: "The gate measures every executable line of scripts/coverage-gate.ts including the entry guard and catch branch, with no file outside the gate."
+actual_result: "Coverage gate reports 2 source file(s) at 100.00/100.00/100.00. All four new runScriptEntry tests pass. Mutation check confirmed: changing exit code 1 to 0 and uppercasing the printed message both cause test failures. npm run release:check passes all six gates."
+notes[1]{created_at,author,text}:
+  "2026-08-06T20:58:28.039Z",pi-agent,"Eliminated the unmeasured coverage-gate entry shim (scripts/run-coverage-gate.ts) by moving its try/catch error handling into an exported, guarded runScriptEntry function at the bottom of scripts/coverage-gate.ts. The process.argv[1] guard ensures the gate runs when executed directly but returns silently when imported by tests, so both branches are measured by the very coverage they enforce. Deleted the shim file and pointed package.json's coverage script back at node scripts/coverage-gate.ts. Added four tests covering both sides of the guard (falsy argv[1] short-circuit, non-matching argv[1]) and both arms of the catch ternary (Error message path via a nonexistent source fixture, non-Error String(e) path via a process.exit mock that throws a string sentinel). Coverage gate reports 2 source file(s) at 100.00/100.00/100.00. Mutation-checked: changing the exit code from 1 to 0 and uppercasing the printed message both cause test failures."
+close_reason: "The coverage-gate entry shim scripts/run-coverage-gate.ts was not in coverageGate.sources, leaving its catch branch unmeasured. Moved the error handling into an exported guarded runScriptEntry at the bottom of scripts/coverage-gate.ts, deleted the shim, and pointed the coverage script back at the gate file directly."
+body: ""

@@ -97,15 +97,16 @@
   },
   "coverageGate": {
     "sources": [
-      "."
+      ".",
+      "scripts/coverage-gate.ts"
     ],
     "tests": [
       "test/*.test.ts"
     ],
     "thresholds": {
-      "lines": 74,
-      "branches": 58,
-      "functions": 56
+      "lines": 100,
+      "branches": 100,
+      "functions": 100
     },
     "ignore": []
   }

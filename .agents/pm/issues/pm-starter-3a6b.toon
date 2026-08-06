@@ -1,0 +1,30 @@
+id: pm-starter-3a6b
+title: Reject non-object tsconfig output in the exact coverage gate
+description: "CodeRabbit found that valid JSON primitives from tsc --showConfig either throw a raw TypeError or silently select default paths. Add failing tests first, then validate a non-null non-array object before reading compilerOptions."
+type: Issue
+status: closed
+priority: 1
+tags: []
+created_at: "2026-08-06T23:17:11.588Z"
+updated_at: "2026-08-06T23:28:58.285Z"
+closed_at: "2026-08-06T23:28:57.774Z"
+completed_at: "2026-08-06T23:28:57.774Z"
+author: codex
+estimated_minutes: 30
+acceptance_criteria: "null, scalar, and array JSON fail through the documented coverage-gate diagnostic; object JSON preserves configured/default path behavior; exact 100/100/100 coverage and release checks pass"
+severity: high
+environment: coverage gate under malformed external-command output
+resolution: Validated parsed compiler output before property access and added table-driven non-object regression cases.
+expected_result: Every valid JSON value that is not a tsconfig object fails with the gate diagnostic.
+actual_result: "Null, boolean, string, and array output now fail closed; exact coverage and the full release gate pass."
+dependencies[1]{id,kind,created_at,author,source_kind,author_source}:
+  pm-starter-5bvm,related,"2026-08-06T23:17:11.588Z",codex,"cli:create:dep",detected
+files[2]{path,scope}:
+  scripts/coverage-gate.ts,project
+  test/coverage-gate.test.ts,project
+tests[1]{command,scope,timeout_seconds,pm_context_mode}:
+  "npm run release:check",project,900,tracker
+docs[1]{path,scope}:
+  "https://github.com/unbraind/pm-starter/pull/53",project
+close_reason: Rejected non-object compiler JSON with deterministic regression coverage; exact release gate passes.
+body: ""

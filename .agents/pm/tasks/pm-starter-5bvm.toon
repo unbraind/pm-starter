@@ -1,0 +1,18 @@
+id: pm-starter-5bvm
+title: Raise the coverage gate to a measured 100/100/100 and bring scripts/coverage-gate.ts under it
+description: ""
+type: Task
+status: closed
+priority: 2
+tags: []
+created_at: "2026-08-05T20:36:39.392Z"
+updated_at: "2026-08-06T20:39:25.599Z"
+closed_at: "2026-08-06T20:39:25.587Z"
+completed_at: "2026-08-06T20:39:25.587Z"
+claim_principal: pi-agent
+author: pi-agent
+notes[2]{created_at,author,text}:
+  "2026-08-06T20:39:15.817Z",pi-agent,"Repaired stranded coverage work: fixed TS2440 import conflict (renamed local runGate helper), created scripts/run-coverage-gate.ts wrapper, added NODE_TEST_CONTEXT clearing to runGate spawnSync env. Rewrote test/coverage-gate.test.ts to call collectSources/resolveEmitPaths/runGate in-process with process.exit mocked, covering all branches. Added test for ?? defaults in resolveEmitPaths and ?? 1 fallback for status null."
+  "2026-08-06T20:39:20.245Z",pi-agent,"Coverage is now measured 100.00/100.00/100.00 on both index.ts and scripts/coverage-gate.ts. All 136 tests pass. Mutation-tested 2 newly covered branches: (1) ?? \"dist\" fallback in resolveEmitPaths → changed to ?? \"WRONG\", test failed; (2) ?? 1 fallback in runGate for status null → changed to ?? 99, test failed. Both mutations caught."
+close_reason: "Repaired stranded coverage work and achieved measured 100/100/100 on index.ts and scripts/coverage-gate.ts. Fixed TS2440 compile error, created run-coverage-gate.ts wrapper, rewrote coverage-gate tests to call functions in-process with process.exit mocked, covering all branches including ?? defaults and status null fallback. All 136 tests pass, release:check green, mutation-tested 2 branches."
+body: ""
