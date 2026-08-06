@@ -416,6 +416,38 @@ test("resolveEmitPaths throws the gate message when npx exits 0 with non-JSON st
   }
 });
 
+test("resolveEmitPaths rejects JSON values that are not tsconfig objects", { skip: process.platform === "win32" ? "fake npx is a #!/bin/sh script; shebang is not honoured under cmd.exe" : false }, () => {
+  for (const json of ["null", "true", '"tsconfig"', "[]"]) {
+    const fakeBin = mkdtempSync(join(tmpdir(), "cov-gate-fake-bin-"));
+    const fakeNpx = join(fakeBin, "npx");
+    writeFileSync(fakeNpx, `#!/bin/sh\nprintf '%s\\n' '${json}'\n`);
+    chmodSync(fakeNpx, 0o755);
+    const dir = createFixture({
+      "tsconfig.json": TSCONFIG,
+    }, { needsTsc: true });
+    try {
+      const savedPath = process.env.PATH;
+      process.env.PATH = [fakeBin, savedPath ?? ""].filter(Boolean).join(delimiter);
+      try {
+        assert.throws(
+          () => resolveEmitPaths(dir),
+          (err: Error) => {
+            assert.match(err.message, /^coverage-gate:/);
+            assert.match(err.message, /not a tsconfig object/);
+            return true;
+          },
+          `JSON value ${json} must be rejected`,
+        );
+      } finally {
+        process.env.PATH = savedPath;
+      }
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+      rmSync(fakeBin, { recursive: true, force: true });
+    }
+  }
+});
+
 // ---------------------------------------------------------------------------
 // runGate — direct in-process tests (process.exit mocked)
 // ---------------------------------------------------------------------------

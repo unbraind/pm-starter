@@ -201,9 +201,9 @@ export function resolveEmitPaths(root: string): { outDir: string; rootDir: strin
       ].join("\n"),
     );
   }
-  let parsed: TsConfig;
+  let parsed: unknown;
   try {
-    parsed = JSON.parse(raw) as TsConfig;
+    parsed = JSON.parse(raw);
   } catch {
     throw new Error(
       [
@@ -214,9 +214,15 @@ export function resolveEmitPaths(root: string): { outDir: string; rootDir: strin
       ].join("\n"),
     );
   }
+  if (parsed === null || typeof parsed !== "object" || Array.isArray(parsed)) {
+    throw new Error(
+      "coverage-gate: `tsc --showConfig` produced JSON that is not a tsconfig object. Refusing to guess.",
+    );
+  }
+  const tsconfig = parsed as TsConfig;
   return {
-    outDir: parsed.compilerOptions?.outDir ?? "dist",
-    rootDir: parsed.compilerOptions?.rootDir ?? ".",
+    outDir: tsconfig.compilerOptions?.outDir ?? "dist",
+    rootDir: tsconfig.compilerOptions?.rootDir ?? ".",
   };
 }
 
