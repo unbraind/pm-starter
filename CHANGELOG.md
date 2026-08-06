@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- Fix review findings: two assertions that could never fail, an unawaited output capture, and a duplicated test ([pm-starter-d5zy](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/tasks/pm-starter-d5zy.toon))
+
 ### Other
 
 - Bring the coverage gate entry shim under the coverage gate itself ([pm-starter-64jd](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/tasks/pm-starter-64jd.toon))

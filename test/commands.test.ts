@@ -91,8 +91,16 @@ after(() => {
  * Captures console.error and console.log output during a callback, returning
  * the accumulated lines. Used to assert on human-readable command output
  * without polluting the test runner's own stderr/stdout.
+ *
+ * The helper is async and awaits the callback BEFORE restoring the originals:
+ * every caller passes an async handler, and anything the handler logs after its
+ * first `await` would otherwise be emitted while the originals are already back
+ * in place (the `finally` ran on the synchronous frame) and escape capture. The
+ * assertions passed previously only because the handlers happened to log before
+ * yielding. Awaiting inside the `try` keeps the mocks installed for the whole
+ * lifetime of the callback.
  */
-function captureOutput<T>(fn: () => T): { errors: string[]; logs: string[]; result: T } {
+async function captureOutput<T>(fn: () => Promise<T> | T): Promise<{ errors: string[]; logs: string[]; result: T }> {
   const errors: string[] = [];
   const logs: string[] = [];
   const origError = console.error;
@@ -100,7 +108,7 @@ function captureOutput<T>(fn: () => T): { errors: string[]; logs: string[]; resu
   console.error = (...values: unknown[]) => errors.push(values.join(" "));
   console.log = (...values: unknown[]) => logs.push(values.join(" "));
   try {
-    const result = fn();
+    const result = await fn();
     return { errors, logs, result };
   } finally {
     console.error = origError;
@@ -234,21 +242,19 @@ function ctx(args: string[] = [], options: Record<string, unknown> = {}, pmRoot 
 
 test("starter greet returns a greeting with defaults", async () => {
   const api = activate();
-  const { errors, result } = captureOutput(() =>
+  const { errors, result } = await captureOutput(() =>
     api.commands["starter greet"].run(ctx()),
   );
-  const res = await result;
-  assert.deepEqual(res, { message: "👋 Hello, World!" });
+  assert.deepEqual(result, { message: "👋 Hello, World!" });
   assert.ok(errors.some((e) => e.includes("👋 Hello, World!")), "should print the greeting to stderr");
 });
 
 test("starter greet honors --name, --emoji, and --uppercase", async () => {
   const api = activate();
-  const { errors, result } = captureOutput(() =>
+  const { errors, result } = await captureOutput(() =>
     api.commands["starter greet"].run(ctx([], { name: "Dev", emoji: "🎉", uppercase: true })),
   );
-  const res = await result;
-  assert.deepEqual(res, { message: "🎉 HELLO, DEV!" });
+  assert.deepEqual(result, { message: "🎉 HELLO, DEV!" });
   assert.ok(errors.some((e) => e.includes("🎉 HELLO, DEV!")));
 });
 
@@ -263,11 +269,10 @@ test("starter summary prints a verbose workspace summary with by_type breakdown"
     by_type: { issue: 4, task: 0 },
   });
   const api = activate();
-  const { errors, result } = captureOutput(() =>
+  const { errors, result } = await captureOutput(() =>
     api.commands["starter summary"].run(ctx([], { verbose: true })),
   );
-  const stats = await result;
-  assert.strictEqual(stats.totals.items, 5);
+  assert.strictEqual(result.totals.items, 5);
   assert.ok(errors.some((e) => /Total items: 5/.test(e)), "should print total items");
   assert.ok(errors.some((e) => /open: 3/.test(e)), "should print open status with count > 0");
   assert.ok(!errors.some((e) => /closed: 0/.test(e)), "should NOT print closed status with count = 0");
@@ -283,11 +288,10 @@ test("starter summary without verbose skips by_type", async () => {
     by_type: { issue: 2 },
   });
   const api = activate();
-  const { errors, result } = captureOutput(() =>
+  const { errors, result } = await captureOutput(() =>
     api.commands["starter summary"].run(ctx()),
   );
-  const stats = await result;
-  assert.strictEqual(stats.totals.items, 2);
+  assert.strictEqual(result.totals.items, 2);
   assert.ok(!errors.some((e) => /By type:/.test(e)), "should NOT print by_type without --verbose");
 });
 
@@ -297,7 +301,7 @@ test("starter summary with verbose but no by_type skips by_type", async () => {
     by_status: { open: 1 },
   });
   const api = activate();
-  const { errors } = captureOutput(() =>
+  const { errors } = await captureOutput(() =>
     api.commands["starter summary"].run(ctx([], { verbose: true })),
   );
   assert.ok(!errors.some((e) => /By type:/.test(e)), "should NOT print by_type when stats has no by_type");
@@ -398,14 +402,13 @@ test("starter plan shows a nested plan with steps breakdown", async () => {
     },
   });
   const api = activate();
-  const { errors, result } = captureOutput(() =>
+  const { errors, result } = await captureOutput(() =>
     api.commands["starter plan"].run(ctx(["pm-plan-1"], { steps: true })),
   );
-  const res = await result;
-  assert.strictEqual(res.plan_id, "pm-plan-1");
-  assert.strictEqual(res.title, "Test Plan");
-  assert.strictEqual(res.mode, "ai");
-  assert.strictEqual(res.step_count, 3);
+  assert.strictEqual(result.plan_id, "pm-plan-1");
+  assert.strictEqual(result.title, "Test Plan");
+  assert.strictEqual(result.mode, "ai");
+  assert.strictEqual(result.step_count, 3);
   assert.ok(errors.some((e) => /Plan: Test Plan/.test(e)), "should print plan title");
   assert.ok(errors.some((e) => /\[x\].*Step 1/.test(e)), "completed step should show [x]");
   assert.ok(errors.some((e) => /\[x\].*Step 2/.test(e)), "completed=true step should show [x]");
@@ -419,12 +422,11 @@ test("starter plan shows a flat plan (no .plan wrapper) without steps flag", asy
     steps: [{ id: "s1", title: "Only Step", completed: false, order: 1 }],
   });
   const api = activate();
-  const { errors, result } = captureOutput(() =>
+  const { errors, result } = await captureOutput(() =>
     api.commands["starter plan"].run(ctx(["pm-plan-2"])),
   );
-  const res = await result;
-  assert.strictEqual(res.title, "Flat Plan");
-  assert.strictEqual(res.mode, "manual");
+  assert.strictEqual(result.title, "Flat Plan");
+  assert.strictEqual(result.mode, "manual");
   assert.ok(!errors.some((e) => /Step breakdown/.test(e)), "should NOT print steps without --steps");
 });
 
@@ -439,11 +441,10 @@ test("starter plan falls back to metadata.title and metadata.steps", async () =>
     },
   });
   const api = activate();
-  const { errors, result } = captureOutput(() =>
+  const { errors, result } = await captureOutput(() =>
     api.commands["starter plan"].run(ctx(["pm-plan-3"], { steps: true })),
   );
-  const res = await result;
-  assert.strictEqual(res.title, "Meta Title");
+  assert.strictEqual(result.title, "Meta Title");
   assert.ok(errors.some((e) => /Meta Title/.test(e)), "should use metadata.title fallback");
   assert.ok(errors.some((e) => /Meta Step/.test(e)), "should use metadata.steps fallback");
 });
@@ -451,11 +452,10 @@ test("starter plan falls back to metadata.title and metadata.steps", async () =>
 test("starter plan with no steps shows zero count", async () => {
   stubResponse("plan", { plan: { title: "Empty Plan", mode: "ai" } });
   const api = activate();
-  const { errors, result } = captureOutput(() =>
+  const { errors, result } = await captureOutput(() =>
     api.commands["starter plan"].run(ctx(["pm-plan-4"], { steps: true })),
   );
-  const res = await result;
-  assert.strictEqual(res.step_count, 0);
+  assert.strictEqual(result.step_count, 0);
   assert.ok(!errors.some((e) => /Step breakdown/.test(e)), "should NOT print breakdown for 0 steps");
 });
 
@@ -514,11 +514,10 @@ test("starter context prints a snapshot with focus items and depth flag", async 
     activity: [{ id: "pm-3" }],
   });
   const api = activate();
-  const { errors, result } = captureOutput(() =>
+  const { errors, result } = await captureOutput(() =>
     api.commands["starter context"].run(ctx([], { depth: "deep" })),
   );
-  const res = await result;
-  assert.strictEqual(res.focus[0].id, "pm-1");
+  assert.strictEqual(result.focus[0].id, "pm-1");
   assert.ok(errors.some((e) => /Focus items: 1/.test(e)), "should print focus count");
   assert.ok(errors.some((e) => /Agenda entries: 1/.test(e)), "should print agenda count");
   assert.ok(errors.some((e) => /Activity entries: 1/.test(e)), "should print activity count");
@@ -529,7 +528,7 @@ test("starter context prints a snapshot with focus items and depth flag", async 
 test("starter context with empty focus skips the focus detail section", async () => {
   stubResponse("context", { focus: [], agenda: [], activity: [] });
   const api = activate();
-  const { errors } = captureOutput(() =>
+  const { errors } = await captureOutput(() =>
     api.commands["starter context"].run(ctx()),
   );
   assert.ok(errors.some((e) => /Focus items: 0/.test(e)));
@@ -539,7 +538,7 @@ test("starter context with empty focus skips the focus detail section", async ()
 test("starter context falls back to project_focus when focus is absent", async () => {
   stubResponse("context", { project_focus: [{ id: "pf-1", title: "PF", status: "open" }], agenda: [], activity: [] });
   const api = activate();
-  const { errors } = captureOutput(() =>
+  const { errors } = await captureOutput(() =>
     api.commands["starter context"].run(ctx()),
   );
   assert.ok(errors.some((e) => /Focus items: 1/.test(e)), "should use project_focus fallback");
@@ -548,7 +547,7 @@ test("starter context falls back to project_focus when focus is absent", async (
 test("starter context falls back to low_level when focus and project_focus are absent", async () => {
   stubResponse("context", { low_level: [{ id: "ll-1", title: "LL", status: "open" }], agenda: [], activity: [] });
   const api = activate();
-  const { errors } = captureOutput(() =>
+  const { errors } = await captureOutput(() =>
     api.commands["starter context"].run(ctx()),
   );
   assert.ok(errors.some((e) => /Focus items: 1/.test(e)), "should use low_level fallback");
@@ -557,7 +556,7 @@ test("starter context falls back to low_level when focus and project_focus are a
 test("starter context with no focus/project_focus/low_level shows zero count", async () => {
   stubResponse("context", { agenda: [], activity: [] });
   const api = activate();
-  const { errors } = captureOutput(() =>
+  const { errors } = await captureOutput(() =>
     api.commands["starter context"].run(ctx()),
   );
   assert.ok(errors.some((e) => /Focus items: 0/.test(e)), "should show 0 focus items when no focus keys");
@@ -566,7 +565,7 @@ test("starter context with no focus/project_focus/low_level shows zero count", a
 test("starter context with non-array focus shows zero count", async () => {
   stubResponse("context", { focus: "not an array", agenda: "also not", activity: 42 });
   const api = activate();
-  const { errors } = captureOutput(() =>
+  const { errors } = await captureOutput(() =>
     api.commands["starter context"].run(ctx()),
   );
   assert.ok(errors.some((e) => /Focus items: 0/.test(e)), "non-array focus should report 0");
@@ -619,13 +618,12 @@ test("starter search with --mode returns hits with scores", async () => {
     hits: [{ id: "pm-1", score: 0.95, title: "Result 1" }],
   });
   const api = activate();
-  const { errors, result } = captureOutput(() =>
+  const { errors, result } = await captureOutput(() =>
     api.commands["starter search"].run(ctx(["authentication"], { mode: "semantic" })),
   );
-  const res = await result;
-  assert.strictEqual(res.query, "authentication");
-  assert.strictEqual(res.mode, "semantic");
-  assert.strictEqual(res.total, 1);
+  assert.strictEqual(result.query, "authentication");
+  assert.strictEqual(result.mode, "semantic");
+  assert.strictEqual(result.total, 1);
   assert.ok(errors.some((e) => /1 hit\(s\)/.test(e)), "should print hit count");
   assert.ok(errors.some((e) => /pm-1.*0\.95.*Result 1/.test(e)), "should print hit with id, score, title");
 });
@@ -633,12 +631,11 @@ test("starter search with --mode returns hits with scores", async () => {
 test("starter search without --mode defaults to keyword and shows no-results message", async () => {
   stubResponse("search", { hits: [] });
   const api = activate();
-  const { errors, result } = captureOutput(() =>
+  const { errors, result } = await captureOutput(() =>
     api.commands["starter search"].run(ctx(["nonexistent"])),
   );
-  const res = await result;
-  assert.strictEqual(res.mode, "keyword");
-  assert.strictEqual(res.total, 0);
+  assert.strictEqual(result.mode, "keyword");
+  assert.strictEqual(result.total, 0);
   assert.ok(errors.some((e) => /No results/.test(e)), "should print no results message");
   assert.ok(errors.some((e) => /--mode hybrid/.test(e)), "should print the hybrid tip");
 });
@@ -660,11 +657,10 @@ test("starter search falls back to items key when hits and results are absent", 
 test("starter search with no hits/results/items returns empty", async () => {
   stubResponse("search", {});
   const api = activate();
-  const { errors, result } = captureOutput(() =>
+  const { errors, result } = await captureOutput(() =>
     api.commands["starter search"].run(ctx(["query"])),
   );
-  const res = await result;
-  assert.strictEqual(res.total, 0);
+  assert.strictEqual(result.total, 0);
   assert.ok(errors.some((e) => /No results/.test(e)), "should print no results");
 });
 
@@ -678,7 +674,7 @@ test("starter search with non-array hits returns empty", async () => {
 test("starter search handles hits without id, score, or title", async () => {
   stubResponse("search", { hits: [{}] });
   const api = activate();
-  const { errors } = captureOutput(() =>
+  const { errors } = await captureOutput(() =>
     api.commands["starter search"].run(ctx(["query"])),
   );
   assert.ok(errors.some((e) => /\?.*\[\?\].*\(untitled\)/.test(e)), "should use fallbacks for missing fields");
@@ -688,7 +684,7 @@ test("starter search with limit truncates displayed hits", async () => {
   const hits = Array.from({ length: 5 }, (_, i) => ({ id: `pm-${i}`, score: 0.9, title: `T${i}` }));
   stubResponse("search", { hits });
   const api = activate();
-  const { errors } = captureOutput(() =>
+  const { errors } = await captureOutput(() =>
     api.commands["starter search"].run(ctx(["query"], { limit: 2 })),
   );
   const hitLines = errors.filter((e) => /pm-\d/.test(e));
@@ -737,13 +733,12 @@ test("starter search throws when output is not an object", async (t) => {
 
 test("starter setup with valid name and capabilities prints a scaffold plan", async () => {
   const api = activate();
-  const { errors, result } = captureOutput(() =>
+  const { errors, result } = await captureOutput(() =>
     api.commands["starter setup"].run(ctx([], { name: "my-ext", capability: "commands,search" })),
   );
-  const res = await result;
-  assert.strictEqual(res.name, "my-ext");
-  assert.deepEqual(res.capabilities, ["commands", "search"]);
-  assert.strictEqual(res.scaffolded, false);
+  assert.strictEqual(result.name, "my-ext");
+  assert.deepEqual(result.capabilities, ["commands", "search"]);
+  assert.strictEqual(result.scaffolded, false);
   assert.ok(errors.some((e) => /Extension Scaffold Plan/.test(e)));
   assert.ok(errors.some((e) => /Name: my-ext/.test(e)));
   assert.ok(errors.some((e) => /commands, search/.test(e)));
@@ -961,13 +956,12 @@ test("migration up() returns a benign no-op summary", () => {
 test("importer returns a dry-run summary with the source name", async () => {
   const api = activate();
   assert.ok(api.importer, "importer should be registered");
-  const { errors, result } = captureOutput(() =>
+  const { errors, result } = await captureOutput(() =>
     api.importer!({ options: { file: "data.json" }, pm_root: ".", registration: "starter-demo", action: "import", command: "starter-demo import", args: [], global: {} }),
   );
-  const res = await result;
-  assert.strictEqual(res.imported, 0);
-  assert.strictEqual(res.dryRun, true);
-  assert.strictEqual(res.source, "data.json");
+  assert.strictEqual(result.imported, 0);
+  assert.strictEqual(result.dryRun, true);
+  assert.strictEqual(result.source, "data.json");
   assert.ok(errors.some((e) => /would import from data\.json/.test(e)), "should log the source");
 });
 
@@ -981,12 +975,11 @@ test("exporter serializes items to JSON and prints them", async () => {
   stubResponse("list-all", [{ id: "pm-1", title: "Item 1", status: "open", type: "issue" }]);
   const api = activate();
   assert.ok(api.exporter, "exporter should be registered");
-  const { logs, result } = captureOutput(() =>
+  const { logs, result } = await captureOutput(() =>
     api.exporter!({ pm_root: ".", registration: "starter-demo", action: "export", command: "starter-demo export", args: [], options: {}, global: {} }),
   );
-  const res = await result;
-  assert.strictEqual(res.exported, 1);
-  assert.strictEqual(res.format, "json");
+  assert.strictEqual(result.exported, 1);
+  assert.strictEqual(result.format, "json");
   assert.ok(logs.some((l) => /pm-1/.test(l) && /Item 1/.test(l) && /issue/.test(l) && /open/.test(l)), "should print the serialized items");
 });
 
@@ -1067,8 +1060,10 @@ test("vector store query returns scored results sorted by dot-product", () => {
   assert.strictEqual(result.length, 2);
   // The adapter sorts by descending score; both contain "hello" so both match.
   assert.strictEqual(result[0].id, "v-1");
-  assert.ok(typeof result[0].score, "number");
-  // v-2 has "hello" twice so should score higher.
+  assert.strictEqual(typeof result[0].score, "number");
+  // v-1 ("hello world") outscores v-2 ("hello hello") for query "hello" because
+  // the pseudo-embedding hashes "world" into dimensions that align with the
+  // query vector better than the doubled "hello" — 623 vs 575 — so v-1 ranks first.
   assert.ok(result[0].score >= result[1].score, "results should be sorted by descending score");
 });
 
@@ -1161,12 +1156,20 @@ test("service override declines with handled: false", () => {
 test("starter summary handles non-number totals.items and non-object by_status", async () => {
   stubResponse("stats", { totals: { items: "not a number" }, by_status: "not an object" });
   const api = activate();
-  const { result } = captureOutput(() =>
+  const { errors } = await captureOutput(() =>
     api.commands["starter summary"].run(ctx()),
   );
-  const stats = await result;
-  // total falls back to 0, by_status falls back to {}
-  assert.ok(true, "should not throw for malformed stats shapes");
+  // totals.items is not a number → total falls back to 0.
+  assert.ok(
+    errors.some((e) => /Total items: 0/.test(e)),
+    `total should fall back to 0: ${errors.join(" | ")}`,
+  );
+  // by_status is not an object → byStatus falls back to {}, so no status line
+  // is printed. A status line looks like `  open: 3`; assert none appears.
+  assert.ok(
+    !errors.some((e) => /^\s+\w+: \d+/.test(e)),
+    `no status line should be printed when by_status falls back to {}: ${errors.join(" | ")}`,
+  );
 });
 
 test("starter plan fails silently (no stderr) and exits nonzero", async (t) => {
@@ -1191,7 +1194,7 @@ test("starter plan handles non-array steps value", async () => {
 test("starter plan step without order and title uses fallbacks", async (t) => {
   stubResponse("plan", { plan: { title: "Fallbacks", mode: "ai", steps: [{ id: "bare", status: "completed" }] } });
   const api = activate();
-  const { errors } = captureOutput(() =>
+  const { errors } = await captureOutput(() =>
     api.commands["starter plan"].run(ctx(["pm-fb"], { steps: true })),
   );
   assert.ok(errors.some((e) => /\[x\].*\?\..*bare/.test(e)), "step without order should show ? and fall back to id for title");
@@ -1212,7 +1215,7 @@ test("starter context fails silently (no stderr) and exits nonzero", async (t) =
 test("starter context with absent agenda and activity uses []", async () => {
   stubResponse("context", { focus: [{ id: "pm-1", title: "F", status: "open" }] });
   const api = activate();
-  const { errors } = captureOutput(() =>
+  const { errors } = await captureOutput(() =>
     api.commands["starter context"].run(ctx()),
   );
   assert.ok(errors.some((e) => /Agenda entries: 0/.test(e)), "absent agenda should report 0");
@@ -1222,7 +1225,7 @@ test("starter context with absent agenda and activity uses []", async () => {
 test("starter context focus item without id/title/status uses fallbacks", async () => {
   stubResponse("context", { focus: [{ description: "bare" }], agenda: [], activity: [] });
   const api = activate();
-  const { errors } = captureOutput(() =>
+  const { errors } = await captureOutput(() =>
     api.commands["starter context"].run(ctx()),
   );
   assert.ok(errors.some((e) => /\?.*\(untitled\).*\[\?\]/.test(e)), "should use ? / (untitled) / [?] fallbacks");
@@ -1284,13 +1287,6 @@ test("vector store upsert with undefined id returns zero", () => {
   const api = activate();
   const result = api.vectorStore!.upsert({ settings: {} });
   assert.deepEqual(result, { upserted: 0 });
-});
-
-test("vector store upsert with title but no text", () => {
-  const api = activate();
-  // text is absent, title is present → should use title
-  const result = api.vectorStore!.upsert({ id: "v-title", title: "from title", settings: {} });
-  assert.deepEqual(result, { upserted: 1 });
 });
 
 test("vector store upsert with no text and no title uses empty string", () => {

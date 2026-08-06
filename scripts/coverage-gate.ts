@@ -185,7 +185,35 @@ export function resolveEmitPaths(root: string): { outDir: string; rootDir: strin
       ].join("\n"),
     );
   }
-  const parsed = JSON.parse(shown.stdout) as TsConfig;
+  // Parse defensively: `npx` can exit 0 yet write empty or non-JSON stdout (a
+  // misconfigured toolchain, a truncated pipe, a wrapper that prints a banner).
+  // A bare `JSON.parse` would throw a `SyntaxError` whose message is the parse
+  // complaint, not the gate's own diagnostic — the doc comment above promises
+  // the opposite. Fail closed with the gate's message so the caller never sees
+  // a raw parser error stand in for a coverage-configuration failure.
+  const raw = shown.stdout.trim();
+  if (raw.length === 0) {
+    throw new Error(
+      [
+        "coverage-gate: `tsc --showConfig` produced no output,",
+        "so the emit layout is unknown and `coverageGate.ignore` entries cannot be verified",
+        "as type-only. Refusing to guess.",
+      ].join("\n"),
+    );
+  }
+  let parsed: TsConfig;
+  try {
+    parsed = JSON.parse(raw) as TsConfig;
+  } catch {
+    throw new Error(
+      [
+        "coverage-gate: `tsc --showConfig` produced output that is not valid JSON,",
+        "so the emit layout is unknown and `coverageGate.ignore` entries cannot be verified",
+        "as type-only. Refusing to guess.",
+        `--- stdout ---\n${raw}\n--- end stdout ---`,
+      ].join("\n"),
+    );
+  }
   return {
     outDir: parsed.compilerOptions?.outDir ?? "dist",
     rootDir: parsed.compilerOptions?.rootDir ?? ".",

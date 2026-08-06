@@ -18,7 +18,7 @@ import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import { chmodSync, existsSync, mkdirSync, mkdtempSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { dirname, join, sep } from "node:path";
+import { delimiter, dirname, join, sep } from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
 
@@ -50,8 +50,11 @@ function createFixture(
   if (options.needsTsc) {
     try {
       symlinkSync(REPO_NODE_MODULES, join(dir, "node_modules"), "dir");
-    } catch {
-      // Symlink may already exist or may not be supported; ignore.
+    } catch (e) {
+      // A broken fixture surfaces later as an unrelated gate message, so rethrow
+      // unless the link already exists (e.g. a retry over the same temp dir) —
+      // in which case the desired state is already in place.
+      if (!existsSync(join(dir, "node_modules"))) throw e;
     }
   }
   return dir;
@@ -179,7 +182,12 @@ function callRunGate(
 
 /** Run `npx tsc` in a fixture to produce compiled output for ignore verification. */
 function buildFixture(cwd: string): void {
-  spawnSync("npx", ["tsc"], { cwd, encoding: "utf8", stdio: "pipe" });
+  const result = spawnSync("npx", ["tsc"], { cwd, encoding: "utf8", stdio: "pipe" });
+  assert.equal(
+    result.status,
+    0,
+    `\`npx tsc\` should succeed for the fixture (cwd=${cwd}):\n${result.stdout ?? ""}${result.stderr ?? ""}`,
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -317,7 +325,7 @@ test("resolveEmitPaths throws when npx is not on PATH (ENOENT)", () => {
   }
 });
 
-test("resolveEmitPaths throws when npx exits nonzero, surfacing its stderr", () => {
+test("resolveEmitPaths throws when npx exits nonzero, surfacing its stderr", { skip: process.platform === "win32" ? "fake npx is a #!/bin/sh script; shebang is not honoured under cmd.exe" : false }, () => {
   const fakeBin = mkdtempSync(join(tmpdir(), "cov-gate-fake-bin-"));
   const fakeNpx = join(fakeBin, "npx");
   writeFileSync(fakeNpx, "#!/bin/sh\necho 'tsc not found' >&2\nexit 1\n");
@@ -327,13 +335,75 @@ test("resolveEmitPaths throws when npx exits nonzero, surfacing its stderr", () 
   }, { needsTsc: true });
   try {
     const savedPath = process.env.PATH;
-    process.env.PATH = `${fakeBin}:${savedPath ?? ""}`;
+    process.env.PATH = [fakeBin, savedPath ?? ""].filter(Boolean).join(delimiter);
     try {
       assert.throws(
         () => resolveEmitPaths(dir),
         (err: Error) => {
           assert.ok(/could not resolve the effective tsconfig/.test(err.message), err.message);
           assert.ok(/tsc not found/.test(err.message), `should include npx stderr: ${err.message}`);
+          return true;
+        },
+      );
+    } finally {
+      process.env.PATH = savedPath;
+    }
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+    rmSync(fakeBin, { recursive: true, force: true });
+  }
+});
+
+test("resolveEmitPaths throws the gate message when npx exits 0 with empty stdout", { skip: process.platform === "win32" ? "fake npx is a #!/bin/sh script; shebang is not honoured under cmd.exe" : false }, () => {
+  const fakeBin = mkdtempSync(join(tmpdir(), "cov-gate-fake-bin-"));
+  const fakeNpx = join(fakeBin, "npx");
+  // Exits 0 but writes nothing to stdout — JSON.parse would throw a bare
+  // SyntaxError on the empty string; the gate must fail with its own message.
+  writeFileSync(fakeNpx, "#!/bin/sh\nexit 0\n");
+  chmodSync(fakeNpx, 0o755);
+  const dir = createFixture({
+    "tsconfig.json": TSCONFIG,
+  }, { needsTsc: true });
+  try {
+    const savedPath = process.env.PATH;
+    process.env.PATH = [fakeBin, savedPath ?? ""].filter(Boolean).join(delimiter);
+    try {
+      assert.throws(
+        () => resolveEmitPaths(dir),
+        (err: Error) => {
+          assert.ok(/^coverage-gate:/.test(err.message), `should be a gate diagnostic, not a bare SyntaxError: ${err.message}`);
+          assert.ok(/produced no output/.test(err.message), `should name the empty-stdout failure: ${err.message}`);
+          return true;
+        },
+      );
+    } finally {
+      process.env.PATH = savedPath;
+    }
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+    rmSync(fakeBin, { recursive: true, force: true });
+  }
+});
+
+test("resolveEmitPaths throws the gate message when npx exits 0 with non-JSON stdout", { skip: process.platform === "win32" ? "fake npx is a #!/bin/sh script; shebang is not honoured under cmd.exe" : false }, () => {
+  const fakeBin = mkdtempSync(join(tmpdir(), "cov-gate-fake-bin-"));
+  const fakeNpx = join(fakeBin, "npx");
+  // Exits 0 but writes a banner to stdout rather than JSON — JSON.parse would
+  // throw a bare SyntaxError; the gate must fail with its own message instead.
+  writeFileSync(fakeNpx, "#!/bin/sh\necho 'npx notice: installing tsc'\nexit 0\n");
+  chmodSync(fakeNpx, 0o755);
+  const dir = createFixture({
+    "tsconfig.json": TSCONFIG,
+  }, { needsTsc: true });
+  try {
+    const savedPath = process.env.PATH;
+    process.env.PATH = [fakeBin, savedPath ?? ""].filter(Boolean).join(delimiter);
+    try {
+      assert.throws(
+        () => resolveEmitPaths(dir),
+        (err: Error) => {
+          assert.ok(/^coverage-gate:/.test(err.message), `should be a gate diagnostic, not a bare SyntaxError: ${err.message}`);
+          assert.ok(/not valid JSON/.test(err.message), `should name the non-JSON failure: ${err.message}`);
           return true;
         },
       );
