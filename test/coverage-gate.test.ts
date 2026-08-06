@@ -20,8 +20,9 @@ import { chmodSync, existsSync, mkdirSync, mkdtempSync, rmSync, symlinkSync, wri
 import { tmpdir } from "node:os";
 import { dirname, join, sep } from "node:path";
 import test from "node:test";
+import { fileURLToPath } from "node:url";
 
-import { collectSources, resolveEmitPaths, runGate } from "../scripts/coverage-gate.ts";
+import { collectSources, resolveEmitPaths, runGate, runScriptEntry } from "../scripts/coverage-gate.ts";
 
 const REPO_NODE_MODULES = join(import.meta.dirname, "..", "node_modules");
 
@@ -731,6 +732,132 @@ test("a single .ts file source entry is accepted and covered", () => {
   try {
     const result = callRunGate(dir);
     assert.equal(result.exitCode, null, `single-file source should pass: ${result.stderr}`);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+// ---------------------------------------------------------------------------
+// runScriptEntry — the guarded entry point
+// ---------------------------------------------------------------------------
+
+/**
+ * Absolute path to `scripts/coverage-gate.ts`, matching what
+ * `fileURLToPath(import.meta.url)` resolves to inside the script module so the
+ * `process.argv[1]` guard in {@link runScriptEntry} evaluates to true.
+ */
+const SCRIPT_PATH = join(dirname(fileURLToPath(import.meta.url)), "..", "scripts", "coverage-gate.ts");
+
+test("runScriptEntry returns without exiting when argv[1] is falsy (guard short-circuits)", () => {
+  const savedArgv1 = process.argv[1];
+  const savedExit = process.exit;
+  let exitCalled = false;
+  process.argv[1] = undefined as unknown as string;
+  process.exit = (() => { exitCalled = true; }) as typeof process.exit;
+  try {
+    runScriptEntry("/nonexistent/path");
+    assert.equal(exitCalled, false, "should not call process.exit when argv[1] is falsy");
+  } finally {
+    process.argv[1] = savedArgv1;
+    process.exit = savedExit;
+  }
+});
+
+test("runScriptEntry returns without exiting when argv[1] does not match the script path", () => {
+  const savedArgv1 = process.argv[1];
+  const savedExit = process.exit;
+  let exitCalled = false;
+  process.argv[1] = "/some/other/script.ts";
+  process.exit = (() => { exitCalled = true; }) as typeof process.exit;
+  try {
+    runScriptEntry("/nonexistent/path");
+    assert.equal(exitCalled, false, "should not call process.exit when argv[1] does not match");
+  } finally {
+    process.argv[1] = savedArgv1;
+    process.exit = savedExit;
+  }
+});
+
+test("runScriptEntry prints the error message and exits 1 when the gate throws an Error", () => {
+  const dir = createFixture({
+    "package.json": packageJson({
+      sources: ["nonexistent.ts"],
+      tests: ["test/src.test.ts"],
+      thresholds: { lines: 100, branches: 100, functions: 100 },
+    }),
+    "src.ts": FULL_SOURCE,
+    "test/src.test.ts": FULL_TEST,
+  });
+  try {
+    const savedArgv1 = process.argv[1];
+    const savedExit = process.exit;
+    const origError = console.error;
+    const errors: string[] = [];
+    let exitCode: number | undefined;
+    process.argv[1] = SCRIPT_PATH;
+    process.exit = ((code?: number) => {
+      exitCode = code ?? 1;
+      throw new ProcessExitCalled(code ?? 1);
+    }) as typeof process.exit;
+    console.error = (...values: unknown[]) => void errors.push(values.join(" "));
+    try {
+      runScriptEntry(dir);
+    } catch (e) {
+      if (!(e instanceof ProcessExitCalled)) throw e;
+    } finally {
+      process.argv[1] = savedArgv1;
+      process.exit = savedExit;
+      console.error = origError;
+    }
+    assert.equal(exitCode, 1, "should exit 1 on a thrown error");
+    assert.ok(
+      errors.join("\n").includes("does not exist"),
+      `should print the error message: ${errors.join("\n")}`,
+    );
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("runScriptEntry stringifies and prints a non-Error throw, then exits 1", () => {
+  // A fixture with no `coverageGate` block makes `runGate` call `process.exit(1)`
+  // for a gate failure (not throw). When `process.exit` is mocked to throw a
+  // non-Error value, that throw propagates out of `runGate` into
+  // `runScriptEntry`'s catch, where `e instanceof Error` is false and the
+  // `String(e)` arm of the ternary fires — the only way to reach that arm,
+  // since `runGate`'s own helper throws are always `Error` instances.
+  const dir = createFixture({
+    "package.json": JSON.stringify({ type: "module" }),
+  });
+  try {
+    const savedArgv1 = process.argv[1];
+    const savedExit = process.exit;
+    const origError = console.error;
+    const errors: string[] = [];
+    let exitCode: number | undefined;
+    process.argv[1] = SCRIPT_PATH;
+    process.exit = ((code?: number) => {
+      exitCode = code ?? 1;
+      throw "a non-Error sentinel";
+    }) as typeof process.exit;
+    console.error = (...values: unknown[]) => void errors.push(values.join(" "));
+    try {
+      runScriptEntry(dir);
+    } catch (e) {
+      // The catch in runScriptEntry stringifies the sentinel, prints it, and
+      // calls process.exit(1) — the mock throws the sentinel again. Catch it
+      // here so it doesn't kill the test runner.
+      if (e !== "a non-Error sentinel") throw e;
+    } finally {
+      process.argv[1] = savedArgv1;
+      process.exit = savedExit;
+      console.error = origError;
+    }
+    assert.equal(exitCode, 1, "should exit 1 on a non-Error throw");
+    assert.ok(
+      errors.join("\n").includes("a non-Error sentinel"),
+      `should print the stringified non-Error: ${errors.join("\n")}`,
+    );
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }

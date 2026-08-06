@@ -4,6 +4,7 @@
 
 ### Other
 
+- Bring the coverage gate entry shim under the coverage gate itself ([pm-starter-64jd](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/tasks/pm-starter-64jd.toon))
 - Raise the coverage gate to a measured 100/100/100 and bring scripts/coverage-gate.ts under it ([pm-starter-5bvm](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/tasks/pm-starter-5bvm.toon))
 
 ## 2026.8.5 - 2026-08-05

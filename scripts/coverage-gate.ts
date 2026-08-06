@@ -33,6 +33,7 @@
 import { spawnSync } from "node:child_process";
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync } from "node:fs";
 import { join, relative, resolve, sep } from "node:path";
+import { fileURLToPath } from "node:url";
 
 /**
  * Minimum acceptable percentage for each coverage dimension Node reports.
@@ -369,11 +370,39 @@ export function runGate(root: string): void {
   console.log(`\ncoverage-gate: ${required.length} source file(s) reported, thresholds met.`);
 }
 
-// This module exports {@link runGate} for both direct use and test-time import.
-// The `npm run coverage` script invokes it via `scripts/run-coverage-gate.ts`,
-// a thin wrapper that catches thrown errors and exits with a clean message.
-//
-// The gate functions are imported directly by `test/coverage-gate.test.ts` so
-// the test process measures their coverage in-process — subprocess invocations
-// of the gate (for behavioural verification) do not contribute coverage to this
-// file because they run a copy in a separate process.
+// ---------------------------------------------------------------------------
+// Script entry point — run the gate when executed directly, not when imported.
+// ---------------------------------------------------------------------------
+
+const repoRoot = resolve(import.meta.dirname, "..");
+
+/**
+ * Runs the coverage gate when the module is the process's main script, then
+ * exits with a clean message on a thrown error. When the module is imported
+ * (e.g. from the test suite), the `process.argv[1]` guard is false and the
+ * function returns without calling `process.exit`, so tests can import and
+ * exercise every other path without the module terminating the test process.
+ *
+ * {@link runGate} calls `process.exit` itself for gate failures (threshold
+ * misses, missing sources in the report, etc.); it only throws for helper
+ * errors from {@link collectSources} / {@link resolveEmitPaths}. This wrapper
+ * catches those throws and converts them into a clean stderr message plus
+ * exit code 1 — the same behaviour the deleted `scripts/run-coverage-gate.ts`
+ * shim provided, now inside the measured source set so the catch branch is
+ * covered by the very gate it guards.
+ *
+ * @param rootDir - Absolute path to the package root to gate. Defaults to the
+ *   script's own parent directory.
+ */
+export function runScriptEntry(rootDir: string = repoRoot): void {
+  if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+    try {
+      runGate(rootDir);
+    } catch (e) {
+      console.error(e instanceof Error ? e.message : String(e));
+      process.exit(1);
+    }
+  }
+}
+
+runScriptEntry();
