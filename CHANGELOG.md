@@ -1,10 +1,15 @@
 # Changelog
 
-## 2026.8.7 - 2026-08-07
+## Unreleased
 
 ### Fixed
 
 - Fix the output_format service override so it declines unclaimed payloads instead of echoing the command context ([pm-starter-ejr6](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/issues/pm-starter-ejr6.toon))
+
+## 2026.8.7 - 2026-08-07
+
+### Fixed
+
 - Reject non-object tsconfig output in the exact coverage gate ([pm-starter-3a6b](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/issues/pm-starter-3a6b.toon))
 - Gate durable PM project health in CI on pm CLI 2026.8.6 ([pm-starter-cskq](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/issues/pm-starter-cskq.toon))
 - Fix review findings: two assertions that could never fail, an unawaited output capture, and a duplicated test ([pm-starter-d5zy](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/tasks/pm-starter-d5zy.toon))
