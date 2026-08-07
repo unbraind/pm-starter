@@ -1,0 +1,28 @@
+id: pm-starter-asud
+title: Sanitize personal identities and legacy host paths from reachable public history
+description: "A full reachable-history audit found legacy commits using personal-domain author identities and old PM artifacts containing absolute host paths. The current tracked tree is clean and no secret-shaped tokens were found across reachable revisions, but publication readiness cannot be asserted until a maintainer-approved coordinated rewrite removes both historical privacy classes and protects all refs."
+type: Issue
+status: open
+priority: 0
+tags: []
+created_at: "2026-08-07T17:26:15.325Z"
+updated_at: "2026-08-07T17:34:52.490Z"
+author: "harness:codex"
+estimated_minutes: 360
+acceptance_criteria: "maintainer approves the rewrite and canonical identity mapping; all refs tags and pull-request-impacting coordination are planned before mutation; post-rewrite reachable author and committer inventory contains only approved noreply or bot identities; an automated identity audit is required by release:check and CI; package artifact and PM history privacy scans remain clean; publication stays blocked until all evidence is complete; all reachable revisions contain no absolute host path or personal-domain pattern matches after the coordinated rewrite; current PM item and history redactions are performed only through pm history-redact when required and verified for zero drift"
+risk: critical
+confidence: high
+reporter: "harness:codex"
+severity: critical
+expected_result: Every reachable commit author and committer uses an approved public noreply or bot identity and an automated release gate rejects future identity regressions.
+actual_result: "The current worktree has no tracked privacy-pattern or secret-pattern hits, and reachable revisions have zero secret-pattern hits. Reachable commit metadata still includes legacy non-noreply identities, while 67 reachable revisions retain absolute-host-path PM artifacts even though current item/history files are already clean."
+component: release-privacy
+customer_impact: Public GitHub clones expose personal identity metadata and npm release claims would incorrectly state the entire history is privacy-clean.
+dependencies[1]{id,kind,created_at,author,source_kind,author_source}:
+  pm-starter-t89y,discovered_from,"2026-08-07T17:26:15.325Z","harness:codex",history-audit,asserted
+notes[2]{created_at,author,text}:
+  "2026-08-07T17:27:06.722Z","harness:codex","Filename-only full-history scanning found absolute-host-path patterns in legacy revisions of two PM items and their history streams,plus old runtime-cache artifacts. Current tracked content is clean,and secret-shape scanning across all reachable revisions returned zero matches. This expands the same coordinated history rewrite blocker; no manual PM history edits or force push were attempted."
+  "2026-08-07T17:34:52.475Z","harness:codex",CodeRabbit review on PR #54 correctly found that the original linked test only printed author identities. Replaced it through the PM workflow with a fail-closed audit covering author and committer emails plus prohibited absolute-path patterns across every reachable revision. The command is expected to fail until this open privacy blocker is resolved.
+tests[1]{command,path,scope,timeout_seconds,pm_context_mode}:
+  "set -euo pipefail; unexpected=$(git log --all --format=%ae%n%ce | sort -u | grep -Ev \"(@users[.]noreply[.]github[.]com|@github[.]com)$\" || true); test -z \"$unexpected\"; while IFS= read -r rev; do if git grep -I -q -E \"(/home/[^/[:space:]]+/container/|/Users/[^/[:space:]]+/|192[.]168[.])\" \"$rev\" -- .; then exit 1; fi; done < <(git rev-list --all)",.git,project,300,tracker
+body: ""

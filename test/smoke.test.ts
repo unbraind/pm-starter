@@ -1,14 +1,26 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { execFileSync } from "node:child_process";
+import { mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import test from "node:test";
 
+import type { ExtensionApi } from "@unbrained/pm-cli/sdk/authoring";
 import { createExtensionTestHarness, runRegisteredServiceOverrideForTest } from "@unbrained/pm-cli/sdk/testing";
 
 import extension, { optionPositiveInteger, readPmItems } from "../index.ts";
 
-function createMockApi(commands: Record<string, any> = {}): any {
+/** Opaque callback/value capture used only across the deliberately loose test-double boundary. */
+interface CapturedValue {
+  (...args: unknown[]): CapturedValue;
+  readonly [key: string]: CapturedValue;
+  readonly [index: number]: CapturedValue;
+}
+
+/** Create the minimal registration sink used by command-focused smoke cases. */
+function createMockApi(commands: Record<string, CapturedValue> = {}): ExtensionApi {
   return {
-    registerCommand: (command: any) => { commands[command.name] = command; },
+    registerCommand: (command: CapturedValue) => { commands[String(command.name)] = command; },
     registerParser: () => {},
     registerPreflight: () => {},
     registerService: () => {},
@@ -22,7 +34,7 @@ function createMockApi(commands: Record<string, any> = {}): any {
     registerSearchProvider: () => {},
     registerVectorStoreAdapter: () => {},
     hooks: { beforeCommand: () => {}, afterCommand: () => {}, onWrite: () => {}, onRead: () => {}, onIndex: () => {} },
-  };
+  } as unknown as ExtensionApi;
 }
 
 test("extension has required shape", () => {
@@ -35,14 +47,14 @@ test("extension has required shape", () => {
 
 test("extension registers at least one capability", () => {
   const registered: string[] = [];
-  const commands: Record<string, any> = {};
-  const renderers: Record<string, (ctx: any) => unknown> = {};
-  let importer: ((ctx: any) => unknown) | undefined;
-  let exporter: ((ctx: any) => unknown) | undefined;
+  const commands: Record<string, CapturedValue> = {};
+  const renderers: Record<string, CapturedValue> = {};
+  let importer: CapturedValue | undefined;
+  let exporter: CapturedValue | undefined;
   // Mirror the full ExtensionApi so the reference extension can register every
   // demonstrated capability (this template exercises all of them).
   const api = {
-    registerCommand: (command: any) => { registered.push("command"); commands[command.name] = command; },
+    registerCommand: (command: CapturedValue) => { registered.push("command"); commands[String(command.name)] = command; },
     registerParser: () => { registered.push("parser"); },
     registerPreflight: () => { registered.push("preflight"); },
     registerService: () => { registered.push("service"); },
@@ -50,9 +62,9 @@ test("extension registers at least one capability", () => {
     registerItemFields: () => { registered.push("itemFields"); },
     registerItemTypes: () => { registered.push("itemTypes"); },
     registerMigration: () => { registered.push("migration"); },
-    registerRenderer: (format: string, renderer: (ctx: any) => unknown) => { registered.push("renderer"); renderers[format] = renderer; },
-    registerImporter: (_name: string, handler: (ctx: any) => unknown) => { registered.push("importer"); importer = handler; },
-    registerExporter: (_name: string, handler: (ctx: any) => unknown) => { registered.push("exporter"); exporter = handler; },
+    registerRenderer: (format: string, renderer: CapturedValue) => { registered.push("renderer"); renderers[format] = renderer; },
+    registerImporter: (_name: string, handler: CapturedValue) => { registered.push("importer"); importer = handler; },
+    registerExporter: (_name: string, handler: CapturedValue) => { registered.push("exporter"); exporter = handler; },
     registerSearchProvider: () => { registered.push("search"); },
     registerVectorStoreAdapter: () => { registered.push("vectorStore"); },
     hooks: {
@@ -63,7 +75,7 @@ test("extension registers at least one capability", () => {
       onIndex: () => { registered.push("hook:onIndex"); },
     },
   };
-  extension.activate(api as any);
+  extension.activate(api as unknown as ExtensionApi);
   assert.ok(registered.length > 0, `extension should register at least one capability, got: ${JSON.stringify(registered)}`);
 
   // This reference extension demonstrates ALL 9 SDK capability types, so the
@@ -96,43 +108,43 @@ test("extension registers at least one capability", () => {
 });
 
 test("starter plan throws USAGE error when no id is provided", async () => {
-  const commands: Record<string, any> = {};
+  const commands: Record<string, CapturedValue> = {};
   const api = createMockApi(commands);
-  extension.activate(api as any);
+  extension.activate(api);
 
   // No ID provided -> should throw CommandError with exitCode USAGE (2)
   await assert.rejects(
     async () => commands["starter plan"].run({ args: [], options: {}, pm_root: "." }),
-    (err: any) => err.exitCode === 2,
+    (error: unknown) => typeof error === "object" && error !== null && "exitCode" in error && error.exitCode === 2,
   );
 });
 
 test("starter search throws USAGE error when no keywords are provided", async () => {
-  const commands: Record<string, any> = {};
+  const commands: Record<string, CapturedValue> = {};
   const api = createMockApi(commands);
-  extension.activate(api as any);
+  extension.activate(api);
 
   await assert.rejects(
     async () => commands["starter search"].run({ args: [], options: {}, pm_root: "." }),
-    (err: any) => err.exitCode === 2,
+    (error: unknown) => typeof error === "object" && error !== null && "exitCode" in error && error.exitCode === 2,
   );
 });
 
 test("starter setup throws USAGE error when --name is missing in non-interactive mode", async () => {
-  const commands: Record<string, any> = {};
+  const commands: Record<string, CapturedValue> = {};
   const api = createMockApi(commands);
-  extension.activate(api as any);
+  extension.activate(api);
 
   await assert.rejects(
     async () => commands["starter setup"].run({ args: [], options: {}, pm_root: "." }),
-    (err: any) => err.exitCode === 2,
+    (error: unknown) => typeof error === "object" && error !== null && "exitCode" in error && error.exitCode === 2,
   );
 });
 
 test("starter setup interactive mode returns guided steps", async () => {
-  const commands: Record<string, any> = {};
+  const commands: Record<string, CapturedValue> = {};
   const api = createMockApi(commands);
-  extension.activate(api as any);
+  extension.activate(api);
 
   const result = await commands["starter setup"].run({ args: [], options: { interactive: true }, pm_root: "." });
   assert.strictEqual(result.interactive, true);
@@ -153,11 +165,6 @@ test("positive integer options honor numeric and string SDK values", () => {
 // configurable, which makes the branch testable for real — no spawnSync mocking.
 
 test("readPmItems honors PM_JSON_MAX_BUFFER and reports an overrun instead of returning a silent empty array", async (t) => {
-  const { mkdtempSync, rmSync } = await import("node:fs");
-  const { tmpdir } = await import("node:os");
-  const { join } = await import("node:path");
-  const { execFileSync } = await import("node:child_process");
-
   const dir = mkdtempSync(join(tmpdir(), "pm-starter-buffer-"));
   t.after(() => rmSync(dir, { recursive: true, force: true }));
 
@@ -196,11 +203,6 @@ test("readPmItems honors PM_JSON_MAX_BUFFER and reports an overrun instead of re
 test("a malformed PM_JSON_MAX_BUFFER falls back to the default instead of imposing a tiny cap", async (t) => {
   // parseInt("64MiB") === 64 would have imposed a 64-BYTE cap and broken every
   // ordinary read while appearing to honor the documented fallback.
-  const { mkdtempSync, rmSync } = await import("node:fs");
-  const { tmpdir } = await import("node:os");
-  const { join } = await import("node:path");
-  const { execFileSync } = await import("node:child_process");
-
   const dir = mkdtempSync(join(tmpdir(), "pm-starter-badcap-"));
   t.after(() => rmSync(dir, { recursive: true, force: true }));
   const pmRoot = join(dir, ".agents", "pm");

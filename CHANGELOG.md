@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+- Fix the output_format service override so it declines unclaimed payloads instead of echoing the command context ([pm-starter-ejr6](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/issues/pm-starter-ejr6.toon))
+
+### Other
+
+- Adopt pm CLI 2026.8.7 and revalidate the output-format reference contract ([pm-starter-t89y](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/chores/pm-starter-t89y.toon))
+
 ## 2026.8.7 - 2026-08-07
 
 ### Fixed

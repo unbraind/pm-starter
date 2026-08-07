@@ -4,6 +4,8 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test, { after, before, type TestContext } from "node:test";
 
+import type { ExtensionApi } from "@unbrained/pm-cli/sdk/authoring";
+
 import extension, { readPmItems } from "../index.ts";
 
 // ---------------------------------------------------------------------------
@@ -159,25 +161,39 @@ function setEnv(t: TestContext, key: string, value: string | undefined): void {
  * them directly with controlled contexts. Mirrors the pattern in smoke.test.ts
  * but captures callbacks for hooks, schema, search, parser, preflight, etc.
  */
-/* eslint-disable @typescript-eslint/no-explicit-any -- test doubles use any for the mock API surface */
 interface CapturedApi {
-  readonly commands: Record<string, any>;
-  readonly renderers: Record<string, { fn: (ctx: any) => any; ownership?: unknown }>;
-  importer: ((ctx: any) => any) | undefined;
-  exporter: ((ctx: any) => any) | undefined;
-  searchProvider: { query: (ctx: any) => any } | undefined;
-  vectorStore: { upsert: (ctx: any) => any; query: (ctx: any) => any } | undefined;
-  migration: { up: (ctx: any) => any } | undefined;
-  parser: ((ctx: any) => any) | undefined;
-  preflight: ((ctx: any) => any) | undefined;
-  service: ((ctx: any) => any) | undefined;
+  readonly commands: Record<string, CapturedValue>;
+  readonly renderers: Record<string, { fn: CapturedValue; ownership?: unknown }>;
+  importer: CapturedValue | undefined;
+  exporter: CapturedValue | undefined;
+  searchProvider: CapturedValue | undefined;
+  vectorStore: CapturedValue | undefined;
+  migration: CapturedValue | undefined;
+  parser: CapturedValue | undefined;
+  preflight: CapturedValue | undefined;
+  service: CapturedValue | undefined;
   readonly hooks: {
-    beforeCommand: ((ctx: any) => void)[];
-    afterCommand: ((ctx: any) => void)[];
-    onWrite: ((ctx: any) => void)[];
-    onRead: ((ctx: any) => void)[];
-    onIndex: ((ctx: any) => void)[];
+    beforeCommand: CapturedValue[];
+    afterCommand: CapturedValue[];
+    onWrite: CapturedValue[];
+    onRead: CapturedValue[];
+    onIndex: CapturedValue[];
   };
+}
+
+/**
+ * Opaque callable captured at the SDK activation boundary.
+ *
+ * The real SDK intentionally returns `unknown` from extension surfaces. These
+ * tests invoke registered callbacks with deliberately sparse and invalid
+ * contexts to cover defensive behavior, so the capture layer must not claim
+ * those values satisfy production SDK contracts. The activation boundary is
+ * checked separately by the real SDK harness.
+ */
+interface CapturedValue {
+  (...args: unknown[]): CapturedValue;
+  readonly [key: string]: CapturedValue;
+  readonly [index: number]: CapturedValue;
 }
 
 /** Create a capturing mock API and activate the extension against it. */
@@ -204,30 +220,31 @@ function activate(): CapturedApi {
     service: undefined,
     hooks,
   };
-  extension.activate({
-    registerCommand: (def: any) => { commands[def.name] = def; },
-    registerRenderer: (format: string, fn: (ctx: any) => any, ownership?: unknown) => {
+  const extensionApi = {
+    registerCommand: (definition: CapturedValue) => { commands[String(definition.name)] = definition; },
+    registerRenderer: (format: string, fn: CapturedValue, ownership?: unknown) => {
       renderers[format] = { fn, ownership };
     },
-    registerImporter: (_name: string, handler: (ctx: any) => any) => { api.importer = handler; },
-    registerExporter: (_name: string, handler: (ctx: any) => any) => { api.exporter = handler; },
-    registerSearchProvider: (def: any) => { api.searchProvider = def; },
-    registerVectorStoreAdapter: (def: any) => { api.vectorStore = def; },
-    registerMigration: (def: any) => { api.migration = def; },
-    registerParser: (_cmd: string, handler: (ctx: any) => any) => { api.parser = handler; },
-    registerPreflight: (handler: (ctx: any) => any) => { api.preflight = handler; },
-    registerService: (_name: string, handler: (ctx: any) => any) => { api.service = handler; },
+    registerImporter: (_name: string, handler: CapturedValue) => { api.importer = handler; },
+    registerExporter: (_name: string, handler: CapturedValue) => { api.exporter = handler; },
+    registerSearchProvider: (definition: CapturedValue) => { api.searchProvider = definition; },
+    registerVectorStoreAdapter: (definition: CapturedValue) => { api.vectorStore = definition; },
+    registerMigration: (definition: CapturedValue) => { api.migration = definition; },
+    registerParser: (_command: string, handler: CapturedValue) => { api.parser = handler; },
+    registerPreflight: (handler: CapturedValue) => { api.preflight = handler; },
+    registerService: (_name: string, handler: CapturedValue) => { api.service = handler; },
     registerFlags: () => {},
     registerItemFields: () => {},
     registerItemTypes: () => {},
     hooks: {
-      beforeCommand: (fn: (ctx: any) => void) => hooks.beforeCommand.push(fn),
-      afterCommand: (fn: (ctx: any) => void) => hooks.afterCommand.push(fn),
-      onWrite: (fn: (ctx: any) => void) => hooks.onWrite.push(fn),
-      onRead: (fn: (ctx: any) => void) => hooks.onRead.push(fn),
-      onIndex: (fn: (ctx: any) => void) => hooks.onIndex.push(fn),
+      beforeCommand: (fn: CapturedValue) => hooks.beforeCommand.push(fn),
+      afterCommand: (fn: CapturedValue) => hooks.afterCommand.push(fn),
+      onWrite: (fn: CapturedValue) => hooks.onWrite.push(fn),
+      onRead: (fn: CapturedValue) => hooks.onRead.push(fn),
+      onIndex: (fn: CapturedValue) => hooks.onIndex.push(fn),
     },
-  } as any);
+  };
+  extension.activate(extensionApi as unknown as ExtensionApi);
   return api;
 }
 
@@ -853,7 +870,7 @@ test("json renderer returns null for a non-marked result", () => {
 test("json renderer reshapes a marked result with rendered_by tag", () => {
   const api = activate();
   const rendered = api.renderers.json.fn({ result: { starter_demo: true, item_count: 3, sample: [] } });
-  const parsed = JSON.parse(rendered as string);
+  const parsed = JSON.parse(rendered as unknown as string);
   assert.strictEqual(parsed.rendered_by, "pm-starter");
   assert.strictEqual(parsed.starter_demo, true);
 });
@@ -863,8 +880,8 @@ test("toon renderer renders a marked result with sample entries", () => {
   const rendered = api.renderers.toon.fn({
     result: { starter_demo: true, item_count: 1, sample: [{ id: "x-1", status: "open", title: "Test" }] },
   });
-  assert.match(rendered as string, /pm-starter demo — 1 item\(s\)/);
-  assert.match(rendered as string, /x-1.*open.*Test/);
+  assert.match(rendered as unknown as string, /pm-starter demo — 1 item\(s\)/);
+  assert.match(rendered as unknown as string, /x-1.*open.*Test/);
 });
 
 test("toon renderer handles non-array sample gracefully", () => {
@@ -872,7 +889,7 @@ test("toon renderer handles non-array sample gracefully", () => {
   const rendered = api.renderers.toon.fn({
     result: { starter_demo: true, item_count: 0, sample: "not an array" },
   });
-  assert.match(rendered as string, /pm-starter demo — 0 item\(s\)/);
+  assert.match(rendered as unknown as string, /pm-starter demo — 0 item\(s\)/);
 });
 
 // ---------------------------------------------------------------------------
@@ -1258,13 +1275,13 @@ test("starter search fails silently (no stderr) and exits nonzero", async (t) =>
 test("toon renderer handles absent item_count", () => {
   const api = activate();
   const rendered = api.renderers.toon.fn({ result: { starter_demo: true } });
-  assert.match(rendered as string, /pm-starter demo — 0 item\(s\)/);
+  assert.match(rendered as unknown as string, /pm-starter demo — 0 item\(s\)/);
 });
 
 test("importer with falsy options uses empty object", async () => {
   const api = activate();
   // Pass options: undefined to exercise ctx.options || {}
-  const res = await api.importer!({ options: undefined as any, pm_root: ".", registration: "starter-demo", action: "import", command: "starter-demo import", args: [], global: {} });
+  const res = await api.importer!({ options: undefined, pm_root: ".", registration: "starter-demo", action: "import", command: "starter-demo import", args: [], global: {} });
   assert.strictEqual(res.source, "(no source given)");
 });
 
