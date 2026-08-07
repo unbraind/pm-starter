@@ -1,0 +1,40 @@
+id: pm-starter-t89y
+title: Adopt pm CLI 2026.8.7 and revalidate the output-format reference contract
+description: "Upgrade the pm CLI/SDK peer and development contract plus pm-changelog tooling to 2026.8.7, install the current extension-asset merge fence, revalidate the already-merged output_format decline behavior through the real SDK harness and a fresh installed-CLI tracker, and close stale issue pm-starter-ejr6 with current evidence."
+type: Chore
+status: in_progress
+priority: 0
+tags: []
+created_at: "2026-08-07T17:15:19.300Z"
+updated_at: "2026-08-07T17:25:24.817Z"
+assignee: "harness:codex"
+claim_principal: "harness:codex"
+author: "harness:codex"
+estimated_minutes: 240
+acceptance_criteria: "package lock manifest and self-reported extension version align with pm CLI/SDK 2026.8.7 and current pm-changelog; pm merge install emits extensions/** -merge followed by the managed-manifest pm-json override; pm-starter-ejr6 receives complete metadata and is closed only after the real service override and fresh installed-CLI output remain correct; every executable TypeScript source remains at exact 100/100/100 coverage; npm and Bun release gates, full and production audits, dependency freshness, package dry-run, changelog, pm validate, and strict check-only health pass; changed files and reachable history are audited for private data and independent blockers are tracked; exact-head PR review completes with no unresolved findings; no publication occurs"
+definition_of_ready: "Canonical checkout is clean on released main, no open PR or GitHub issue duplicates the work, installed pm 2026.8.7 is available, and only one local checkout exists"
+value: Keep the canonical extension reference safe for agents copying its service and merge patterns
+impact: Prevents new packages from inheriting an unsafe output override or stale multi-agent merge fence
+outcome: pm-starter demonstrates the current service-decline contract and pm 2026.8.7 package baseline
+why_now: Companion critical item pm-cli-website-19ju lists pm-starter among four remaining fleet drifts while its only open package issue is already implemented but not lifecycle-complete
+reviewer: maintainer
+risk: critical
+confidence: high
+sprint: 2026-08-compatibility
+release: Unreleased
+dependencies[1]{id,kind,created_at,author,source_kind,author_source}:
+  pm-starter-ejr6,verifies,"2026-08-07T17:15:19.300Z","harness:codex",package-audit,asserted
+notes[1]{created_at,author,text}:
+  "2026-08-07T17:25:24.803Z","harness:codex",Dependency and merge-fence implementation is complete. package.json and package-lock resolve @unbrained/pm-cli 2026.8.7 and pm-changelog 2026.8.7; .gitattributes ends with extensions/** -merge followed by the managed-manifest pm-json exception. npm and Bun each executed 142 tests at exact 100/100/100 for index.ts and scripts/coverage-gate.ts. A packed pm-starter-2026.8.7 artifact installed into a fresh pm 2026.8.7 tracker; pm list preserved the one real seeded item before and after activation and starter greet returned Hello Agent. Explicit any annotations and dynamic imports were removed from TypeScript tests. Broader fail-closed docstring and source-quality gating is independently tracked as pm-starter-qu97.
+files[4]{path,scope,note}:
+  package.json,project,pm CLI SDK and changelog contract
+  package-lock.json,project,audited dependency graph
+  .gitattributes,project,multi-agent extension merge fence
+  index.ts,project,canonical output-format service decline example
+tests[2]{command,path,scope,timeout_seconds}:
+  "bun install --no-save && bun run release:check",.github/workflows/ci.yml,project,1800
+  "NPM_CONFIG_USERCONFIG=/dev/null npm run release:check",.github/workflows/ci.yml,project,1800
+docs[2]{path,scope,note}:
+  "https://github.com/unbraind/pm-cli-companion/blob/main/.agents/pm/issues/pm-cli-website-19ju.toon",global,companion four-package fleet tracker
+  .agents/pm/issues/pm-starter-ejr6.toon,project,stale output-format issue to revalidate and close
+body: ""
