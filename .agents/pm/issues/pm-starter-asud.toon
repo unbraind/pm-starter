@@ -6,7 +6,7 @@ status: open
 priority: 0
 tags: []
 created_at: "2026-08-07T17:26:15.325Z"
-updated_at: "2026-08-07T17:27:06.738Z"
+updated_at: "2026-08-07T17:34:52.490Z"
 author: "harness:codex"
 estimated_minutes: 360
 acceptance_criteria: "maintainer approves the rewrite and canonical identity mapping; all refs tags and pull-request-impacting coordination are planned before mutation; post-rewrite reachable author and committer inventory contains only approved noreply or bot identities; an automated identity audit is required by release:check and CI; package artifact and PM history privacy scans remain clean; publication stays blocked until all evidence is complete; all reachable revisions contain no absolute host path or personal-domain pattern matches after the coordinated rewrite; current PM item and history redactions are performed only through pm history-redact when required and verified for zero drift"
@@ -20,8 +20,9 @@ component: release-privacy
 customer_impact: Public GitHub clones expose personal identity metadata and npm release claims would incorrectly state the entire history is privacy-clean.
 dependencies[1]{id,kind,created_at,author,source_kind,author_source}:
   pm-starter-t89y,discovered_from,"2026-08-07T17:26:15.325Z","harness:codex",history-audit,asserted
-notes[1]{created_at,author,text}:
+notes[2]{created_at,author,text}:
   "2026-08-07T17:27:06.722Z","harness:codex","Filename-only full-history scanning found absolute-host-path patterns in legacy revisions of two PM items and their history streams,plus old runtime-cache artifacts. Current tracked content is clean,and secret-shape scanning across all reachable revisions returned zero matches. This expands the same coordinated history rewrite blocker; no manual PM history edits or force push were attempted."
-tests[1]{command,path,scope,timeout_seconds}:
-  git log --all --format=%an%x20%ae,.git,project,120
+  "2026-08-07T17:34:52.475Z","harness:codex",CodeRabbit review on PR #54 correctly found that the original linked test only printed author identities. Replaced it through the PM workflow with a fail-closed audit covering author and committer emails plus prohibited absolute-path patterns across every reachable revision. The command is expected to fail until this open privacy blocker is resolved.
+tests[1]{command,path,scope,timeout_seconds,pm_context_mode}:
+  "set -euo pipefail; unexpected=$(git log --all --format=%ae%n%ce | sort -u | grep -Ev \"(@users[.]noreply[.]github[.]com|@github[.]com)$\" || true); test -z \"$unexpected\"; while IFS= read -r rev; do if git grep -I -q -E \"(/home/[^/[:space:]]+/container/|/Users/[^/[:space:]]+/|192[.]168[.])\" \"$rev\" -- .; then exit 1; fi; done < <(git rev-list --all)",.git,project,300,tracker
 body: ""
