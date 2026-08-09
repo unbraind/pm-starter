@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Other
+
+- Adopt the canonical pm-ops docstring gate ([pm-starter-9nl0](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/tasks/pm-starter-9nl0.toon))
+
 ## 2026.8.8 - 2026-08-08
 
 ### Fixed
