@@ -1,0 +1,17 @@
+id: pm-starter-9nl0
+title: Adopt the canonical pm-ops docstring gate
+description: "Add pm-ops as a devDependency and a thin scripts/docstring-gate.ts launcher that calls analyzeDocstringCoverage (using pm-starter's runScriptEntry guard pattern), wire it into release:check and CI, add it to coverageGate.sources with full test coverage, and document every declaration the analyzer flagged."
+type: Task
+status: closed
+priority: 2
+tags: []
+created_at: "2026-08-09T06:32:43.775Z"
+updated_at: "2026-08-09T06:32:44.877Z"
+closed_at: "2026-08-09T06:32:44.864Z"
+completed_at: "2026-08-09T06:32:44.864Z"
+author: pi-agent
+acceptance_criteria: "npm run docstring reports zero violations; npm run release:check passes in full (including 100% coverage of scripts/docstring-gate.ts); the 'Verify complete docstring coverage' CI step runs npm run docstring between build and coverage."
+notes[1]{created_at,author,text}:
+  "2026-08-09T06:32:44.507Z",pi-agent,"Before fixes: 13 violations across index.ts (EXIT_CODE, CommandError+exitCode, and 10 setup* capability-registration functions). After adding JSDoc to all 13: 0 violations, 27 declarations documented across 3 files. scripts/docstring-gate.ts added to coverageGate.sources and covered at 100% (149 tests pass). release:check green."
+close_reason: "Docstring gate adopted: pm-ops devDependency + scripts/docstring-gate.ts launcher (runScriptEntry guard matching coverage-gate.ts) wired into release:check and CI; behavioral test added covering the gate at 100%; all 13 violations resolved (13 -> 0). npm run release:check passes in full."
+body: ""

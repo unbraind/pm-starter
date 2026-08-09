@@ -60,6 +60,15 @@ import { spawnSync } from "node:child_process";
 // of a semantic one. We mirror the SDK's EXIT_CODE contract here rather than
 // importing it, because standalone extensions cannot resolve the SDK at runtime.
 // ---------------------------------------------------------------------------
+/**
+ * Semantic exit codes this package throws via {@link CommandError}.
+ *
+ * Mirrored from the SDK contract rather than imported, because a
+ * standalone-installed extension cannot resolve the SDK at runtime. pm's command
+ * runtime only honors a thrown error's numeric `exitCode`, so mapping a failure
+ * to one of these is what produces a clean, semantic non-zero exit instead of a
+ * generic one.
+ */
 export const EXIT_CODE = {
     GENERIC_FAILURE: 1,
     USAGE: 2,
@@ -68,7 +77,17 @@ export const EXIT_CODE = {
 // NOTE: NOT_FOUND is used by `starter plan` when a plan ID does not exist,
 // and USAGE is used by `starter plan`, `starter search`, and `starter setup`
 // when required arguments are missing.
+/**
+ * Error type that carries the numeric exit code pm's command runtime expects.
+ *
+ * pm's extension runtime re-invokes the handler and exits with a generic code
+ * for a thrown {@link Error}; only an error exposing a numeric `exitCode` is
+ * treated as a cleanly-handled, semantic non-zero exit (see {@link EXIT_CODE}).
+ * Every intentional failure path in this package therefore throws a
+ * {@link CommandError}.
+ */
 export class CommandError extends Error {
+    /** Numeric exit code pm's runtime reads off the thrown error (see {@link EXIT_CODE}). */
     exitCode;
     constructor(message, exitCode = EXIT_CODE.GENERIC_FAILURE) {
         super(message);
@@ -205,6 +224,17 @@ export function readPmItems(pmRoot) {
 // collide with the importer/exporter command paths (`pm starter-demo ...`).
 // `greet` and `summary` are kept for backward compatibility.
 // ---------------------------------------------------------------------------
+/**
+ * Register the `pm starter ...` demo commands onto the extension API.
+ *
+ * Wires up the self-contained demo commands (the `starter greet` flag demo plus
+ * the back-compat `greet`/`summary` commands) under the `starter` namespace so
+ * they never collide with the importer/exporter paths. This is the
+ * `registerCommand` reference; because the command declares flags, the manifest
+ * must also advertise the `schema` capability.
+ *
+ * @param api - The extension API surface passed to `activate`.
+ */
 function setupCommands(api) {
     // DEMO: registerCommand — a self-contained command with typed flags.
     // Because this command declares a `flags` array, the manifest MUST also list
@@ -602,6 +632,17 @@ function setupCommands(api) {
 function isStarterDemoResult(value) {
     return isObject(value) && value.starter_demo === true;
 }
+/**
+ * Register the demo item renderers onto the extension API.
+ *
+ * Demonstrates `registerRenderer` for the `json` and `toon` formats, each
+ * reshaping only this package's own `starter demo` payload. An ownership object
+ * (command path + {@link isStarterDemoResult} discriminator) makes the host
+ * enforce the scope, and each callback returns `null` for anything else as
+ * defence in depth so native rendering is preserved.
+ *
+ * @param api - The extension API surface passed to `activate`.
+ */
 function setupRenderers(api) {
     // DEMO: registerRenderer("json") — reshape ONLY our own `starter demo`
     // payload. The ownership object below makes the host enforce the command
@@ -641,6 +682,15 @@ function setupRenderers(api) {
 // env var PM_STARTER_HOOKS is set, so installing the reference extension never
 // adds noise to an unrelated workspace.
 // ---------------------------------------------------------------------------
+/**
+ * Register the five demo lifecycle hooks onto the extension API.
+ *
+ * Demonstrates every hook point as observe-only: each prints to stderr solely
+ * when the opt-in `PM_STARTER_HOOKS` env var is set, so installing the reference
+ * extension adds no noise to an unrelated workspace.
+ *
+ * @param api - The extension API surface passed to `activate`.
+ */
 function setupHooks(api) {
     const enabled = () => Boolean(process.env.PM_STARTER_HOOKS);
     const log = (msg) => { if (enabled())
@@ -673,6 +723,16 @@ function setupHooks(api) {
 // fields/types and a no-op migration; nothing is mutated until a user opts in
 // by creating items of the new type.
 // ---------------------------------------------------------------------------
+/**
+ * Register the demo item-field, item-type, and migration declarations.
+ *
+ * Demonstrates the three additive, declarative schema calls —
+ * `registerItemFields`, `registerItemTypes`, and `registerMigration` — which
+ * teach the workspace about new fields/types and a no-op migration. Nothing is
+ * mutated until a user opts in by creating items of the new type.
+ *
+ * @param api - The extension API surface passed to `activate`.
+ */
 function setupSchema(api) {
     // DEMO: registerItemFields — declare optional custom fields so the workspace
     // knows about them (and tooling/validation can surface them).
@@ -712,6 +772,17 @@ function setupSchema(api) {
 // told to with --commit, which we deliberately do NOT implement here to keep
 // the reference inert); the exporter only reads and prints.
 // ---------------------------------------------------------------------------
+/**
+ * Register the demo importer and exporter under the `starter-demo` name.
+ *
+ * Demonstrates `registerImporter`/`registerExporter`, creating
+ * `pm starter-demo import` and `pm starter-demo export`. Both are inert by
+ * design: the importer only previews (the committing `--commit` path is
+ * deliberately omitted so the reference never writes), and the exporter only
+ * reads and prints.
+ *
+ * @param api - The extension API surface passed to `activate`.
+ */
 function setupImportExport(api) {
     // DEMO: registerImporter — `pm starter-demo import`.
     // Inert by design: it describes what a real importer WOULD do and returns a
@@ -740,6 +811,14 @@ function setupImportExport(api) {
 // ---------------------------------------------------------------------------
 // DEMO: search (registerSearchProvider + registerVectorStoreAdapter)
 // ---------------------------------------------------------------------------
+/**
+ * Register the demo search provider and vector-store adapter.
+ *
+ * Demonstrates `registerSearchProvider` and `registerVectorStoreAdapter`, the
+ * two search-extension hook points, as inert reference wiring.
+ *
+ * @param api - The extension API surface passed to `activate`.
+ */
 function setupSearch(api) {
     // DEMO: registerSearchProvider — a dependency-free substring matcher over
     // title + body. `SearchProviderQueryContext` already carries the workspace's
@@ -806,6 +885,16 @@ function setupSearch(api) {
 // its handler runs. We attach to `list` and pass everything through unchanged
 // (a safe identity transform) so the reference never alters real behavior.
 // ---------------------------------------------------------------------------
+/**
+ * Register the demo argument-parser override for the native `list` command.
+ *
+ * Demonstrates `registerParser`: a parser override can pre-normalize args and
+ * options for a native command before its handler runs. This one attaches to
+ * `list` and passes everything through unchanged — a safe identity transform so
+ * the reference never alters real behavior.
+ *
+ * @param api - The extension API surface passed to `activate`.
+ */
 function setupParser(api) {
     // DEMO: registerParser — identity pass-through for the native `list` command.
     api.registerParser("list", (ctx) => {
@@ -821,6 +910,16 @@ function setupParser(api) {
 // command runs. We return a conservative pass-through that preserves the
 // runtime's existing decision (or sane defaults), changing nothing.
 // ---------------------------------------------------------------------------
+/**
+ * Register the demo preflight override.
+ *
+ * Demonstrates `registerPreflight`: a preflight override can adjust the gate
+ * decisions the CLI makes before a command runs. This one returns a conservative
+ * pass-through that preserves the runtime's existing decision (or sane
+ * defaults), changing nothing.
+ *
+ * @param api - The extension API surface passed to `activate`.
+ */
 function setupPreflight(api) {
     // DEMO: registerPreflight — pass-through decision (no behavior change).
     api.registerPreflight((ctx) => {
@@ -840,6 +939,16 @@ function setupPreflight(api) {
 // We override "output_format" with an inert pass-through that declines every
 // payload, demonstrating the hook point without changing any command's output.
 // ---------------------------------------------------------------------------
+/**
+ * Register the demo service override for the `output_format` service.
+ *
+ * Demonstrates `registerService`: a service override lets an extension supply or
+ * augment a named internal service. This one overrides `output_format` with an
+ * inert pass-through that declines every payload, showing the hook point without
+ * changing any command's output.
+ *
+ * @param api - The extension API surface passed to `activate`.
+ */
 function setupServices(api) {
     // DEMO: registerService — a TRUE pass-through for the "output_format"
     // service. A service override replaces a core service for the whole CLI, so
@@ -866,6 +975,15 @@ function setupServices(api) {
 // The flag is observe-only: native `list` ignores unknown options, and our
 // parser/hook demos don't act on it — it exists purely to show the wiring.
 // ---------------------------------------------------------------------------
+/**
+ * Register the demo extra flag onto the native `list` command.
+ *
+ * Demonstrates `registerFlags`, which adds flags to an existing native command.
+ * The added flag is observe-only: native `list` ignores unknown options, and the
+ * parser/hook demos don't act on it, so it exists purely to show the wiring.
+ *
+ * @param api - The extension API surface passed to `activate`.
+ */
 function setupFlags(api) {
     // DEMO: registerFlags — augment the native `list` command with a demo flag.
     api.registerFlags("list", [

@@ -1,0 +1,104 @@
+#!/usr/bin/env node
+/**
+ * Enforce meaningful docstrings across pm-starter source declarations.
+ *
+ * The analyzer comes from pm-ops so the fleet shares one lexer-backed policy:
+ * every exported declaration, every public member of an exported class, and
+ * every substantial private function needs JSDoc that contributes information
+ * beyond its identifier. The analyzer has no ignore list and treats unknown
+ * declaration forms as violations, so a new syntax form fails closed.
+ *
+ * The gate logic is wrapped in {@link runGate} and only invoked when the script
+ * is executed directly (not when imported by a test for coverage tracking),
+ * mirroring the main-invocation guard `scripts/coverage-gate.ts` already uses.
+ */
+
+import { join, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+
+import { analyzeDocstringCoverage } from "pm-ops/docstrings";
+
+const repoRoot = resolve(import.meta.dirname, "..");
+
+/**
+ * Outcome of one gate run, held as plain strings so a test can inspect it.
+ *
+ * Declared here rather than shared from a helper module so this script stays a
+ * single self-contained file, matching how the other gate scripts in this
+ * package are wired.
+ */
+interface GateResult {
+  /** Process exit code the run would produce (0 on success; non-zero on failure). */
+  readonly exitCode: number;
+  /** Bytes the run would write to stdout. */
+  readonly stdout: string;
+  /** Bytes the run would write to stderr. */
+  readonly stderr: string;
+}
+
+/**
+ * Run the docstring gate against a repository root and return what it would write.
+ *
+ * Pure by design: it touches neither the process streams nor `process.exit`, so
+ * a test imports this and asserts on the returned strings, while the thin
+ * {@link main} entry point writes them and sets the exit code.
+ *
+ * @param root - Absolute repository root to scan.
+ * @returns The exit code and the exact stdout/stderr bytes the CLI emits.
+ */
+export function runGate(root: string): GateResult {
+  const report = analyzeDocstringCoverage({ root });
+  if (report.violations.length > 0) {
+    let message = `docstring-gate: ${report.violations.length} violation(s) across ${report.files_scanned} file(s):\n`;
+    for (const violation of report.violations) {
+      message += `${violation.file}:${violation.line} ${violation.symbol}: ${violation.reason}\n`;
+    }
+    return { exitCode: 1, stdout: "", stderr: message.trimEnd() };
+  }
+  return {
+    exitCode: 0,
+    stdout: `docstring-gate: ${report.files_scanned} file(s), ${report.declarations_checked} declaration(s) documented.`,
+    stderr: "",
+  };
+}
+
+/**
+ * CLI entry point: run the gate and emit its result.
+ *
+ * Writes the exact stdout/stderr bytes {@link runGate} produced and appends a
+ * trailing newline to each non-empty stream so the next `release:check` step
+ * starts on its own line rather than butting against this gate's output.
+ * {@link runGate}'s returned strings stay newline-free so a test can assert on
+ * them exactly. Sets `process.exitCode` rather than calling `process.exit`, so
+ * a test can invoke this in-process, observe the streams, and restore the exit
+ * code.
+ *
+ * @param root - Absolute repository root to scan.
+ */
+export function main(root: string): void {
+  const result = runGate(root);
+  if (result.stdout) process.stdout.write(`${result.stdout}\n`);
+  if (result.stderr) process.stderr.write(`${result.stderr}\n`);
+  process.exitCode = result.exitCode;
+}
+
+/**
+ * Runs {@link main} when the module is the process's main script, and does
+ * nothing under test import.
+ *
+ * Mirrors the `process.argv[1]` guard `scripts/coverage-gate.ts` uses: when the
+ * module is imported (e.g. from the test suite) the guard is false and
+ * {@link main} is never called, so tests can import and exercise every other
+ * path without the module writing to the process streams or terminating the
+ * test process.
+ *
+ * @param rootDir - Absolute path to the package root to gate. Defaults to the
+ *   script's own parent directory.
+ */
+export function runScriptEntry(rootDir: string = repoRoot): void {
+  if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+    main(rootDir);
+  }
+}
+
+runScriptEntry();
