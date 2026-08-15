@@ -991,19 +991,36 @@ test("readPmItems refuses a complete envelope whose rows field is not an array",
 });
 
 /**
- * A complete envelope can still carry a row that is not an object (a stray
- * scalar from a partially-migrated workspace). Those are dropped rather than
- * handed on, so callers never index into a non-object.
+ * A complete envelope can still carry a row that is not an object. Dropping it
+ * would contradict the receipt: the envelope claimed to be the whole workspace,
+ * so returning fewer rows than it contains is a partial read reported as a
+ * complete one — the exact failure this reader exists to refuse, arriving
+ * through the row payload instead of through the receipt.
  */
-test("readPmItems drops non-object rows from an otherwise complete envelope", () => {
+test("readPmItems refuses an unusable row rather than silently shortening the workspace", () => {
   stubResponse("list-all", realListAllEnvelope({
     items: [{ id: "ok-1", title: "Fine", status: "open" }, "not-an-object", null],
     count: 3,
     total: 3,
   }));
   const outcome = readPmItems(".");
-  assert.ok(outcome.ok, "a complete receipt with usable rows is a successful read");
-  assert.deepEqual(outcome.items.map((row) => row.id), ["ok-1"]);
+  assert.strictEqual(outcome.ok, false, "a dropped row would be a shortened workspace reported as complete");
+  assert.match(outcome.reason, /unusable row at index 1 \(string\)/, "the reason must locate and name the row");
+});
+
+/**
+ * A non-object payload carries no receipt either, and
+ * `describeListAllIncompleteness` answers `null` for every non-object — so
+ * without an explicit check these fall through to an absent rows field and are
+ * reported as a successful empty workspace.
+ */
+test("readPmItems refuses a payload that is not an object", () => {
+  for (const [payload, described] of [[null, "null"], ["text", "string"], [42, "number"], [false, "boolean"]] as const) {
+    stubResponse("list-all", payload);
+    const outcome = readPmItems(".");
+    assert.strictEqual(outcome.ok, false, `a ${described} payload cannot prove completeness`);
+    assert.match(outcome.reason, new RegExp(`returned ${described}`), "the reason must name the shape received");
+  }
 });
 
 test("readPmItems reports no rows as a successful read when the envelope has neither items nor results", () => {

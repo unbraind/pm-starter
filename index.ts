@@ -287,6 +287,17 @@ export function readPmItems(pmRoot: string): PmReadOutcome {
       reason: "`pm list-all --json` returned a bare array, which carries no completeness receipt to verify",
     };
   }
+  // Anything that is not an object carries no receipt either, and
+  // `describeListAllIncompleteness` answers `null` for every non-object — so
+  // without this check a payload of `null`, `false`, `42` or `"text"` would
+  // fall through to an absent rows field and be reported as a successful empty
+  // workspace. That is the bare-array fail-open one shape over.
+  if (!isObject(parsed)) {
+    return {
+      ok: false,
+      reason: `\`pm list-all --json\` returned ${parsed === null ? "null" : typeof parsed}, which carries no completeness receipt to verify`,
+    };
+  }
   const incomplete = describeListAllIncompleteness(parsed);
   if (incomplete) {
     // A truncated or degraded envelope is a FAILED read that looks like a
@@ -299,7 +310,19 @@ export function readPmItems(pmRoot: string): PmReadOutcome {
   if (!Array.isArray(rows)) {
     return { ok: false, reason: "`pm list-all --json` returned a non-array rows field" };
   }
-  return { ok: true, items: rows.filter(isObject) };
+  // Dropping unusable rows would contradict everything above: the receipt said
+  // this answer is the whole workspace, so silently returning fewer rows than it
+  // contains is a partial read reported as a complete one — the exact failure
+  // this reader exists to refuse, arriving through the row payload instead of
+  // through the receipt.
+  const unusable = rows.findIndex((row) => !isObject(row));
+  if (unusable !== -1) {
+    return {
+      ok: false,
+      reason: `\`pm list-all --json\` returned an unusable row at index ${unusable} (${rows[unusable] === null ? "null" : typeof rows[unusable]}); the receipt claimed a complete answer, so dropping it would report a shortened workspace as complete`,
+    };
+  }
+  return { ok: true, items: rows as Array<Record<string, unknown>> };
 }
 
 /**
