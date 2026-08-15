@@ -300,7 +300,12 @@ interface ListAllEnvelope {
  *          count-versus-total figures, or `null` if the answer is complete.
  */
 export function describeListAllIncompleteness(envelope: unknown): string | null {
-  if (envelope === null || typeof envelope !== "object") return null;
+  // A non-object, or a bare ARRAY, carries no receipt to contradict — and an
+  // array is `typeof "object"`, so it must be excluded explicitly or the check
+  // reports every array as "completeness absent". `readPmItems` already handles
+  // the array shape on its own line above; only an ENVELOPE can claim to be
+  // incomplete.
+  if (envelope === null || typeof envelope !== "object" || Array.isArray(envelope)) return null;
   const env = envelope as ListAllEnvelope;
   const scale = `${env.count ?? "?"} of ${env.total ?? "?"} item(s) returned`;
   if (env.truncated === true) return `the row list was truncated (${scale})`;

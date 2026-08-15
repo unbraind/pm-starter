@@ -246,7 +246,12 @@ export function readPmItems(pmRoot) {
  *          count-versus-total figures, or `null` if the answer is complete.
  */
 export function describeListAllIncompleteness(envelope) {
-    if (envelope === null || typeof envelope !== "object")
+    // A non-object, or a bare ARRAY, carries no receipt to contradict — and an
+    // array is `typeof "object"`, so it must be excluded explicitly or the check
+    // reports every array as "completeness absent". `readPmItems` already handles
+    // the array shape on its own line above; only an ENVELOPE can claim to be
+    // incomplete.
+    if (envelope === null || typeof envelope !== "object" || Array.isArray(envelope))
         return null;
     const env = envelope;
     const scale = `${env.count ?? "?"} of ${env.total ?? "?"} item(s) returned`;

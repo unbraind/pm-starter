@@ -925,9 +925,40 @@ test("readPmItems returns no rows and reports why when the envelope is truncated
 });
 
 test("readPmItems returns empty array when output object has no items/results", () => {
-  stubResponse("list-all", {});
+  // Carries a COMPLETE receipt so the completeness check passes and execution
+  // reaches the `.items ?? .results ?? []` fallback this test is about. A bare
+  // `{}` would now be refused as incomplete (absent receipt) and short-circuit
+  // before that line, silently turning this into a test of the wrong branch.
+  stubResponse("list-all", realListAllEnvelope({ count: 0, total: 0 }));
   const items = readPmItems(".");
   assert.deepEqual(items, []);
+});
+
+test("describeListAllIncompleteness tolerates an envelope missing count, total and omission_receipt", () => {
+  // Exercises the nullish fallbacks in the scale string and the optional chain on
+  // `omission_receipt`. A complete envelope that simply omits the optional
+  // bookkeeping fields is still complete, and must not be refused for lacking
+  // them — the refusal is about the four signals, not about field presence.
+  const envelope = realListAllEnvelope();
+  delete envelope.count;
+  delete envelope.total;
+  delete envelope.omission_receipt;
+  assert.strictEqual(describeListAllIncompleteness(envelope), null);
+});
+
+test("describeListAllIncompleteness reports the unknown scale when counts are absent", () => {
+  const envelope = realListAllEnvelope({ truncated: true });
+  delete envelope.count;
+  delete envelope.total;
+  assert.match(String(describeListAllIncompleteness(envelope)), /\? of \? item/);
+});
+
+test("describeListAllIncompleteness passes a non-object payload, which carries no receipt", () => {
+  // A bare array or a scalar has no receipt to contradict; `readPmItems` already
+  // handles the array shape separately. Only an ENVELOPE can claim incompleteness.
+  assert.strictEqual(describeListAllIncompleteness([{ id: "e-1" }]), null);
+  assert.strictEqual(describeListAllIncompleteness(null), null);
+  assert.strictEqual(describeListAllIncompleteness("not an envelope"), null);
 });
 
 // ---------------------------------------------------------------------------
