@@ -43,6 +43,26 @@ export declare function optionPositiveInteger(options: Record<string, unknown>, 
  * This is the SAFE read pattern every demo reuses.
  */
 export declare function readPmItems(pmRoot: string): Array<Record<string, unknown>>;
+/**
+ * Name the reason a `pm list-all` envelope is not the whole workspace, or
+ * return `null` when it is complete.
+ *
+ * The envelope has carried a completeness receipt since 2026.8.15, and reading
+ * `.items` without consulting it is how a partial answer becomes a
+ * successful-looking result. That is not hypothetical: pm-cli 2026.8.14 returned
+ * 10 items of a 682-item workspace with `truncated: true`, and every consumer
+ * that ignored the receipt reported success on 1.5% of the data.
+ *
+ * Four independent signals each mean "the rows you got are not all the rows".
+ * A missing `completeness` object counts as incomplete rather than complete: an
+ * answer that cannot be verified is not a verified answer, and treating absence
+ * as success is the same mistake one level up.
+ *
+ * @param envelope - Parsed `pm list-all --json` output.
+ * @returns A human-readable reason naming the tripped signal and the
+ *          count-versus-total figures, or `null` if the answer is complete.
+ */
+export declare function describeListAllIncompleteness(envelope: unknown): string | null;
 declare const _default: {
     name: string;
     version: string;

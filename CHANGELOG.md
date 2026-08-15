@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+- A truncated list-all answer is rendered as if it were the whole workspace ([pm-starter-mg2w](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/issues/pm-starter-mg2w.toon))
+
 ## 2026.8.10 - 2026-08-10
 
 ### Other

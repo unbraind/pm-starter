@@ -1,0 +1,17 @@
+id: pm-starter-mg2w
+title: A truncated list-all answer is rendered as if it were the whole workspace
+description: "readPmItems is the safe read pattern every demo in this package reuses, and it already distinguishes a spawn error and a nonzero exit from an empty workspace by reporting each on stderr. It does not distinguish a successful read that returned only part of the workspace. The pm list-all envelope has carried a completeness receipt since 2026.8.15, and .items is taken from it without consulting truncated, has_more, completeness.status or omission_receipt. Under pm-cli 2026.8.14 the same call returned 10 items of a 682-item workspace with truncated true, so every demo rendered 1.5 percent of the data and reported success. Because this package is the template other extensions copy, the pattern it demonstrates propagates: a starter that ignores the receipt teaches every consumer to ignore it."
+type: Issue
+status: closed
+priority: 2
+tags[2]: completeness,pm-cli
+created_at: "2026-08-15T11:51:54.210Z"
+updated_at: "2026-08-15T11:52:04.242Z"
+closed_at: "2026-08-15T11:52:04.227Z"
+completed_at: "2026-08-15T11:52:04.227Z"
+author: codex
+resolution: "describeListAllIncompleteness names the reason a list-all envelope is not the whole workspace, checking truncated, has_more, completeness.status (an absent receipt counts as incomplete) and omission_receipt.has_omissions. readPmItems consults it and, consistent with this package's documented never-throw contract, reports the specific reason on stderr and returns no rows rather than rendering a partial workspace as a complete one. The pm CLI is exact-pinned at 2026.8.15 with a >=2026.8.15 peer floor so the receipt is guaranteed present."
+expected_result: "A truncated or degraded envelope produces no rows plus a stderr line naming the tripped signal and the count-versus-total figures, instead of a partial render that reports success."
+actual_result: "156 of 156 tests pass. Neutering the completeness check fails 1 test. The six signal tests are driven from a real 2026.8.15 envelope captured from the CLI against a live two-item workspace, with exactly one field mutated per case."
+close_reason: "describeListAllIncompleteness names the reason a list-all envelope is not the whole workspace, checking truncated, has_more, completeness.status (an absent receipt counts as incomplete) and omission_receipt.has_omissions. readPmItems consults it and, consistent with this package's documented never-throw contract, reports the specific reason on stderr and returns no rows rather than rendering a partial workspace as a complete one. The pm CLI is exact-pinned at 2026.8.15 with a >=2026.8.15 peer floor so the receipt is guaranteed present."
+body: ""

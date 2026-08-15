@@ -211,11 +211,57 @@ export function readPmItems(pmRoot) {
         const parsed = JSON.parse(result.stdout);
         if (Array.isArray(parsed))
             return parsed;
+        const incomplete = describeListAllIncompleteness(parsed);
+        if (incomplete) {
+            // Same reasoning as the two failure branches above, applied to the case
+            // they miss: a truncated or degraded envelope is a FAILED read that looks
+            // like a successful one. `items` is present and parses, so without this
+            // check the demo renders a partial workspace and reports success.
+            console.error(`pm-starter: refusing an incomplete pm read — ${incomplete}`);
+            return [];
+        }
         return parsed.items ?? parsed.results ?? [];
     }
     catch {
         return [];
     }
+}
+/**
+ * Name the reason a `pm list-all` envelope is not the whole workspace, or
+ * return `null` when it is complete.
+ *
+ * The envelope has carried a completeness receipt since 2026.8.15, and reading
+ * `.items` without consulting it is how a partial answer becomes a
+ * successful-looking result. That is not hypothetical: pm-cli 2026.8.14 returned
+ * 10 items of a 682-item workspace with `truncated: true`, and every consumer
+ * that ignored the receipt reported success on 1.5% of the data.
+ *
+ * Four independent signals each mean "the rows you got are not all the rows".
+ * A missing `completeness` object counts as incomplete rather than complete: an
+ * answer that cannot be verified is not a verified answer, and treating absence
+ * as success is the same mistake one level up.
+ *
+ * @param envelope - Parsed `pm list-all --json` output.
+ * @returns A human-readable reason naming the tripped signal and the
+ *          count-versus-total figures, or `null` if the answer is complete.
+ */
+export function describeListAllIncompleteness(envelope) {
+    if (envelope === null || typeof envelope !== "object")
+        return null;
+    const env = envelope;
+    const scale = `${env.count ?? "?"} of ${env.total ?? "?"} item(s) returned`;
+    if (env.truncated === true)
+        return `the row list was truncated (${scale})`;
+    if (env.has_more === true)
+        return `more rows exist past the returned page (${scale})`;
+    const status = env.completeness?.status;
+    if (status !== "complete") {
+        return `completeness.status is ${status === undefined ? "absent" : status}, not "complete" (${scale})`;
+    }
+    if (env.omission_receipt?.has_omissions === true) {
+        return `field groups were omitted from the projection (${scale})`;
+    }
+    return null;
 }
 // ---------------------------------------------------------------------------
 // DEMO: commands (registerCommand)

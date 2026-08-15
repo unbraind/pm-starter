@@ -6,7 +6,7 @@ import test, { after, before, type TestContext } from "node:test";
 
 import type { ExtensionApi } from "@unbrained/pm-cli/sdk/authoring";
 
-import extension, { readPmItems } from "../index.ts";
+import extension, { describeListAllIncompleteness, readPmItems } from "../index.ts";
 
 // ---------------------------------------------------------------------------
 // Fake `pm` stub — a tiny Node script placed on PATH so the command handlers
@@ -818,6 +818,33 @@ test("readPmItems returns empty array and reports when pm exits nonzero", (t) =>
   }
 });
 
+/**
+ * The non-row half of a real `pm list-all --json` envelope, captured verbatim
+ * from pm-cli 2026.8.15 against a live two-item workspace.
+ *
+ * Kept as captured output rather than hand-written so the completeness tests
+ * exercise the shape the CLI actually emits. A hand-invented envelope proves
+ * only that the code agrees with the test author.
+ *
+ * @param overrides - Fields to replace, one per incompleteness signal under test.
+ */
+function realListAllEnvelope(overrides: Record<string, unknown> = {}): Record<string, unknown> {
+  return {
+    count: 2,
+    total: 2,
+    has_more: false,
+    truncated: false,
+    next_cursor: null,
+    completeness: { status: "complete", unreadable_item_count: 0, unreadable_directory_count: 0 },
+    filters: { status: "all", include_body: true, runtime_filters: {} },
+    projection: { mode: "full", fields: null },
+    sorting: { sort: "default", order: "asc" },
+    now: "2026-08-15T11:48:21.518Z",
+    omission_receipt: { has_omissions: false, omitted_field_group_count: 0, omitted_field_groups: [] },
+    ...overrides,
+  };
+}
+
 test("readPmItems returns empty array when pm output is not valid JSON", (t) => {
   setStubMode(t, "bad-json");
   const items = readPmItems(".");
@@ -832,17 +859,69 @@ test("readPmItems returns items from parsed array", () => {
 });
 
 test("readPmItems returns items from .items when output is an object", () => {
-  stubResponse("list-all", { items: [{ id: "b-1", title: "B", status: "open" }] });
+  stubResponse("list-all", realListAllEnvelope({ items: [{ id: "b-1", title: "B", status: "open" }], count: 1, total: 1 }));
   const items = readPmItems(".");
   assert.strictEqual(items.length, 1);
   assert.strictEqual(items[0].id, "b-1");
 });
 
 test("readPmItems returns items from .results when no .items", () => {
-  stubResponse("list-all", { results: [{ id: "c-1", title: "C", status: "open" }] });
+  stubResponse("list-all", realListAllEnvelope({ results: [{ id: "c-1", title: "C", status: "open" }], count: 1, total: 1 }));
   const items = readPmItems(".");
   assert.strictEqual(items.length, 1);
   assert.strictEqual(items[0].id, "c-1");
+});
+
+// --- completeness receipt -------------------------------------------------
+// Each case mutates exactly ONE field of the captured envelope, so a failure
+// names the signal that regressed rather than "the envelope changed".
+
+test("describeListAllIncompleteness passes a complete envelope", () => {
+  assert.strictEqual(describeListAllIncompleteness(realListAllEnvelope()), null);
+});
+
+test("describeListAllIncompleteness reports a truncated row list", () => {
+  const why = describeListAllIncompleteness(realListAllEnvelope({ truncated: true, count: 10, total: 682 }));
+  assert.match(String(why), /truncated/);
+  assert.match(String(why), /10 of 682/);
+});
+
+test("describeListAllIncompleteness reports rows past the returned page", () => {
+  assert.match(String(describeListAllIncompleteness(realListAllEnvelope({ has_more: true }))), /more rows exist/);
+});
+
+test("describeListAllIncompleteness reports a partial completeness status", () => {
+  const why = describeListAllIncompleteness(
+    realListAllEnvelope({ completeness: { status: "partial", unreadable_item_count: 3 } }),
+  );
+  assert.match(String(why), /partial/);
+});
+
+test("describeListAllIncompleteness treats an absent completeness receipt as incomplete", () => {
+  const envelope = realListAllEnvelope();
+  delete envelope.completeness;
+  assert.match(String(describeListAllIncompleteness(envelope)), /absent/);
+});
+
+test("describeListAllIncompleteness reports omitted field groups", () => {
+  const why = describeListAllIncompleteness(
+    realListAllEnvelope({ omission_receipt: { has_omissions: true, omitted_field_group_count: 1 } }),
+  );
+  assert.match(String(why), /omitted/);
+});
+
+test("readPmItems returns no rows and reports why when the envelope is truncated", () => {
+  stubResponse("list-all", realListAllEnvelope({
+    items: [{ id: "d-1", title: "D", status: "open" }],
+    truncated: true,
+    count: 1,
+    total: 682,
+  }));
+  assert.deepEqual(
+    readPmItems("."),
+    [],
+    "a truncated envelope must not be rendered as if it were the whole workspace",
+  );
 });
 
 test("readPmItems returns empty array when output object has no items/results", () => {
