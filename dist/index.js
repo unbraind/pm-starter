@@ -187,44 +187,89 @@ function describePmReadFailure(error, limitBytes) {
     return `pm read failed: ${error.message}`;
 }
 /**
- * Safely read all items from the workspace by shelling out to `pm`. Returns an
- * empty array on any failure so demos never throw at activation/read time.
- * This is the SAFE read pattern every demo reuses.
+ * Safely read all items from the workspace by shelling out to `pm`.
+ *
+ * Never throws, so demos cannot blow up at activation/read time — but it also
+ * never reports a failed read as an empty workspace. Every failure path returns
+ * `{ ok: false, reason }` naming what went wrong, and callers turn that into a
+ * {@link CommandError} rather than rendering it as "no items". This is the SAFE
+ * read pattern every demo reuses.
+ *
+ * @param pmRoot - Workspace root passed through to `pm --path`.
+ * @returns The rows on a proven-complete read, or the reason the read failed.
  */
 export function readPmItems(pmRoot) {
     const maxBuffer = pmJsonMaxBuffer();
     const result = spawnSync("pm", ["--path", pmRoot, "list-all", "--json", "--include-body"], { encoding: "utf-8", maxBuffer });
-    // Keep the never-throw contract, but do not let a read failure masquerade as an
-    // empty workspace — a silent [] here reads as "no items" to every demo.
     if (result.error) {
-        console.error(`pm-starter: could not read pm items — ${describePmReadFailure(result.error, maxBuffer)}`);
-        return [];
+        return { ok: false, reason: describePmReadFailure(result.error, maxBuffer) };
     }
-    // Same reasoning for a genuine nonzero exit: an empty array is indistinguishable
-    // from an empty workspace, so report stderr rather than discarding it.
     if (result.status !== 0) {
-        console.error(`pm-starter: could not read pm items (pm exited ${result.status}) — `
-            + (result.stderr?.trim() || "no stderr output"));
-        return [];
+        return {
+            ok: false,
+            reason: `pm exited ${result.status} — ${result.stderr?.trim() || "no stderr output"}`,
+        };
     }
+    let parsed;
     try {
-        const parsed = JSON.parse(result.stdout);
-        if (Array.isArray(parsed))
-            return parsed;
-        const incomplete = describeListAllIncompleteness(parsed);
-        if (incomplete) {
-            // Same reasoning as the two failure branches above, applied to the case
-            // they miss: a truncated or degraded envelope is a FAILED read that looks
-            // like a successful one. `items` is present and parses, so without this
-            // check the demo renders a partial workspace and reports success.
-            console.error(`pm-starter: refusing an incomplete pm read — ${incomplete}`);
-            return [];
-        }
-        return parsed.items ?? parsed.results ?? [];
+        parsed = JSON.parse(result.stdout);
     }
-    catch {
-        return [];
+    catch (err) {
+        // Kept separate from the incompleteness check below so the diagnostic names
+        // the actual failure: unparseable output is a different problem from a
+        // parsed envelope that admits it is partial.
+        return {
+            ok: false,
+            reason: `could not parse \`pm list-all --json\` output: ${err instanceof Error ? err.message : String(err)}`,
+        };
     }
+    // A bare array carries no completeness receipt, so it cannot prove it is the
+    // whole workspace — and an unprovable answer is exactly what this reader
+    // exists to refuse. Accepting it would leave a legacy-shaped partial response
+    // as an open bypass around every check below.
+    if (Array.isArray(parsed)) {
+        return {
+            ok: false,
+            reason: "`pm list-all --json` returned a bare array, which carries no completeness receipt to verify",
+        };
+    }
+    const incomplete = describeListAllIncompleteness(parsed);
+    if (incomplete) {
+        // A truncated or degraded envelope is a FAILED read that looks like a
+        // successful one: `items` is present and parses, so without this check the
+        // demo renders a partial workspace and reports success.
+        return { ok: false, reason: `refusing an incomplete pm read — ${incomplete}` };
+    }
+    const rows = readPath(parsed, "items") ?? readPath(parsed, "results");
+    if (rows === undefined)
+        return { ok: true, items: [] };
+    if (!Array.isArray(rows)) {
+        return { ok: false, reason: "`pm list-all --json` returned a non-array rows field" };
+    }
+    return { ok: true, items: rows.filter(isObject) };
+}
+/**
+ * Read the workspace or fail the command, so a failed read never renders as an
+ * empty one.
+ *
+ * @param pmRoot - Workspace root passed through to `pm --path`.
+ * @returns The rows of a proven-complete read.
+ * @throws {CommandError} With {@link EXIT_CODE.GENERIC_FAILURE} when the read failed.
+ */
+function readPmItemsOrFail(pmRoot) {
+    const outcome = readPmItems(pmRoot);
+    if (!outcome.ok) {
+        throw new CommandError(`pm-starter: could not read pm items — ${outcome.reason}`, EXIT_CODE.GENERIC_FAILURE);
+    }
+    return outcome.items;
+}
+/**
+ * Render one count field for the scale suffix, tolerating a field the installed
+ * CLI does not emit or emits as something other than a number.
+ */
+function readCount(envelope, key) {
+    const value = readPath(envelope, key);
+    return typeof value === "number" ? String(value) : "?";
 }
 /**
  * Name the reason a `pm list-all` envelope is not the whole workspace, or
@@ -251,19 +296,27 @@ export function describeListAllIncompleteness(envelope) {
     // reports every array as "completeness absent". `readPmItems` already handles
     // the array shape on its own line above; only an ENVELOPE can claim to be
     // incomplete.
-    if (envelope === null || typeof envelope !== "object" || Array.isArray(envelope))
+    if (!isObject(envelope))
         return null;
-    const env = envelope;
-    const scale = `${env.count ?? "?"} of ${env.total ?? "?"} item(s) returned`;
-    if (env.truncated === true)
+    // Every field below is read through `readPath` rather than asserted with a
+    // cast. These values come from whichever pm build the user has installed, so
+    // their types are an assumption, not a guarantee — and a cast that turns out
+    // to be wrong fails the comparison silently, which for a completeness receipt
+    // means reporting "complete" for an answer that never claimed to be.
+    const scale = `${readCount(envelope, "count")} of ${readCount(envelope, "total")} item(s) returned`;
+    if (readPath(envelope, "truncated") === true)
         return `the row list was truncated (${scale})`;
-    if (env.has_more === true)
+    if (readPath(envelope, "has_more") === true)
         return `more rows exist past the returned page (${scale})`;
-    const status = env.completeness?.status;
+    const status = readPath(envelope, "completeness", "status");
     if (status !== "complete") {
-        return `completeness.status is ${status === undefined ? "absent" : status}, not "complete" (${scale})`;
+        // Anything that is not the literal string "complete" is treated as
+        // incomplete, including a non-string the cast would previously have let
+        // through untyped.
+        const described = status === undefined ? "absent" : JSON.stringify(status);
+        return `completeness.status is ${described}, not "complete" (${scale})`;
     }
-    if (env.omission_receipt?.has_omissions === true) {
+    if (readPath(envelope, "omission_receipt", "has_omissions") === true) {
         return `field groups were omitted from the projection (${scale})`;
     }
     return null;
@@ -386,7 +439,7 @@ function setupCommands(api) {
             "The demo reads items via `pm list-all --json`; ensure the workspace is initialized.",
         ],
         async run(ctx) {
-            const items = readPmItems(ctx.pm_root);
+            const items = readPmItemsOrFail(ctx.pm_root);
             // Return a small, predictable shape the renderer override can recognize.
             return {
                 starter_demo: true,
@@ -848,7 +901,7 @@ function setupImportExport(api) {
     // Read-only: serializes the current items to a compact JSON payload and
     // prints it (or returns it for --json hosts). Never writes to disk.
     api.registerExporter("starter-demo", async (ctx) => {
-        const items = readPmItems(ctx.pm_root);
+        const items = readPmItemsOrFail(ctx.pm_root);
         const payload = items.map((i) => ({
             id: i.id,
             title: i.title,

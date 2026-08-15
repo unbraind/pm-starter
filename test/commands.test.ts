@@ -6,7 +6,7 @@ import test, { after, before, type TestContext } from "node:test";
 
 import type { ExtensionApi } from "@unbrained/pm-cli/sdk/authoring";
 
-import extension, { describeListAllIncompleteness, readPmItems } from "../index.ts";
+import extension, { CommandError, EXIT_CODE, describeListAllIncompleteness, readPmItems } from "../index.ts";
 
 // ---------------------------------------------------------------------------
 // Fake `pm` stub — a tiny Node script placed on PATH so the command handlers
@@ -390,16 +390,66 @@ test("starter summary throws CommandError when pm stats output is not an object"
 // ---------------------------------------------------------------------------
 
 test("starter demo returns a structured result with item_count and sample", async () => {
-  stubResponse("list-all", [
-    { id: "pm-1", title: "Item 1", status: "open", type: "issue" },
-    { id: "pm-2", title: "Item 2", status: "closed", type: "task" },
-  ]);
+  stubResponse("list-all", realListAllEnvelope({
+    items: [
+      { id: "pm-1", title: "Item 1", status: "open", type: "issue" },
+      { id: "pm-2", title: "Item 2", status: "closed", type: "task" },
+    ],
+    count: 2,
+    total: 2,
+  }));
   const api = activate();
   const result = await api.commands["starter demo"].run(ctx());
   assert.strictEqual(result.starter_demo, true);
   assert.strictEqual(result.item_count, 2);
   assert.strictEqual(result.sample.length, 2);
   assert.strictEqual(result.sample[0].id, "pm-1");
+});
+
+/**
+ * The failure this whole reader exists to prevent, asserted at the CALLER.
+ *
+ * `readPmItems` returning a bare array could not distinguish a failed read from
+ * an empty workspace, so both callers guessed "empty": the demo answered
+ * `item_count: 0` and the exporter emitted `[]` with `exported: 0`. Both
+ * reported SUCCESS for a read that never happened. Logging the cause to stderr
+ * did not help, because a return value is what a caller branches on.
+ */
+test("starter demo fails the command on an incomplete read instead of reporting item_count 0", async () => {
+  stubResponse("list-all", realListAllEnvelope({
+    items: [{ id: "pm-1", title: "Item 1", status: "open", type: "issue" }],
+    truncated: true,
+    count: 1,
+    total: 682,
+  }));
+  const api = activate();
+  await assert.rejects(
+    async () => api.commands["starter demo"].run(ctx()),
+    (err: unknown) => {
+      assert.ok(err instanceof CommandError, "must fail with a CommandError carrying an exit code");
+      assert.strictEqual(err.exitCode, EXIT_CODE.GENERIC_FAILURE);
+      assert.match(err.message, /truncated/, "the message must name why the read failed");
+      return true;
+    },
+  );
+});
+
+test("exporter fails on an incomplete read instead of exporting an empty document", async () => {
+  stubResponse("list-all", realListAllEnvelope({
+    items: [{ id: "pm-1", title: "Item 1", status: "open", type: "issue" }],
+    truncated: true,
+    count: 1,
+    total: 682,
+  }));
+  const api = activate();
+  await assert.rejects(
+    async () => api.exporter!({ pm_root: ".", registration: "starter-demo", action: "export", command: "starter-demo export", args: [], options: {}, global: {} }),
+    (err: unknown) => {
+      assert.ok(err instanceof CommandError, "an exported document must never be built from an unproven read");
+      assert.match(err.message, /truncated/);
+      return true;
+    },
+  );
 });
 
 // ---------------------------------------------------------------------------
@@ -783,39 +833,19 @@ test("starter setup throws USAGE for an invalid capability", async () => {
 // readPmItems error paths
 // ---------------------------------------------------------------------------
 
-test("readPmItems returns empty array and reports a non-ENOBUFS error when pm is not found", (t) => {
+test("readPmItems reports a non-ENOBUFS spawn failure as a failed read, not an empty workspace", (t) => {
   // Remove the fake pm from PATH so spawnSync fails with ENOENT (not ENOBUFS).
   setEnv(t, "PATH", "/dev/null");
-  const messages: string[] = [];
-  const origError = console.error;
-  console.error = (...values: unknown[]) => messages.push(values.join(" "));
-  try {
-    const items = readPmItems("/tmp/nonexistent-pm-root");
-    assert.deepEqual(items, [], "never-throw contract must hold");
-    assert.ok(
-      messages.some((m) => /pm read failed/.test(m)),
-      `non-ENOBUFS error must be reported as "pm read failed"; saw: ${messages.join(" | ")}`,
-    );
-  } finally {
-    console.error = origError;
-  }
+  const outcome = readPmItems("/tmp/nonexistent-pm-root");
+  assert.strictEqual(outcome.ok, false, "never-throw contract holds, but the failure must be reported as one");
+  assert.match(outcome.reason, /pm read failed/, "the reason must name the spawn failure");
 });
 
-test("readPmItems returns empty array and reports when pm exits nonzero", (t) => {
+test("readPmItems reports a nonzero exit as a failed read, not an empty workspace", (t) => {
   setStubMode(t, "fail");
-  const messages: string[] = [];
-  const origError = console.error;
-  console.error = (...values: unknown[]) => messages.push(values.join(" "));
-  try {
-    const items = readPmItems(".");
-    assert.deepEqual(items, [], "never-throw contract must hold");
-    assert.ok(
-      messages.some((m) => /pm exited/.test(m)),
-      `nonzero exit must be reported; saw: ${messages.join(" | ")}`,
-    );
-  } finally {
-    console.error = origError;
-  }
+  const outcome = readPmItems(".");
+  assert.strictEqual(outcome.ok, false, "never-throw contract holds, but the failure must be reported as one");
+  assert.match(outcome.reason, /pm exited/, "the reason must name the exit status");
 });
 
 /**
@@ -845,31 +875,51 @@ function realListAllEnvelope(overrides: Record<string, unknown> = {}): Record<st
   };
 }
 
-test("readPmItems returns empty array when pm output is not valid JSON", (t) => {
+test("readPmItems reports unparseable output as a failed read, not an empty workspace", (t) => {
   setStubMode(t, "bad-json");
-  const items = readPmItems(".");
-  assert.deepEqual(items, [], "bad JSON should yield empty array");
+  const outcome = readPmItems(".");
+  assert.strictEqual(outcome.ok, false, "bad JSON is a failed read");
+  assert.match(outcome.reason, /could not parse/, "the reason must distinguish a parse failure from a partial envelope");
 });
 
-test("readPmItems returns items from parsed array", () => {
+/**
+ * A bare top-level array carries no completeness receipt, so it cannot prove it
+ * is the whole workspace. Accepting it would leave a legacy-shaped partial
+ * response as an open bypass around every completeness check.
+ */
+test("readPmItems refuses a bare top-level array, which has no receipt to verify", () => {
   stubResponse("list-all", [{ id: "a-1", title: "A", status: "open" }]);
-  const items = readPmItems(".");
-  assert.strictEqual(items.length, 1);
-  assert.strictEqual(items[0].id, "a-1");
+  const outcome = readPmItems(".");
+  assert.strictEqual(outcome.ok, false, "a bare array cannot prove completeness");
+  assert.match(outcome.reason, /bare array/, "the reason must name the unverifiable shape");
 });
 
 test("readPmItems returns items from .items when output is an object", () => {
   stubResponse("list-all", realListAllEnvelope({ items: [{ id: "b-1", title: "B", status: "open" }], count: 1, total: 1 }));
-  const items = readPmItems(".");
-  assert.strictEqual(items.length, 1);
-  assert.strictEqual(items[0].id, "b-1");
+  const outcome = readPmItems(".");
+  assert.ok(outcome.ok, "a complete envelope is a successful read");
+  assert.strictEqual(outcome.items.length, 1);
+  assert.strictEqual(outcome.items[0]?.id, "b-1");
 });
 
 test("readPmItems returns items from .results when no .items", () => {
   stubResponse("list-all", realListAllEnvelope({ results: [{ id: "c-1", title: "C", status: "open" }], count: 1, total: 1 }));
-  const items = readPmItems(".");
-  assert.strictEqual(items.length, 1);
-  assert.strictEqual(items[0].id, "c-1");
+  const outcome = readPmItems(".");
+  assert.ok(outcome.ok, "a complete envelope is a successful read");
+  assert.strictEqual(outcome.items.length, 1);
+  assert.strictEqual(outcome.items[0]?.id, "c-1");
+});
+
+/**
+ * The distinction the old bare-array return could not express: a genuinely
+ * empty workspace is a SUCCESSFUL read, and must stay distinguishable from
+ * every failure above, all of which also had nothing to return.
+ */
+test("readPmItems reports a genuinely empty workspace as a successful read", () => {
+  stubResponse("list-all", realListAllEnvelope({ items: [], count: 0, total: 0 }));
+  const outcome = readPmItems(".");
+  assert.ok(outcome.ok, "an empty workspace is not a failure");
+  assert.deepEqual(outcome.items, []);
 });
 
 // --- completeness receipt -------------------------------------------------
@@ -917,21 +967,54 @@ test("readPmItems returns no rows and reports why when the envelope is truncated
     count: 1,
     total: 682,
   }));
-  assert.deepEqual(
-    readPmItems("."),
-    [],
+  const outcome = readPmItems(".");
+  assert.strictEqual(
+    outcome.ok,
+    false,
     "a truncated envelope must not be rendered as if it were the whole workspace",
   );
+  assert.match(outcome.reason, /truncated \(1 of 682 item\(s\) returned\)/,
+    "the reason must name the tripped signal and the scale of the loss");
 });
 
-test("readPmItems returns empty array when output object has no items/results", () => {
+/**
+ * The same class of defect as the bare-array bypass, one level down: a complete
+ * receipt does not guarantee the rows field is a list. `{"items":{}}` would
+ * otherwise reach the callers as rows and fail on `.length`/`.map` far from the
+ * read that produced it.
+ */
+test("readPmItems refuses a complete envelope whose rows field is not an array", () => {
+  stubResponse("list-all", realListAllEnvelope({ items: {}, count: 0, total: 0 }));
+  const outcome = readPmItems(".");
+  assert.strictEqual(outcome.ok, false, "a non-array rows field is unusable, not empty");
+  assert.match(outcome.reason, /non-array rows field/);
+});
+
+/**
+ * A complete envelope can still carry a row that is not an object (a stray
+ * scalar from a partially-migrated workspace). Those are dropped rather than
+ * handed on, so callers never index into a non-object.
+ */
+test("readPmItems drops non-object rows from an otherwise complete envelope", () => {
+  stubResponse("list-all", realListAllEnvelope({
+    items: [{ id: "ok-1", title: "Fine", status: "open" }, "not-an-object", null],
+    count: 3,
+    total: 3,
+  }));
+  const outcome = readPmItems(".");
+  assert.ok(outcome.ok, "a complete receipt with usable rows is a successful read");
+  assert.deepEqual(outcome.items.map((row) => row.id), ["ok-1"]);
+});
+
+test("readPmItems reports no rows as a successful read when the envelope has neither items nor results", () => {
   // Carries a COMPLETE receipt so the completeness check passes and execution
-  // reaches the `.items ?? .results ?? []` fallback this test is about. A bare
-  // `{}` would now be refused as incomplete (absent receipt) and short-circuit
-  // before that line, silently turning this into a test of the wrong branch.
+  // reaches the rows fallback this test is about. A bare `{}` would be refused
+  // as incomplete (absent receipt) and short-circuit before that line, silently
+  // turning this into a test of the wrong branch.
   stubResponse("list-all", realListAllEnvelope({ count: 0, total: 0 }));
-  const items = readPmItems(".");
-  assert.deepEqual(items, []);
+  const outcome = readPmItems(".");
+  assert.ok(outcome.ok, "a complete receipt with no rows is an empty workspace, not a failure");
+  assert.deepEqual(outcome.items, []);
 });
 
 test("describeListAllIncompleteness tolerates an envelope missing count, total and omission_receipt", () => {
@@ -1099,7 +1182,11 @@ test("importer falls back to '(no source given)' when no file/url option", async
 });
 
 test("exporter serializes items to JSON and prints them", async () => {
-  stubResponse("list-all", [{ id: "pm-1", title: "Item 1", status: "open", type: "issue" }]);
+  stubResponse("list-all", realListAllEnvelope({
+    items: [{ id: "pm-1", title: "Item 1", status: "open", type: "issue" }],
+    count: 1,
+    total: 1,
+  }));
   const api = activate();
   assert.ok(api.exporter, "exporter should be registered");
   const { logs, result } = await captureOutput(() =>
