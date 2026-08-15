@@ -38,11 +38,56 @@ export declare function optionString(options: Record<string, unknown>, ...keys: 
 /** Read a positive integer option from either the SDK's numeric or string form. */
 export declare function optionPositiveInteger(options: Record<string, unknown>, fallback: number, ...keys: string[]): number;
 /**
- * Safely read all items from the workspace by shelling out to `pm`. Returns an
- * empty array on any failure so demos never throw at activation/read time.
- * This is the SAFE read pattern every demo reuses.
+ * The outcome of a workspace read: either the rows, or the reason there are none.
+ *
+ * A bare `Array` return cannot express this. `[]` is also the correct answer for
+ * a genuinely empty workspace, so every caller that received `[]` had to guess,
+ * and all of them guessed "empty" — the demo reported `item_count: 0` and the
+ * exporter emitted `[]` with `exported: 0`, both announcing success for a read
+ * that failed. Logging the cause to stderr does not help, because a return value
+ * is what the caller branches on. Discriminating the two cases is what lets a
+ * failed read stay failed all the way to the exit code.
  */
-export declare function readPmItems(pmRoot: string): Array<Record<string, unknown>>;
+export type PmReadOutcome = {
+    readonly ok: true;
+    readonly items: Array<Record<string, unknown>>;
+} | {
+    readonly ok: false;
+    readonly reason: string;
+};
+/**
+ * Safely read all items from the workspace by shelling out to `pm`.
+ *
+ * Never throws, so demos cannot blow up at activation/read time — but it also
+ * never reports a failed read as an empty workspace. Every failure path returns
+ * `{ ok: false, reason }` naming what went wrong, and callers turn that into a
+ * {@link CommandError} rather than rendering it as "no items". This is the SAFE
+ * read pattern every demo reuses.
+ *
+ * @param pmRoot - Workspace root passed through to `pm --path`.
+ * @returns The rows on a proven-complete read, or the reason the read failed.
+ */
+export declare function readPmItems(pmRoot: string): PmReadOutcome;
+/**
+ * Name the reason a `pm list-all` envelope is not the whole workspace, or
+ * return `null` when it is complete.
+ *
+ * The envelope has carried a completeness receipt since 2026.8.15, and reading
+ * `.items` without consulting it is how a partial answer becomes a
+ * successful-looking result. That is not hypothetical: pm-cli 2026.8.14 returned
+ * 10 items of a 682-item workspace with `truncated: true`, and every consumer
+ * that ignored the receipt reported success on 1.5% of the data.
+ *
+ * Four independent signals each mean "the rows you got are not all the rows".
+ * A missing `completeness` object counts as incomplete rather than complete: an
+ * answer that cannot be verified is not a verified answer, and treating absence
+ * as success is the same mistake one level up.
+ *
+ * @param envelope - Parsed `pm list-all --json` output.
+ * @returns A human-readable reason naming the tripped signal and the
+ *          count-versus-total figures, or `null` if the answer is complete.
+ */
+export declare function describeListAllIncompleteness(envelope: unknown): string | null;
 declare const _default: {
     name: string;
     version: string;

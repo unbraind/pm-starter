@@ -178,7 +178,8 @@ test("readPmItems honors PM_JSON_MAX_BUFFER and reports an overrun instead of re
   }
 
   // Sanity: the default cap reads the workspace.
-  assert.ok(readPmItems(pmRoot).length >= 1, "default cap should read the item");
+  const baseline = readPmItems(pmRoot);
+  assert.ok(baseline.ok && baseline.items.length >= 1, "default cap should read the item");
 
   const messages: string[] = [];
   const originalError = console.error;
@@ -187,11 +188,12 @@ test("readPmItems honors PM_JSON_MAX_BUFFER and reports an overrun instead of re
   // 64 bytes cannot hold any item payload, so the read overruns deterministically.
   process.env.PM_JSON_MAX_BUFFER = "64";
   try {
-    const items = readPmItems(pmRoot);
-    assert.deepEqual(items, [], "the never-throw contract must still hold");
-    assert.ok(
-      messages.some((message) => /read buffer/.test(message)),
-      `overrun must be reported, not silent; saw: ${messages.join(" | ")}`
+    const outcome = readPmItems(pmRoot);
+    assert.strictEqual(outcome.ok, false, "the never-throw contract holds, but an overrun is a failed read");
+    assert.match(
+      outcome.reason,
+      /read buffer/,
+      "the overrun must be named in the reason, not merely logged"
     );
   } finally {
     console.error = originalError;
@@ -218,14 +220,16 @@ test("a malformed PM_JSON_MAX_BUFFER falls back to the default instead of imposi
   try {
     for (const malformed of ["64MiB", "64 MB", "abc", "-1", "0", "6.5", ""]) {
       process.env.PM_JSON_MAX_BUFFER = malformed;
+      const outcome = readPmItems(pmRoot);
       assert.ok(
-        readPmItems(pmRoot).length >= 1,
+        outcome.ok && outcome.items.length >= 1,
         `PM_JSON_MAX_BUFFER=${JSON.stringify(malformed)} must fall back to the default, not cap the read`
       );
     }
     // A valid explicit value is still honored.
     process.env.PM_JSON_MAX_BUFFER = String(32 * 1024 * 1024);
-    assert.ok(readPmItems(pmRoot).length >= 1, "a valid explicit cap should still read the workspace");
+    const explicit = readPmItems(pmRoot);
+    assert.ok(explicit.ok && explicit.items.length >= 1, "a valid explicit cap should still read the workspace");
   } finally {
     if (originalCap === undefined) delete process.env.PM_JSON_MAX_BUFFER;
     else process.env.PM_JSON_MAX_BUFFER = originalCap;
