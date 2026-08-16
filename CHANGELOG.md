@@ -4,6 +4,7 @@
 
 ### Fixed
 
+- The pm CLI compatibility floor was declared only in peerDependencies, which only npm enforces, and not in manifest.json pm_min_version, which is the field the CLI enforces ([pm-starter-zhwv](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/issues/pm-starter-zhwv.toon))
 - A truncated list-all answer is rendered as if it were the whole workspace ([pm-starter-mg2w](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/issues/pm-starter-mg2w.toon))
 
 ## 2026.8.10 - 2026-08-10
