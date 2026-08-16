@@ -4,7 +4,7 @@
 
 ### Fixed
 
-- The pm CLI compatibility floor is declared where npm enforces it and absent from the field the CLI actually reads ([pm-starter-zhwv](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/issues/pm-starter-zhwv.toon))
+- The pm CLI compatibility floor was declared only where npm enforces it, and absent from the field the CLI actually reads ([pm-starter-zhwv](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/issues/pm-starter-zhwv.toon))
 - A truncated list-all answer is rendered as if it were the whole workspace ([pm-starter-mg2w](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/issues/pm-starter-mg2w.toon))
 
 ## 2026.8.10 - 2026-08-10
