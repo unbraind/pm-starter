@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+- Canonicalize the starter workspace read and adopt the current pm host contract ([pm-starter-gx6x](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/issues/pm-starter-gx6x.toon))
+
 ## 2026.8.16 - 2026-08-16
 
 ### Fixed
