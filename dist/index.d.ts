@@ -69,7 +69,7 @@ export type PmReadOutcome = {
  */
 export declare function readPmItems(pmRoot: string): PmReadOutcome;
 /**
- * Name the reason a `pm list-all` envelope is not the whole workspace, or
+ * Name the reason a canonical `pm list --all` envelope is not the whole workspace, or
  * return `null` when it is complete.
  *
  * The envelope has carried a completeness receipt since 2026.8.15, and reading
@@ -83,7 +83,7 @@ export declare function readPmItems(pmRoot: string): PmReadOutcome;
  * answer that cannot be verified is not a verified answer, and treating absence
  * as success is the same mistake one level up.
  *
- * @param envelope - Parsed `pm list-all --json` output.
+ * @param envelope - Parsed `pm list --all --json` output.
  * @returns A human-readable reason naming the tripped signal and the
  *          count-versus-total figures, or `null` if the answer is complete.
  */

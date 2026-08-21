@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { chmodSync, existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test, { after, before, type TestContext } from "node:test";
@@ -26,6 +26,8 @@ const FAKE_PM_SCRIPT = `#!/usr/bin/env node
 const fs = require("fs");
 const path = require("path");
 const args = process.argv.slice(2);
+const argvPath = process.env.PM_STUB_ARGV_PATH;
+if (argvPath) fs.appendFileSync(argvPath, JSON.stringify(args) + "\\n");
 const valueFlags = new Set(["--path", "--depth", "--mode"]);
 let sub = "";
 for (let i = 0; i < args.length; i++) {
@@ -390,7 +392,7 @@ test("starter summary throws CommandError when pm stats output is not an object"
 // ---------------------------------------------------------------------------
 
 test("starter demo returns a structured result with item_count and sample", async () => {
-  stubResponse("list-all", realListAllEnvelope({
+  stubResponse("list", realListAllEnvelope({
     items: [
       { id: "pm-1", title: "Item 1", status: "open", type: "issue" },
       { id: "pm-2", title: "Item 2", status: "closed", type: "task" },
@@ -416,7 +418,7 @@ test("starter demo returns a structured result with item_count and sample", asyn
  * did not help, because a return value is what a caller branches on.
  */
 test("starter demo fails the command on an incomplete read instead of reporting item_count 0", async () => {
-  stubResponse("list-all", realListAllEnvelope({
+  stubResponse("list", realListAllEnvelope({
     items: [{ id: "pm-1", title: "Item 1", status: "open", type: "issue" }],
     truncated: true,
     count: 1,
@@ -435,7 +437,7 @@ test("starter demo fails the command on an incomplete read instead of reporting 
 });
 
 test("exporter fails on an incomplete read instead of exporting an empty document", async () => {
-  stubResponse("list-all", realListAllEnvelope({
+  stubResponse("list", realListAllEnvelope({
     items: [{ id: "pm-1", title: "Item 1", status: "open", type: "issue" }],
     truncated: true,
     count: 1,
@@ -848,8 +850,33 @@ test("readPmItems reports a nonzero exit as a failed read, not an empty workspac
   assert.match(outcome.reason, /pm exited/, "the reason must name the exit status");
 });
 
+test("readPmItems invokes the canonical complete unbounded list contract", (t) => {
+  const envelope = realListAllEnvelope({ items: [], count: 0, total: 0 });
+  stubResponse("list", envelope);
+  const argvPath = join(stubDir, "argv.jsonl");
+  writeFileSync(argvPath, "");
+  setEnv(t, "PM_STUB_ARGV_PATH", argvPath);
+
+  const outcome = readPmItems("/tracker/root");
+  assert.ok(outcome.ok, "the complete fixture should reach argv verification");
+  const invocation = JSON.parse(readFileSync(argvPath, "utf8").trim()) as unknown;
+  assert.deepEqual(invocation, [
+    "--path",
+    "/tracker/root",
+    "list",
+    "--all",
+    "--json",
+    "--output-budget",
+    "unbounded",
+    "--output-limit",
+    "unbounded",
+    "--output-include",
+    "full",
+  ]);
+});
+
 /**
- * The non-row half of a real `pm list-all --json` envelope, captured verbatim
+ * The non-row half of a real `pm list --all --json` envelope, captured verbatim
  * from pm-cli 2026.8.15 against a live two-item workspace.
  *
  * Kept as captured output rather than hand-written so the completeness tests
@@ -888,14 +915,14 @@ test("readPmItems reports unparseable output as a failed read, not an empty work
  * response as an open bypass around every completeness check.
  */
 test("readPmItems refuses a bare top-level array, which has no receipt to verify", () => {
-  stubResponse("list-all", [{ id: "a-1", title: "A", status: "open" }]);
+  stubResponse("list", [{ id: "a-1", title: "A", status: "open" }]);
   const outcome = readPmItems(".");
   assert.strictEqual(outcome.ok, false, "a bare array cannot prove completeness");
   assert.match(outcome.reason, /bare array/, "the reason must name the unverifiable shape");
 });
 
 test("readPmItems returns items from .items when output is an object", () => {
-  stubResponse("list-all", realListAllEnvelope({ items: [{ id: "b-1", title: "B", status: "open" }], count: 1, total: 1 }));
+  stubResponse("list", realListAllEnvelope({ items: [{ id: "b-1", title: "B", status: "open" }], count: 1, total: 1 }));
   const outcome = readPmItems(".");
   assert.ok(outcome.ok, "a complete envelope is a successful read");
   assert.strictEqual(outcome.items.length, 1);
@@ -903,7 +930,7 @@ test("readPmItems returns items from .items when output is an object", () => {
 });
 
 test("readPmItems returns items from .results when no .items", () => {
-  stubResponse("list-all", realListAllEnvelope({ results: [{ id: "c-1", title: "C", status: "open" }], count: 1, total: 1 }));
+  stubResponse("list", realListAllEnvelope({ results: [{ id: "c-1", title: "C", status: "open" }], count: 1, total: 1 }));
   const outcome = readPmItems(".");
   assert.ok(outcome.ok, "a complete envelope is a successful read");
   assert.strictEqual(outcome.items.length, 1);
@@ -916,7 +943,7 @@ test("readPmItems returns items from .results when no .items", () => {
  * every failure above, all of which also had nothing to return.
  */
 test("readPmItems reports a genuinely empty workspace as a successful read", () => {
-  stubResponse("list-all", realListAllEnvelope({ items: [], count: 0, total: 0 }));
+  stubResponse("list", realListAllEnvelope({ items: [], count: 0, total: 0 }));
   const outcome = readPmItems(".");
   assert.ok(outcome.ok, "an empty workspace is not a failure");
   assert.deepEqual(outcome.items, []);
@@ -960,8 +987,68 @@ test("describeListAllIncompleteness reports omitted field groups", () => {
   assert.match(String(why), /omitted/);
 });
 
+test("readPmItems refuses a complete-labeled envelope whose count disagrees with total", () => {
+  stubResponse("list", realListAllEnvelope({
+    items: [{ id: "partial-1", title: "Partial", status: "open" }],
+    count: 1,
+    total: 2,
+  }));
+  const outcome = readPmItems(".");
+  assert.strictEqual(outcome.ok, false, "count and total disagreement must override a complete label");
+  assert.match(outcome.reason, /count 1.*total 2|1 of 2/u);
+});
+
+test("readPmItems refuses invalid count and total receipts", () => {
+  for (const [field, value] of [
+    ["count", -1],
+    ["total", undefined],
+    ["total", -1],
+  ] as const) {
+    const envelope = realListAllEnvelope({ items: [], count: 0, total: 0, [field]: value });
+    if (value === undefined) delete envelope[field];
+    stubResponse("list", envelope);
+    const outcome = readPmItems(".");
+    assert.strictEqual(outcome.ok, false);
+    assert.match(outcome.reason, new RegExp(`invalid ${field} receipt`, "u"));
+  }
+});
+
+test("readPmItems refuses a row count that disagrees with the receipt", () => {
+  stubResponse("list", realListAllEnvelope({
+    items: [{ id: "first-1" }],
+    count: 2,
+    total: 2,
+  }));
+  const outcome = readPmItems(".");
+  assert.strictEqual(outcome.ok, false);
+  assert.match(outcome.reason, /returned 1 row\(s\), but its count receipt says 2/u);
+});
+
+test("readPmItems refuses absent and blank item identities", () => {
+  for (const item of [{ title: "Missing" }, { id: "   ", title: "Blank" }]) {
+    stubResponse("list", realListAllEnvelope({ items: [item], count: 1, total: 1 }));
+    const outcome = readPmItems(".");
+    assert.strictEqual(outcome.ok, false);
+    assert.match(outcome.reason, /unusable item id at row 0/u);
+  }
+});
+
+test("readPmItems refuses duplicate item identities in a complete-labeled envelope", () => {
+  stubResponse("list", realListAllEnvelope({
+    items: [
+      { id: "duplicate-1", title: "First", status: "open" },
+      { id: "duplicate-1", title: "Second", status: "closed" },
+    ],
+    count: 2,
+    total: 2,
+  }));
+  const outcome = readPmItems(".");
+  assert.strictEqual(outcome.ok, false, "duplicate identities cannot represent a complete workspace");
+  assert.match(outcome.reason, /duplicate item id duplicate-1/u);
+});
+
 test("readPmItems returns no rows and reports why when the envelope is truncated", () => {
-  stubResponse("list-all", realListAllEnvelope({
+  stubResponse("list", realListAllEnvelope({
     items: [{ id: "d-1", title: "D", status: "open" }],
     truncated: true,
     count: 1,
@@ -984,7 +1071,7 @@ test("readPmItems returns no rows and reports why when the envelope is truncated
  * read that produced it.
  */
 test("readPmItems refuses a complete envelope whose rows field is not an array", () => {
-  stubResponse("list-all", realListAllEnvelope({ items: {}, count: 0, total: 0 }));
+  stubResponse("list", realListAllEnvelope({ items: {}, count: 0, total: 0 }));
   const outcome = readPmItems(".");
   assert.strictEqual(outcome.ok, false, "a non-array rows field is unusable, not empty");
   assert.match(outcome.reason, /non-array rows field/);
@@ -998,7 +1085,7 @@ test("readPmItems refuses a complete envelope whose rows field is not an array",
  * through the row payload instead of through the receipt.
  */
 test("readPmItems refuses an unusable row rather than silently shortening the workspace", () => {
-  stubResponse("list-all", realListAllEnvelope({
+  stubResponse("list", realListAllEnvelope({
     items: [{ id: "ok-1", title: "Fine", status: "open" }, "not-an-object", null],
     count: 3,
     total: 3,
@@ -1016,7 +1103,7 @@ test("readPmItems refuses an unusable row rather than silently shortening the wo
  */
 test("readPmItems refuses a payload that is not an object", () => {
   for (const [payload, described] of [[null, "null"], ["text", "string"], [42, "number"], [false, "boolean"]] as const) {
-    stubResponse("list-all", payload);
+    stubResponse("list", payload);
     const outcome = readPmItems(".");
     assert.strictEqual(outcome.ok, false, `a ${described} payload cannot prove completeness`);
     assert.match(outcome.reason, new RegExp(`returned ${described}`), "the reason must name the shape received");
@@ -1028,22 +1115,19 @@ test("readPmItems reports no rows as a successful read when the envelope has nei
   // reaches the rows fallback this test is about. A bare `{}` would be refused
   // as incomplete (absent receipt) and short-circuit before that line, silently
   // turning this into a test of the wrong branch.
-  stubResponse("list-all", realListAllEnvelope({ count: 0, total: 0 }));
+  stubResponse("list", realListAllEnvelope({ count: 0, total: 0 }));
   const outcome = readPmItems(".");
   assert.ok(outcome.ok, "a complete receipt with no rows is an empty workspace, not a failure");
   assert.deepEqual(outcome.items, []);
 });
 
-test("describeListAllIncompleteness tolerates an envelope missing count, total and omission_receipt", () => {
-  // Exercises the nullish fallbacks in the scale string and the optional chain on
-  // `omission_receipt`. A complete envelope that simply omits the optional
-  // bookkeeping fields is still complete, and must not be refused for lacking
-  // them — the refusal is about the four signals, not about field presence.
+test("readPmItems refuses a complete-labeled envelope missing its count receipt", () => {
   const envelope = realListAllEnvelope();
   delete envelope.count;
-  delete envelope.total;
-  delete envelope.omission_receipt;
-  assert.strictEqual(describeListAllIncompleteness(envelope), null);
+  stubResponse("list", envelope);
+  const outcome = readPmItems(".");
+  assert.strictEqual(outcome.ok, false);
+  assert.match(outcome.reason, /invalid count receipt/u);
 });
 
 test("describeListAllIncompleteness reports the unknown scale when counts are absent", () => {
@@ -1199,7 +1283,7 @@ test("importer falls back to '(no source given)' when no file/url option", async
 });
 
 test("exporter serializes items to JSON and prints them", async () => {
-  stubResponse("list-all", realListAllEnvelope({
+  stubResponse("list", realListAllEnvelope({
     items: [{ id: "pm-1", title: "Item 1", status: "open", type: "issue" }],
     count: 1,
     total: 1,

@@ -1,0 +1,47 @@
+id: pm-starter-gx6x
+title: Canonicalize the starter workspace read and adopt the current pm host contract
+description: "pm-starter still shells out through deprecated list-all and legacy --include-body forms, its raw manifest retains an ignored pm.compatibility object, its exact development CLI/SDK is 2026.8.15 while the installed and published host is 2026.8.21, and every changelog read except one is bounded or may resolve a non-project host. Migrate the reference package to canonical complete reads without weakening its strict whole-workspace refusal."
+type: Issue
+status: in_progress
+priority: 0
+tags[5]: agent-ux,compatibility,completeness,latest-cli,tdd
+created_at: "2026-08-21T04:35:12.408Z"
+updated_at: "2026-08-21T04:47:52.464Z"
+assignee: codex
+claim_principal: codex
+author: codex
+estimated_minutes: 300
+acceptance_criteria: Create red-first tests for canonical pm list --all argv with output-include full plus unbounded budget and limit; preserve strict pagination omission count duplicate and unusable-row refusal; remove only unsupported manifest metadata and validate the complete raw manifest through the public SDK; exact-pin development to pm 2026.8.21 while keeping the minimum behavior floor justified; route all package and release-workflow changelog reads through the project CLI with both output bounds disabled; update dependencies to their latest compatible published versions; run the full existing release gate and report its literal coverage dimensions without calling three dimensions four; prove packed npm and Bun behavior on a fresh real tracker with empty deprecation stderr; track the separate exact four-dimensional quality work in pm-starter-qu97; do not merge or publish while pm-starter-asud remains open
+risk: high
+confidence: high
+reporter: codex
+severity: high
+environment: pm-starter main 714da9a; installed and npm-latest pm CLI/SDK 2026.8.21; npm pm-starter 2026.8.17
+repro_steps: Run the demo workspace reader under pm 2026.8.21 and observe the list-all deprecation diagnostic; run pm health --strict-exit against the stale project extension; pass complete manifest.json to checkExtensionManifestCompatibility; inspect package and release changelog argv.
+resolution: Migrated the reference reader and release plumbing to the canonical pm 2026.8.21 contract without weakening fail-closed completeness checks or overstating the repository quality gate.
+expected_result: The starter reference exercises the latest CLI/SDK through canonical complete and unbounded contracts with zero manifest findings and deprecation-free npm/Bun acceptance.
+actual_result: "Canonical complete-corpus reader, current host/dependencies, zero-finding raw manifest, unbounded local changelog reads, exact three-dimensional measured coverage, and fresh packed npm/Bun behavior pass. Strict doctor has one upstream-only safe-decline limitation tracked as pm-cli#1074; independent history/privacy and four-dimensional quality blockers remain open."
+component: starter host integration and release plumbing
+customer_impact: "Agents copy pm-starter as the canonical extension reference, so stale aliases and host contracts propagate deprecation noise and unsafe bounded reads into newly scaffolded packages."
+dependencies[2]{id,kind,created_at,author,source_kind,author_source}:
+  pm-starter-asud,related,"2026-08-21T04:35:12.408Z",codex,"cli:create:dep",detected
+  pm-starter-qu97,related,"2026-08-21T04:35:12.408Z",codex,"cli:create:dep",detected
+comments[2]{created_at,author,text}:
+  "2026-08-21T04:42:56.725Z",codex,"Red phase proved the legacy implementation invoked list-all plus --include-body, omitted all three full/unbounded output controls, accepted count/total disagreement and duplicate IDs, pinned pm 2026.8.15, retained ignored manifest.pm metadata, and left changelog reads bounded. Green implementation now invokes canonical list --all with JSON, output-budget unbounded, output-limit unbounded, and output-include full; refuses missing/invalid/mismatched count and total receipts, row-count disagreement, unusable rows or IDs, and duplicate IDs; validates the raw manifest with zero SDK findings; uses the 2026.8.21 development CLI/SDK with a 2026.8.20 behavior floor; and routes package/workflow changelog reads through the project CLI with both bounds disabled. `npm run coverage` passed 177 tests and reports exactly 100% lines, 100% branches, and 100% functions over the three configured production TypeScript sources. This repository does not yet measure a separate statements dimension; pm-starter-qu97 remains open for that and the existing .mjs/strict-quality work, so this evidence does not call three dimensions four.\n"
+  "2026-08-21T04:47:52.464Z",codex,"`NPM_CONFIG_USERCONFIG=/dev/null npm run release:check` passed: typecheck, build, 30/30 production declarations documented, 177 tests, exact 100% lines/branches/functions across the three configured production TypeScript sources, zero production vulnerabilities, nine-file pack, and current changelog. A freshly packed pm-starter-2026.8.17.tgz then installed with both npm/npx and Bun/bunx beside @unbrained/pm-cli 2026.8.21 in separate new trackers. Each created one real issue, loaded the extension, returned the correct item through `starter demo --json`, and emitted empty demo stderr with no list-all/include-body diagnostic. Non-strict isolated doctor completed; strict mode's sole warning is the safe always-declining output_format service limitation filed as unbraind/pm-cli#1074. The two temporary acceptance trees (311 MB total) were moved to trash after verification.\n"
+files[6]{path,scope,note}:
+  index.ts,project,Canonical complete-corpus reader and fail-closed receipt validation
+  manifest.json,project,Current supported extension manifest contract
+  package.json,project,Current SDK dependency and changelog host contract
+  .github/workflows/release.yml,project,Unbounded project-local changelog reads
+  test/commands.test.ts,project,Red-first argv completeness count identity and row validation
+  test/compatibility-floor.test.ts,project,Independent current-version manifest and release-read sentinels
+tests[3]{command,path,scope,timeout_seconds,pm_context_mode}:
+  npm run coverage,test/commands.test.ts,project,60,tracker
+  "NPM_CONFIG_USERCONFIG=/dev/null npm run release:check",package.json,project,1800,tracker
+  fresh packed npm/npx and Bun/bunx acceptance,README.md,project,600,tracker
+docs[3]{path,scope,note}:
+  "https://github.com/unbraind/pm-cli-companion/blob/docs/record-pm-rl-pm-csv-cli-2026-8-20/.agents/pm/issues/pm-cli-website-cbyb.toon",global,Fleet canonical list migration
+  "https://github.com/unbraind/pm-cli-companion/blob/docs/record-pm-rl-pm-csv-cli-2026-8-20/.agents/pm/issues/pm-cli-website-rz49.toon",global,Fleet manifest compatibility programme
+  "https://github.com/unbraind/pm-cli/issues/1074",global,Strict doctor cannot express a verified safe always-declining service override
+body: ""

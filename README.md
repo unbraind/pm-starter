@@ -96,6 +96,16 @@ pm starter-demo export     # read-only JSON dump of items
 > importer/exporter live under `pm starter-demo …` so the two command paths never
 > collide. `pm extension doctor` reports 0 collisions as a result.
 
+### Complete-workspace read contract
+
+The demo and exporter intentionally read the whole tracker through canonical
+`pm list --all --json` with `--output-budget unbounded`,
+`--output-limit unbounded`, and `--output-include full`. They fail closed unless
+the response proves it is complete: the completeness and omission receipts,
+count/total values, returned row count, row shape, and unique non-empty item IDs
+must all agree. Copy this pattern for any package that must operate on an entire
+tracker rather than a display-sized page.
+
 ## Architecture
 
 Each capability lives in its own `setup*` function for clarity. Delete the ones
@@ -166,7 +176,14 @@ MIT
 
 ## Release Automation
 
-This package is release-ready for GitHub, npm, and Bun-compatible installs. CI runs type checking, build, production dependency audit, package packing, Bun install verification, and pm-changelog validation. The daily release workflow publishes only when commits exist after the latest release tag and uses pm-changelog to generate CHANGELOG.md and GitHub release notes.
+This repository has automated GitHub, npm, and Bun-compatible release plumbing.
+CI runs type checking, build, production dependency audit, package packing, Bun
+install verification, and pm-changelog validation. The daily release workflow
+publishes only when commits exist after the latest release tag and uses
+pm-changelog to generate CHANGELOG.md and GitHub release notes. Those automated
+checks are not publication approval: the current repository remains blocked by
+the tracked [reachable-history privacy audit](.agents/pm/issues/pm-starter-asud.toon)
+and [strict source-quality work](.agents/pm/issues/pm-starter-qu97.toon).
 
 ## Multi-agent merge safety
 
