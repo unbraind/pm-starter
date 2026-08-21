@@ -34,6 +34,7 @@ const releaseWorkflow = readFileSync(resolve(repoRoot, ".github", "workflows", "
 
 const CLI = "@unbrained/pm-cli";
 const EXACT_VERSION = /^\d+\.\d+\.\d+$/;
+const REQUIRED_MINIMUM_VERSION = "2026.8.20";
 const REQUIRED_DEVELOPMENT_VERSION = "2026.8.21";
 
 /**
@@ -96,6 +97,11 @@ test("the extension manifest declares the same floor the CLI actually enforces",
     peer.slice(">=".length),
     "manifest.json pm_min_version must equal the peerDependencies floor, or npm and the pm CLI enforce different minimums",
   );
+  assert.strictEqual(
+    declared,
+    REQUIRED_MINIMUM_VERSION,
+    `the advertised minimum host must remain the approved ${REQUIRED_MINIMUM_VERSION} behavior contract`,
+  );
 });
 
 test("the development dependency is an exact pin at or above the declared floor", () => {
@@ -128,16 +134,18 @@ test("the development dependency is an exact pin at or above the declared floor"
   );
 });
 
-test("the complete raw manifest satisfies the public SDK compatibility contract", () => {
+test("the complete raw manifest satisfies the public SDK contract at minimum and development hosts", () => {
   const dev = packageJson.devDependencies?.[CLI];
   assert.ok(dev, `package.json devDependencies must declare ${CLI}`);
-  const result = checkExtensionManifestCompatibility(extensionManifest, { pmVersion: dev });
-  assert.equal(result.compatible, true, "the declared PM version bounds must accept the pinned CLI");
-  assert.deepEqual(
-    result.findings,
-    [],
-    `manifest.json must contain only SDK-supported keys and valid version bounds: ${JSON.stringify(result.findings)}`,
-  );
+  for (const host of [REQUIRED_MINIMUM_VERSION, dev]) {
+    const result = checkExtensionManifestCompatibility(extensionManifest, { pmVersion: host });
+    assert.equal(result.compatible, true, `the declared PM version bounds must accept host ${host}`);
+    assert.deepEqual(
+      result.findings,
+      [],
+      `manifest.json must contain only SDK-supported keys and valid bounds at host ${host}: ${JSON.stringify(result.findings)}`,
+    );
+  }
 });
 
 test("every changelog and release-note read disables both host output bounds", () => {
