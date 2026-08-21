@@ -6,7 +6,7 @@ status: in_progress
 priority: 0
 tags[5]: agent-ux,compatibility,completeness,latest-cli,tdd
 created_at: "2026-08-21T04:35:12.408Z"
-updated_at: "2026-08-21T04:47:52.464Z"
+updated_at: "2026-08-21T04:49:19.002Z"
 assignee: codex
 claim_principal: codex
 author: codex
@@ -26,9 +26,10 @@ customer_impact: "Agents copy pm-starter as the canonical extension reference, s
 dependencies[2]{id,kind,created_at,author,source_kind,author_source}:
   pm-starter-asud,related,"2026-08-21T04:35:12.408Z",codex,"cli:create:dep",detected
   pm-starter-qu97,related,"2026-08-21T04:35:12.408Z",codex,"cli:create:dep",detected
-comments[2]{created_at,author,text}:
+comments[3]{created_at,author,text}:
   "2026-08-21T04:42:56.725Z",codex,"Red phase proved the legacy implementation invoked list-all plus --include-body, omitted all three full/unbounded output controls, accepted count/total disagreement and duplicate IDs, pinned pm 2026.8.15, retained ignored manifest.pm metadata, and left changelog reads bounded. Green implementation now invokes canonical list --all with JSON, output-budget unbounded, output-limit unbounded, and output-include full; refuses missing/invalid/mismatched count and total receipts, row-count disagreement, unusable rows or IDs, and duplicate IDs; validates the raw manifest with zero SDK findings; uses the 2026.8.21 development CLI/SDK with a 2026.8.20 behavior floor; and routes package/workflow changelog reads through the project CLI with both bounds disabled. `npm run coverage` passed 177 tests and reports exactly 100% lines, 100% branches, and 100% functions over the three configured production TypeScript sources. This repository does not yet measure a separate statements dimension; pm-starter-qu97 remains open for that and the existing .mjs/strict-quality work, so this evidence does not call three dimensions four.\n"
   "2026-08-21T04:47:52.464Z",codex,"`NPM_CONFIG_USERCONFIG=/dev/null npm run release:check` passed: typecheck, build, 30/30 production declarations documented, 177 tests, exact 100% lines/branches/functions across the three configured production TypeScript sources, zero production vulnerabilities, nine-file pack, and current changelog. A freshly packed pm-starter-2026.8.17.tgz then installed with both npm/npx and Bun/bunx beside @unbrained/pm-cli 2026.8.21 in separate new trackers. Each created one real issue, loaded the extension, returned the correct item through `starter demo --json`, and emitted empty demo stderr with no list-all/include-body diagnostic. Non-strict isolated doctor completed; strict mode's sole warning is the safe always-declining output_format service limitation filed as unbraind/pm-cli#1074. The two temporary acceptance trees (311 MB total) were moved to trash after verification.\n"
+  "2026-08-21T04:49:19.002Z",codex,"Implementation commit `b4a46fd` is published as PR #65. The PR links this PM item plus the independent `pm-starter-asud` and `pm-starter-qu97` blockers. It remains intentionally open and must not merge or publish regardless of tranche-local CI/review results until the reachable-history privacy gate is resolved.\n"
 files[6]{path,scope,note}:
   index.ts,project,Canonical complete-corpus reader and fail-closed receipt validation
   manifest.json,project,Current supported extension manifest contract
@@ -40,8 +41,9 @@ tests[3]{command,path,scope,timeout_seconds,pm_context_mode}:
   npm run coverage,test/commands.test.ts,project,60,tracker
   "NPM_CONFIG_USERCONFIG=/dev/null npm run release:check",package.json,project,1800,tracker
   fresh packed npm/npx and Bun/bunx acceptance,README.md,project,600,tracker
-docs[3]{path,scope,note}:
+docs[4]{path,scope,note}:
   "https://github.com/unbraind/pm-cli-companion/blob/docs/record-pm-rl-pm-csv-cli-2026-8-20/.agents/pm/issues/pm-cli-website-cbyb.toon",global,Fleet canonical list migration
   "https://github.com/unbraind/pm-cli-companion/blob/docs/record-pm-rl-pm-csv-cli-2026-8-20/.agents/pm/issues/pm-cli-website-rz49.toon",global,Fleet manifest compatibility programme
   "https://github.com/unbraind/pm-cli/issues/1074",global,Strict doctor cannot express a verified safe always-declining service override
+  "https://github.com/unbraind/pm-starter/pull/65",global,Implementation CI and exact-head review record
 body: ""
