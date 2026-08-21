@@ -381,8 +381,12 @@ export function describeListAllIncompleteness(envelope) {
         const described = status === undefined ? "absent" : JSON.stringify(status);
         return `completeness.status is ${described}, not "complete" (${scale})`;
     }
-    if (readPath(envelope, "omission_receipt", "has_omissions") === true) {
+    const hasOmissions = readPath(envelope, "omission_receipt", "has_omissions");
+    if (hasOmissions === true)
         return `field groups were omitted from the projection (${scale})`;
+    if (hasOmissions !== false) {
+        const described = hasOmissions === undefined ? "absent" : JSON.stringify(hasOmissions);
+        return `omission_receipt.has_omissions is ${described}, not false; the full projection is unverified (${scale})`;
     }
     return null;
 }

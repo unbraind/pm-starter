@@ -987,6 +987,26 @@ test("describeListAllIncompleteness reports omitted field groups", () => {
   assert.match(String(why), /omitted/);
 });
 
+test("readPmItems refuses absent or malformed omission receipts", () => {
+  const absent = realListAllEnvelope({ items: [], count: 0, total: 0 });
+  delete absent.omission_receipt;
+  for (const [label, envelope] of [
+    ["absent", absent],
+    ["missing field", realListAllEnvelope({ items: [], count: 0, total: 0, omission_receipt: {} })],
+    ["non-Boolean", realListAllEnvelope({
+      items: [],
+      count: 0,
+      total: 0,
+      omission_receipt: { has_omissions: "false" },
+    })],
+  ] as const) {
+    stubResponse("list", envelope);
+    const outcome = readPmItems(".");
+    assert.strictEqual(outcome.ok, false, `${label} omission evidence cannot prove a full projection`);
+    assert.match(outcome.reason, /omission_receipt\.has_omissions/u);
+  }
+});
+
 test("readPmItems refuses a complete-labeled envelope whose count disagrees with total", () => {
   stubResponse("list", realListAllEnvelope({
     items: [{ id: "partial-1", title: "Partial", status: "open" }],
