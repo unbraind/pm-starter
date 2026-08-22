@@ -1,0 +1,17 @@
+id: pm-starter-ibm7
+title: "changelog scripts read the workspace with default budgets, so pm-changelog refuses complete-read checks once the tracker exceeds one page"
+description: "pm-changelog 2026.8.17+ refuses a changelog generated from a partial pm workspace read (truncated=true). pm-starter's changelog/changelog:full/changelog:check/release:notes scripts invoked pm without --pm-bin and without unbounded output controls, so changelog:check and release:check failed with count=5 of total=46 even when the committed changelog was correct. Fix: pass the canonical complete-read argv to all four scripts, matching the pm-beads convention."
+type: Issue
+status: closed
+priority: 1
+tags[2]: changelog,quality-gate
+created_at: "2026-08-22T05:31:33.468Z"
+updated_at: "2026-08-22T05:32:03.104Z"
+closed_at: "2026-08-22T05:31:48.619Z"
+completed_at: "2026-08-22T05:31:48.619Z"
+author: ox-alpha
+severity: high
+repro_steps: "npm run changelog:check"
+resolution: fixed
+close_reason: "All four pm-changelog invocations in package.json now pin ./node_modules/.bin/pm via --pm-bin and pass --output-budget unbounded --output-limit unbounded through --pm-arg, so the generator always performs the canonical complete workspace read. npm run changelog:check exits 0 and npm run release:check (typecheck+build+docstring+coverage+audit+pack+dry-run+changelog check) exits 0 on this head with 0 test failures."
+body: ""

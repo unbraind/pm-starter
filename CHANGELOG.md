@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026.8.22 - 2026-08-22
+
+### Fixed
+
+- changelog scripts read the workspace with default budgets, so pm-changelog refuses complete-read checks once the tracker exceeds one page ([pm-starter-ibm7](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/issues/pm-starter-ibm7.toon))
+
 ## 2026.8.16 - 2026-08-16
 
 ### Fixed
