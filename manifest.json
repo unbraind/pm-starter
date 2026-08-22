@@ -16,8 +16,5 @@
     "parser",
     "preflight",
     "services"
-  ],
-  "pm": {
-    "compatibility": "v2"
-  }
+  ]
 }
