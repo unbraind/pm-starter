@@ -1,0 +1,17 @@
+id: pm-starter-pmnm
+title: Retire stale PR 65 evidence note after revert 67
+description: "PR 66 appended merge evidence to pm-starter-gx6x, but PR 65 was reverted on main in 0c113d7 (PR 67) which deleted the gx6x tracker item. Rebased docs/gx6x-pr65-evidence onto origin/main accepting the deletion; the stale evidence commit is gone. Branch now carries only this retirement record."
+type: Task
+status: closed
+priority: 2
+tags: []
+created_at: "2026-08-22T09:20:23.061Z"
+updated_at: "2026-08-22T09:20:33.954Z"
+closed_at: "2026-08-22T09:20:33.914Z"
+completed_at: "2026-08-22T09:20:33.914Z"
+claim_principal: pi-agent
+author: pi-agent
+comments[1]{created_at,author,text}:
+  "2026-08-22T09:20:33.103Z",pi-agent,"The complete-reads functionality from PR 65 was re-landed differently by PR 69 (e71b635) using unbounded --pm-arg reads, so no evidence resurrection is needed. PR 66 branch now points at origin/main plus this tracker record only."
+close_reason: Rebase resolved in favor of main's deletion of the gx6x item; retirement record committed on the PR branch.
+body: ""

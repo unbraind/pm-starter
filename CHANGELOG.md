@@ -6,6 +6,10 @@
 
 - changelog scripts read the workspace with default budgets, so pm-changelog refuses complete-read checks once the tracker exceeds one page ([pm-starter-ibm7](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/issues/pm-starter-ibm7.toon))
 
+### Other
+
+- Retire stale PR 65 evidence note after revert 67 ([pm-starter-pmnm](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/tasks/pm-starter-pmnm.toon))
+
 ## 2026.8.16 - 2026-08-16
 
 ### Fixed
