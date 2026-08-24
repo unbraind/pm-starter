@@ -1,0 +1,28 @@
+id: pm-starter-5ol6
+title: "Dependabot PRs blocked: untagged releases make changelog:check drift daily and the exact CLI pin ERESOLVEs against pm-changelog 2026.8.17"
+description: "Daily Release publishes npm before pushing the tag; publish 404s left v2026.08.22..v2026.08.24 untagged while their release commits landed on main, so pm-changelog --all-release-tags synthesizes a pending window dated 'now' and every CI run after the release day fails changelog:check. Separately, the exact devDependency pin @unbrained/pm-cli@2026.8.15 conflicts with pm-changelog@2026.8.17's peer floor >=2026.8.16, so that bump PR cannot even npm ci."
+type: Issue
+status: closed
+priority: 2
+tags[3]: changelog,ci,dependencies
+created_at: "2026-08-24T08:41:45.076Z"
+updated_at: "2026-08-24T08:50:05.463Z"
+closed_at: "2026-08-24T08:49:57.980Z"
+completed_at: "2026-08-24T08:49:57.980Z"
+author: pi-agent
+resolution: Backfilled the three missing release tags and bumped the exact @unbrained/pm-cli devDependency pin to 2026.8.23; regenerated CHANGELOG.md from tag windows
+expected_result: "test (22) and test (26) pass on every PR: npm ci resolves, changelog:check is day-independent"
+actual_result: "All local gates green: 169/169 tests, coverage 100/100/100, health --strict-exit 0, changelog:check up to date, simulated rebase of the pm-changelog bump branch installs cleanly"
+comments[1]{created_at,author,text}:
+  "2026-08-24T08:42:47.952Z",pi-agent,"ROOT CAUSE (from CI logs of runs 32611471740 / 32611476237 / 32611478369; both failure modes reproduced locally): (1) test (22)/(26) on the pm-ops and pm-cli bump PRs fail at 'Verify generated changelog': committed heading '## 2026.8.22 - 2026-08-22' vs generated '- <run day>'. pm-changelog resolveReleaseTagWindows folds an untagged package.json version into a pending window stamped with new Date(), so the heading changes every UTC day. Tags stop at v2026.08.17 because release.yml pushes the tag only after npm publish succeeds, and publish failed with repeated registry 404s while the release commits 8beb438/7b59d18/ca2c8c3 still landed on main. (2) The pm-changelog bump PR fails earlier at Install dependencies with ERESOLVE: the exact devDependency pin @unbrained/pm-cli@2026.8.15 violates pm-changelog@2026.8.17 peer requirement >=2026.8.16, so npm ci cannot build a tree. Note: no CI log contains test/kill.test.ts; that name exists only as an intentional failing fixture inside the coverage-gate self-tests, whose captured child output leaks into logs when a parent assertion prints it."
+files[3]{path,scope,note}:
+  CHANGELOG.md,project,"Regenerated with npm run changelog:full once release tags v2026.08.22/.23/.24 exist; headings now derive from tag commit dates instead of a now()-stamped pending window"
+  package-lock.json,project,Lockfile regenerated for @unbrained/pm-cli 2026.8.23
+  package.json,project,Bump exact devDependency pin @unbrained/pm-cli 2026.8.15 -> 2026.8.23 so the tree satisfies pm-changelog@2026.8.17 peer >=2026.8.16
+tests[4]{command,scope,provenance{author,created_at,source_kind,source_ref},note}:
+  npm run build && npm test,project,pi-agent,"2026-08-24T08:44:22.666Z",local_mutation,fix/backfill-release-tags-and-float-cli-devdep,"Full suite: 169/169 pass after pin bump"
+  npm run coverage,project,pi-agent,"2026-08-24T08:44:32.530Z",local_mutation,fix/backfill-release-tags-and-float-cli-devdep,"Coverage gate: 100/100/100 across index.ts and scripts/coverage-gate.ts + docstring-gate.ts"
+  ./node_modules/.bin/pm health --strict-exit,project,pi-agent,"2026-08-24T08:44:32.530Z",local_mutation,fix/backfill-release-tags-and-float-cli-devdep,Tracked pm project health exits 0
+  "npm run changelog:check",project,pi-agent,"2026-08-24T08:44:32.530Z",local_mutation,fix/backfill-release-tags-and-float-cli-devdep,Changelog deterministic against backfilled release tags v2026.08.22/.23/.24; passes on any UTC day
+close_reason: "Fixed on fix/backfill-release-tags-and-float-cli-devdep: (1) backfilled lightweight release tags v2026.08.22->8beb438, v2026.08.23->7b59d18, v2026.08.24->ca2c8c3 exactly as release.yml creates them, so --all-release-tags derives heading dates from tag commit timestamps instead of a now()-stamped pending window; CHANGELOG.md regenerated via npm run changelog:full and changelog:check now passes deterministically on any UTC day. (2) bumped exact devDependency pin @unbrained/pm-cli 2026.8.15 -> 2026.8.23 so npm ci resolves with pm-changelog@2026.8.17 peer >=2026.8.16 (verified in a simulated rebase of that PR branch). Gates: build+test 169/169 pass; coverage 100/100/100; docstring-gate clean; audit:prod 0 vulns; pack:dry-run ok; pm health --strict-exit exit 0; pm test --run 4/4 passed."
+body: ""
