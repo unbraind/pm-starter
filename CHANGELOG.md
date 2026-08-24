@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+- Dependabot PRs blocked: untagged releases make changelog:check drift daily and the exact CLI pin ERESOLVEs against pm-changelog 2026.8.17 ([pm-starter-5ol6](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/issues/pm-starter-5ol6.toon))
+
 ## 2026.8.23 - 2026-08-23
 
 ### Fixed
