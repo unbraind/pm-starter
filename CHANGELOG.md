@@ -1,16 +1,14 @@
 # Changelog
 
-## Unreleased
-
-### Security
-
-- The identity gate deadlocks the one remediation its own failure message prescribes ([pm-starter-tf19](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/issues/pm-starter-tf19.toon))
-
-## 2026.8.27 - 2026-08-27
+## 2026.8.28 - 2026-08-28
 
 ### Fixed
 
 - changelog scripts read the workspace with default budgets, so pm-changelog refuses complete-read checks once the tracker exceeds one page ([pm-starter-ibm7](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/issues/pm-starter-ibm7.toon))
+
+### Security
+
+- The identity gate deadlocks the one remediation its own failure message prescribes ([pm-starter-tf19](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/issues/pm-starter-tf19.toon))
 
 ### Other
 
