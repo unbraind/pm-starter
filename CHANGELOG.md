@@ -4,6 +4,9 @@
 
 ### Fixed
 
+- A failed provenance publish silently falls back to an unattested one ([pm-starter-19dq](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/issues/pm-starter-19dq.toon))
+- A failed provenance publish silently falls back to an unattested one ([pm-starter-2noe](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/issues/pm-starter-2noe.toon))
+- A failed provenance publish silently falls back to an unattested one ([pm-starter-uxmy](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/issues/pm-starter-uxmy.toon))
 - changelog scripts read the workspace with default budgets, so pm-changelog refuses complete-read checks once the tracker exceeds one page ([pm-starter-ibm7](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/issues/pm-starter-ibm7.toon))
 
 ### Security
