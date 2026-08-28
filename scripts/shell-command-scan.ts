@@ -252,19 +252,27 @@ export function tokenizeCommands(text: string, depth = 0): ShellCommand[] {
       continue;
     }
     if (character === "'") {
-      const close = text.indexOf("'", index + 1);
-      const end = close === -1 ? text.length : close;
+      let end = index + 1;
+      while (end < text.length && text[end] !== "'" && text[end] !== "\n") end += 1;
       value += text.slice(index + 1, end);
       quoted = true;
       if (!started) startsQuoted = true;
       started = true;
-      index = end;
+      // An unclosed quote in a YAML scalar is not shell syntax that should
+      // consume later `run:` lines. Leave a newline for the normal command
+      // boundary; a closing quote can still be skipped as before.
+      index = end === text.length || text[end] === "'" ? end : end - 1;
       continue;
     }
     if (character === '"') {
       index += 1;
+      let stoppedAtNewline = false;
       while (index < text.length && text[index] !== '"') {
         const inner = text[index]!;
+        if (inner === "\n") {
+          stoppedAtNewline = true;
+          break;
+        }
         if (inner === "\\") {
           const next = text[index + 1];
           if (next !== undefined) {
@@ -287,6 +295,7 @@ export function tokenizeCommands(text: string, depth = 0): ShellCommand[] {
       quoted = true;
       if (!started) startsQuoted = true;
       started = true;
+      if (stoppedAtNewline) index -= 1;
       continue;
     }
     if (character === "`" || (character === "$" && text[index + 1] === "(")) {
@@ -532,6 +541,9 @@ export function joinContinuations(text: string): string {
   return text.replace(/\\\r?\n\s*/g, " ");
 }
 
+/** Matches one `name=( ... )` declaration, honouring quoted and escaped members. */
+const BASH_ARRAY_DECLARATION = /(?:^|[\n;&|])[ \t\r]*([A-Za-z_][A-Za-z0-9_]*)=\(((?:\\[\s\S]|'[^']*'|"(?:\\[\s\S]|[^"\\])*"|[^\\'"()])*)\)/g;
+
 /**
  * Index bash array assignments so a shared options array can be expanded.
  *
@@ -544,41 +556,67 @@ export function joinContinuations(text: string): string {
  */
 export function bashArrays(text: string): Map<string, string> {
   const arrays = new Map<string, string>();
-  for (const match of text.matchAll(/(?:^|\s)([A-Za-z_][A-Za-z0-9_]*)=\(([\s\S]*?)\)/g)) {
-    arrays.set(match[1], match[2].replace(/\s+/g, " ").trim());
+  for (const match of text.matchAll(BASH_ARRAY_DECLARATION)) {
+    arrays.set(match[1]!, match[2]!.replace(/\s+/g, " ").trim());
   }
   return arrays;
 }
+
+/** A line opening with one assignment of a fully literal value, ending there or at a `;`. */
+const STANDALONE_ASSIGNMENT =
+  /^[ \t]*([A-Za-z_][A-Za-z0-9_]*)=(?:"((?:\\.|[^"\\$`])*)"|'([^']*)'|((?:\\.|[^\s;&|"'`$()\\])+))[ \t]*(?:;|$)/;
 
 /**
  * Index scalar assignments so a command held in a variable can be audited.
  *
  * `CMD="npm publish"` followed by `$CMD` runs a publish that no scan of the
  * invocation line can see, because the invocation line contains no publish. The
- * assignment is where the command actually is.
+ * assignment is where the command actually is. `NPM=npm` followed by
+ * `$NPM publish` hides one the same way, so unquoted values are indexed too.
  *
- * Only literal single- or double-quoted values are indexed. An unquoted value
- * cannot hold a space and so cannot hold a command, and a value built from
- * other variables is not resolvable without evaluating the script, which this
- * module deliberately does not do.
+ * A name is taken only where a line OPENS with one assignment carrying a fully
+ * literal value and holds nothing else before its end or a `;`. `NPM=npm; cmd`
+ * therefore binds, because the semicolon ends the assignment and the shell keeps
+ * it afterwards, while `NPM=npm cmd` does not, because that binding lasts only
+ * for the command it precedes. Requiring the line to OPEN with the assignment is
+ * what keeps a `;` inside a comment from exposing one. That single rule keeps
+ * the scan from inventing
+ * bindings the shell never makes, each of which let an unattested publish
+ * borrow a flag and pass the gate:
+ *
+ * - `# FLAG=--provenance` is a comment, and a comment is not a line that is
+ *   only an assignment.
+ * - `echo "config NPM=npm"` is a command with an argument, not an assignment.
+ * - `FLAG=--provenance some-command` binds only for that one command; the shell
+ *   does not keep it afterwards, so neither does this map.
+ * - `$(FLAG=--provenance)` binds inside a subshell that the outer shell never
+ *   sees.
+ * - `NPM=npm$SUFFIX` and `NPM=npm$(printf foo)` are not literal. The value must
+ *   match to the end of the line, so a prefix is never mistaken for the whole
+ *   value -- the mistake that let a scan analyse a different command from the
+ *   one the shell runs.
+ *
+ * Escapes are honoured, so `NPM=npm\\ publish` is one word holding a command.
+ * A value that still carries a substitution, backtick, quote or parenthesis
+ * after unescaping is refused: inlining `pkg_name="$(node -p …)"` injects an
+ * unbalanced parenthesis into an unrelated command, and the scan then reports
+ * invocations that are not there while losing the one that is -- a false
+ * verdict in both directions, which is worse than not resolving the variable.
  *
  * @param text - File contents with continuations already joined.
  * @returns Variable name mapped to the literal text it holds.
  */
 export function shellScalars(text: string): Map<string, string> {
   const scalars = new Map<string, string>();
-  for (const match of text.matchAll(/(?:^|[\s;&|])([A-Za-z_][A-Za-z0-9_]*)=(?:"([^"\n]*)"|'([^'\n]*)')/g)) {
-    // The alternation guarantees exactly one of the two value groups matched,
-    // so there is no third case to fall back to.
-    const value = match[2] ?? match[3]!;
-    // Only a plain literal is inlined. A value carrying a substitution, a
-    // backtick, or a quote of its own changes how the line it lands in parses:
-    // inlining `pkg_name="$(node -p …)"` injects an unbalanced parenthesis into
-    // an unrelated command, and the scan then reports invocations that are not
-    // there while losing the one that is. That is a false verdict in both
-    // directions, which is worse than not resolving the variable at all.
+  for (const line of text.split("\n")) {
+    const assignment = STANDALONE_ASSIGNMENT.exec(line);
+    if (assignment === null) continue;
+    // Exactly one of the three value alternatives matches, so the last is the
+    // only case left rather than a fallback that could be undefined.
+    const raw = assignment[2] ?? assignment[3] ?? assignment[4]!;
+    const value = raw.replace(/\\(.)/g, "$1");
     if (/[$`"'()]/.test(value)) continue;
-    scalars.set(match[1]!, value);
+    scalars.set(assignment[1]!, value);
   }
   return scalars;
 }

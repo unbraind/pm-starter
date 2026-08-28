@@ -205,12 +205,17 @@ export function attestationEnabled(command: ShellCommand): boolean {
 export function publishInvocationsIn(source: SourceFile): PublishInvocation[] {
   const raw = source.file.endsWith("package.json") ? manifestCommandLines(source.text) : source.text;
   const text = joinContinuations(raw);
-  const arrays = bashArrays(text);
-  const scalars = shellScalars(text);
-  const expanded = text
-    .split("\n")
-    .map((line) => expandScalars(expandArrays(line, arrays), scalars))
-    .join("\n");
+  let prior = "";
+  const expanded = text.split("\n").map((line) => {
+    // Resolve assignments from the text that has already executed. A later
+    // array declaration must not lend its provenance flag to an earlier
+    // invocation, and a commented or quoted declaration is not executable.
+    const arrays = bashArrays(prior);
+    const scalars = shellScalars(prior);
+    const resolved = expandScalars(expandArrays(line, arrays), scalars);
+    prior += `${line}\n`;
+    return resolved;
+  }).join("\n");
   const found: PublishInvocation[] = [];
   for (const command of tokenizeCommands(expanded)) {
     // Every reading, not just the command's own: a wrapper option that takes a
