@@ -833,6 +833,23 @@ test("a publish routed through an unquoted scalar is audited, not hidden by an a
   assert.match(result.failures[0]!, /does not enable --provenance/);
 });
 
+test("a scalar assigned and used on the same line is resolved, not hidden by an attested sibling", () => {
+  // `NPM=npm; $NPM publish` sets NPM as a persistent binding (the semicolon
+  // ends the assignment) and then expands `$NPM` to `npm` in the command after
+  // it. The scan used `shellScalars(prior)` where `prior` excluded the current
+  // line, so `$NPM` was never resolved, the publish was invisible, and an
+  // attested sibling elsewhere in the file carried the gate to a pass.
+  const result = auditPublishAttestation([{
+    file: "release.yml",
+    text: [
+      `          npm publish --access public ${ATTESTATION_FLAG}`,
+      "          NPM=npm; $NPM publish --access public",
+    ].join("\n"),
+  }]);
+  assert.equal(result.failures.length, 1, "the same-line variable-routed publish must be audited");
+  assert.match(result.failures[0]!, /does not enable --provenance/);
+});
+
 test("an assignment the shell never makes is not indexed", () => {
   // Scalars used to be read straight out of the raw text, which indexed three
   // things the shell does not assign. The middle one is a gate bypass: a name

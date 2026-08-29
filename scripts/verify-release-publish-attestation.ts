@@ -212,7 +212,17 @@ export function publishInvocationsIn(source: SourceFile): PublishInvocation[] {
     // invocation, and a commented or quoted declaration is not executable.
     const arrays = bashArrays(prior);
     const scalars = shellScalars(prior);
-    const resolved = expandScalars(expandArrays(line, arrays), scalars);
+    // A standalone assignment ending at a `;` on the SAME line is kept by the
+    // shell and visible to the command after the semicolon. Without this,
+    // `NPM=npm; $NPM publish` left `$NPM` unresolved, the publish was never
+    // recognised, and an attested sibling elsewhere carried the gate to a
+    // pass -- the exact fail-open verdict this gate exists to prevent.
+    // The scalar parser already accepts `;`-terminated assignments, so only
+    // a whole-line literal binding can land here; a command-scoped or
+    // commented assignment is refused by `shellScalars` and never enters.
+    const lineScalars = shellScalars(line);
+    const mergedScalars = new Map([...scalars, ...lineScalars]);
+    const resolved = expandScalars(expandArrays(line, arrays), mergedScalars);
     prior += `${line}\n`;
     return resolved;
   }).join("\n");

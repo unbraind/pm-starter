@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+- Fix same-line scalar assignment bypass in publish attestation scanner ([pm-starter-2899](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/issues/pm-starter-2899.toon))
+
 ## 2026.8.28 - 2026-08-28
 
 ### Fixed
