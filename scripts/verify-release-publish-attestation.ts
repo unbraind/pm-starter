@@ -193,6 +193,34 @@ export function attestationEnabled(command: ShellCommand): boolean {
 }
 
 /**
+ * Expand leading command-scoped literals only for a receiving shell evaluator.
+ *
+ * Such assignments are exported to `bash -c`/`eval` for that invocation but
+ * must not leak to later commands in the file.
+ *
+ * @param text - One simple command segment.
+ * @param persistent - Bindings established by earlier commands.
+ * @returns The segment with evaluator-visible literals expanded.
+ */
+function expandCommandScopedEvaluator(text: string, persistent: Map<string, string>): string {
+  const command = tokenizeCommands(text)[0];
+  if (command === undefined) return expandScalars(text, persistent);
+  const program = commandName(command);
+  if (program === undefined || !new Set(["eval", "bash", "sh", "dash", "zsh", "ksh"]).has(program)) {
+    return expandScalars(text, persistent);
+  }
+  const scoped = new Map<string, string>();
+  for (const token of command) {
+    if (token.startsQuoted) break;
+    const match = /^([A-Za-z_][A-Za-z0-9_]*)=(.*)$/.exec(token.value);
+    if (match === null) break;
+    if (/[$`"'()]/.test(match[2]!)) continue;
+    scoped.set(match[1]!, match[2]!);
+  }
+  return expandScalars(text, new Map([...persistent, ...scoped]));
+}
+
+/**
  * Find every publish invocation in one file's contents.
  *
  * Continuations are joined and shared arrays expanded before tokenising, for
@@ -206,24 +234,22 @@ export function publishInvocationsIn(source: SourceFile): PublishInvocation[] {
   const raw = source.file.endsWith("package.json") ? manifestCommandLines(source.text) : source.text;
   const text = joinContinuations(raw);
   let prior = "";
+  const persistentScalars = new Map<string, string>();
   const expanded = text.split("\n").map((line) => {
-    // Resolve assignments from the text that has already executed. A later
-    // array declaration must not lend its provenance flag to an earlier
-    // invocation, and a commented or quoted declaration is not executable.
-    const arrays = bashArrays(prior);
-    const scalars = shellScalars(prior);
-    // A standalone assignment ending at a `;` on the SAME line is kept by the
-    // shell and visible to the command after the semicolon. Without this,
-    // `NPM=npm; $NPM publish` left `$NPM` unresolved, the publish was never
-    // recognised, and an attested sibling elsewhere carried the gate to a
-    // pass -- the exact fail-open verdict this gate exists to prevent.
-    // The scalar parser already accepts `;`-terminated assignments, so only
-    // a whole-line literal binding can land here; a command-scoped or
-    // commented assignment is refused by `shellScalars` and never enters.
-    const lineScalars = shellScalars(line);
-    const mergedScalars = new Map([...scalars, ...lineScalars]);
-    const resolved = expandScalars(expandArrays(line, arrays), mergedScalars);
-    prior += `${line}\n`;
+    // Resolve persistent assignments in execution order. Applying one map to
+    // the whole line lets a stale or future reassignment rewrite the command
+    // that sits on the other side of a semicolon.
+    const segments = line.split(/(;)/);
+    const resolved = segments.map((segment) => {
+      if (segment === ";") return segment;
+      const arrays = bashArrays(prior);
+      const arrayExpandedSegment = expandArrays(segment, arrays);
+      const assignment = shellScalars(`${segment};`);
+      for (const [name, value] of assignment) persistentScalars.set(name, value);
+      prior += `${segment};`;
+      return expandCommandScopedEvaluator(arrayExpandedSegment, persistentScalars);
+    }).join("");
+    prior += "\n";
     return resolved;
   }).join("\n");
   const found: PublishInvocation[] = [];

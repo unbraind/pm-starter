@@ -1,0 +1,17 @@
+id: pm-starter-83vb
+title: Close PR 82 attestation audit bypasses
+description: "Handle ordered scalar reassignments, command-scoped evaluator variables, and npm executor commands hidden behind options."
+type: Issue
+status: closed
+priority: 2
+tags: []
+created_at: "2026-08-29T04:36:43.506Z"
+updated_at: "2026-08-29T04:44:19.376Z"
+closed_at: "2026-08-29T04:36:46.202Z"
+completed_at: "2026-08-29T04:36:46.202Z"
+author: pi-agent
+comments[2]{created_at,author,text}:
+  "2026-08-29T04:36:45.261Z",pi-agent,"Added end-to-end fixtures and hardened scalar ordering, evaluator scoping, and nested npm executor candidate enumeration."
+  "2026-08-29T04:44:19.376Z",pi-agent,"Follow-up review: command-scoped evaluator values now override persistent bindings before any payload expansion; added a stale-persistent-value regression."
+close_reason: All active PR 82 review findings fixed with regression coverage.
+body: ""

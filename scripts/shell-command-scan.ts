@@ -503,7 +503,19 @@ export function commandCandidates(input: ShellCommand): ShellCommand[] {
   const start = skipCommandPrefix(command);
   const candidates: ShellCommand[] = [];
   if (start < command.length) candidates.push(command.slice(start));
-  if (start === 0) return candidates;
+  if (start === 0) {
+    if (command.length === 0) return candidates;
+    // npm accepts configuration flags before `exec`/`x`. Once an executor is
+    // present, offer every later non-option word so a nested program cannot be
+    // hidden behind an option value (`npm --access public exec -- npm publish`).
+    if (basename(command[0]!.value) !== "npm") return candidates;
+    const executor = command.findIndex((token, index) => index > 0 && (token.value === "exec" || token.value === "x"));
+    if (executor === -1) return candidates;
+    for (let index = executor + 1; index < command.length; index += 1) {
+      if (!command[index]!.value.startsWith("-")) candidates.push(command.slice(index));
+    }
+    return candidates;
+  }
   for (let index = start + 1; index < command.length; index += 1) {
     const token = command[index]!;
     if (token.value.startsWith("-")) continue;

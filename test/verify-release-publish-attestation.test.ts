@@ -850,6 +850,38 @@ test("a scalar assigned and used on the same line is resolved, not hidden by an 
   assert.match(result.failures[0]!, /does not enable --provenance/);
 });
 
+test("same-line scalar reassignments are applied in execution order", () => {
+  const result = auditPublishAttestation([{ file: "release.yml", text: [
+    `npm publish --provenance`,
+    `NPM="npm --provenance"; NPM=npm; $NPM publish --access public`,
+  ].join("\n") }]);
+  assert.equal(result.failures.length, 1);
+});
+
+test("command-scoped assignments are visible only to their evaluator", () => {
+  const result = auditPublishAttestation([{ file: "release.yml", text: [
+    `npm publish --provenance`,
+    `CMD='npm publish --access public' bash -c '$CMD'`,
+  ].join("\n") }]);
+  assert.ok(result.failures.length >= 1, "the command-scoped evaluator publish must be detected");
+});
+
+test("a command-scoped evaluator assignment overrides a persistent value", () => {
+  const result = auditPublishAttestation([{ file: "release.yml", text: [
+    `CMD="npm publish --provenance"`,
+    `CMD='npm publish' bash -c '$CMD'`,
+  ].join("\n") }]);
+  assert.ok(result.failures.length >= 1, "the scoped unattested override must win");
+});
+
+test("npm options before exec cannot hide a nested publish", () => {
+  const result = auditPublishAttestation([{ file: "release.yml", text: [
+    `npm publish --provenance`,
+    `npm --access public exec -- npm publish`,
+  ].join("\n") }]);
+  assert.equal(result.failures.length, 1);
+});
+
 test("an assignment the shell never makes is not indexed", () => {
   // Scalars used to be read straight out of the raw text, which indexed three
   // things the shell does not assign. The middle one is a gate bypass: a name
