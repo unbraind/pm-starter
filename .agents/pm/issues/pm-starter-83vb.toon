@@ -6,12 +6,14 @@ status: closed
 priority: 2
 tags: []
 created_at: "2026-08-29T04:36:43.506Z"
-updated_at: "2026-08-29T04:44:19.376Z"
+updated_at: "2026-08-29T04:57:40.693Z"
 closed_at: "2026-08-29T04:36:46.202Z"
 completed_at: "2026-08-29T04:36:46.202Z"
 author: pi-agent
-comments[2]{created_at,author,text}:
+comments[4]{created_at,author,text}:
   "2026-08-29T04:36:45.261Z",pi-agent,"Added end-to-end fixtures and hardened scalar ordering, evaluator scoping, and nested npm executor candidate enumeration."
   "2026-08-29T04:44:19.376Z",pi-agent,"Follow-up review: command-scoped evaluator values now override persistent bindings before any payload expansion; added a stale-persistent-value regression."
+  "2026-08-29T04:50:27.862Z",pi-agent,"Follow-up review: shell-aware segmentation now applies scoped evaluator bindings after &&, ||, pipes, and background separators without splitting quoted values; added the reported && regression."
+  "2026-08-29T04:57:40.693Z",pi-agent,"PR 84 review: scanner state now survives multiline quotes and treats backslashes literally inside single quotes; added both reported regressions."
 close_reason: All active PR 82 review findings fixed with regression coverage.
 body: ""
