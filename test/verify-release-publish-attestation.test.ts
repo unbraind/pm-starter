@@ -874,6 +874,31 @@ test("a command-scoped evaluator assignment overrides a persistent value", () =>
   assert.ok(result.failures.length >= 1, "the scoped unattested override must win");
 });
 
+test("a scoped evaluator after a shell separator is still expanded", () => {
+  const result = auditPublishAttestation([{ file: "release.yml", text: [
+    `npm publish --provenance`,
+    `true && CMD='npm publish' bash -c '$CMD'`,
+  ].join("\n") }]);
+  assert.ok(result.failures.length >= 1, "the evaluator after && must be audited");
+});
+
+test("a backslash in single quotes cannot hide a following separator", () => {
+  const result = auditPublishAttestation([{ file: "release.yml", text: [
+    `npm publish --provenance`,
+    "echo 'foo\\\\'; npm publish",
+  ].join("\n") }]);
+  assert.equal(result.failures.length, 1);
+});
+
+test("multiline quoted separators remain literal", () => {
+  const result = auditPublishAttestation([{ file: "release.yml", text: [
+    `echo "first line`,
+    `&& CMD='npm publish' bash -c '$CMD'"`,
+    `npm publish --provenance`,
+  ].join("\n") }]);
+  assert.deepEqual(result.failures, []);
+});
+
 test("npm options before exec cannot hide a nested publish", () => {
   const result = auditPublishAttestation([{ file: "release.yml", text: [
     `npm publish --provenance`,

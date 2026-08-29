@@ -193,6 +193,42 @@ export function attestationEnabled(command: ShellCommand): boolean {
 }
 
 /**
+ * Split simple commands while preserving shell separators and quoted literals.
+ *
+ * @param text - One logical shell line.
+ * @returns Alternating command segments and separator tokens.
+ */
+function shellSegments(text: string): string[] {
+  const parts: string[] = [];
+  let value = "";
+  let quote: "'" | '"' | undefined;
+  for (let index = 0; index < text.length; index += 1) {
+    const character = text[index]!;
+    if (character === "\\" && quote !== "'") {
+      value += character + (text[index + 1] ?? "");
+      index += 1;
+      continue;
+    }
+    if ((character === "'" || character === '"')) {
+      quote = quote === undefined ? character : quote === character ? undefined : quote;
+      value += character;
+      continue;
+    }
+    if (quote === undefined && (character === ";" || character === "&" || character === "|" || character === "\n")) {
+      if (value !== "") parts.push(value);
+      const doubled = text[index + 1] === character && (character === "&" || character === "|");
+      parts.push(doubled ? character + character : character);
+      if (doubled) index += 1;
+      value = "";
+      continue;
+    }
+    value += character;
+  }
+  if (value !== "") parts.push(value);
+  return parts;
+}
+
+/**
  * Expand leading command-scoped literals only for a receiving shell evaluator.
  *
  * Such assignments are exported to `bash -c`/`eval` for that invocation but
@@ -235,23 +271,22 @@ export function publishInvocationsIn(source: SourceFile): PublishInvocation[] {
   const text = joinContinuations(raw);
   let prior = "";
   const persistentScalars = new Map<string, string>();
-  const expanded = text.split("\n").map((line) => {
+  // Segment the whole text so quote state survives physical newlines.
+  const expanded = shellSegments(text).map((segment) => {
+    if (/^(?:\n|;|&&?|\|\|?)$/.test(segment)) {
+      prior += segment;
+      return segment;
+    }
     // Resolve persistent assignments in execution order. Applying one map to
     // the whole line lets a stale or future reassignment rewrite the command
-    // that sits on the other side of a semicolon.
-    const segments = line.split(/(;)/);
-    const resolved = segments.map((segment) => {
-      if (segment === ";") return segment;
-      const arrays = bashArrays(prior);
-      const arrayExpandedSegment = expandArrays(segment, arrays);
-      const assignment = shellScalars(`${segment};`);
-      for (const [name, value] of assignment) persistentScalars.set(name, value);
-      prior += `${segment};`;
-      return expandCommandScopedEvaluator(arrayExpandedSegment, persistentScalars);
-    }).join("");
-    prior += "\n";
-    return resolved;
-  }).join("\n");
+    // that sits on the other side of a separator.
+    const arrays = bashArrays(prior);
+    const arrayExpandedSegment = expandArrays(segment, arrays);
+    const assignment = shellScalars(`${segment};`);
+    for (const [name, value] of assignment) persistentScalars.set(name, value);
+    prior += segment;
+    return expandCommandScopedEvaluator(arrayExpandedSegment, persistentScalars);
+  }).join("");
   const found: PublishInvocation[] = [];
   for (const command of tokenizeCommands(expanded)) {
     // Every reading, not just the command's own: a wrapper option that takes a
