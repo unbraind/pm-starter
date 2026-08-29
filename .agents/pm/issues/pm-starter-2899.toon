@@ -1,0 +1,16 @@
+id: pm-starter-2899
+title: Fix same-line scalar assignment bypass in publish attestation scanner
+description: ""
+type: Issue
+status: closed
+priority: 2
+tags: []
+created_at: "2026-08-29T03:51:28.872Z"
+updated_at: "2026-08-29T03:51:58.306Z"
+closed_at: "2026-08-29T03:51:57.796Z"
+completed_at: "2026-08-29T03:51:57.796Z"
+author: pi-agent
+comments[1]{created_at,author,text}:
+  "2026-08-29T03:51:43.511Z",pi-agent,"Fixed same-line scalar assignment bypass: publishInvocationsIn now also scans the current line for standalone scalar assignments (ending at semicolon) before expanding, so NPM=npm; $NPM publish is correctly resolved and audited. Added regression test."
+close_reason: Fixed same-line scalar assignment bypass in publish attestation scanner
+body: ""
