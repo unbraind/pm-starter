@@ -1,0 +1,21 @@
+id: pm-starter-b41g
+title: Regenerate the changelog after the release tag exists
+description: "The daily release committed CHANGELOG.md before creating its own release tag, leaving an Unreleased heading that changelog:check rejects as soon as the tag exists. Regenerate the committed changelog with the release tag present so main and inherited pull request checks agree with deterministic output."
+type: Issue
+status: closed
+priority: 2
+tags: []
+created_at: "2026-08-30T14:49:48.254Z"
+updated_at: "2026-08-30T14:50:29.547Z"
+closed_at: "2026-08-30T14:50:29.529Z"
+completed_at: "2026-08-30T14:50:29.529Z"
+claim_principal: pi-agent
+author: pi-agent
+comments[1]{created_at,author,text}:
+  "2026-08-30T14:50:13.926Z",pi-agent,"Baseline evidence: npm run changelog:check reported \"Changelog is out of date\" and showed only ## Unreleased changing to ## 2026.8.29 - 2026-08-29. Repair evidence: npm run changelog:full rewrote the file with the release tag present; npm run changelog:check then reported \"Changelog is up to date: CHANGELOG.md\". The diff is one heading insertion and one heading deletion, with no unrelated history rewrite."
+files[1]{path,scope}:
+  CHANGELOG.md,project
+tests[1]{command,scope,provenance{author,created_at,source_kind,source_ref}}:
+  "npm run changelog:check",project,pi-agent,"2026-08-30T14:50:12.053Z",local_mutation,chore/regenerate-changelog-after-release-tag
+close_reason: Regenerated CHANGELOG.md with release v2026.08.29 present; the deterministic changelog check now passes and the diff changes only the stale release heading plus this tracking record.
+body: ""

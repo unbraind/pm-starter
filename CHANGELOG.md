@@ -4,6 +4,12 @@
 
 ### Fixed
 
+- Regenerate the changelog after the release tag exists ([pm-starter-b41g](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/issues/pm-starter-b41g.toon))
+
+## 2026.8.29 - 2026-08-29
+
+### Fixed
+
 - Close PR 82 attestation audit bypasses ([pm-starter-83vb](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/issues/pm-starter-83vb.toon))
 - The publish-attestation gate misses a publish routed through an unquoted shell variable ([pm-starter-74p9](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/issues/pm-starter-74p9.toon))
 - Fix same-line scalar assignment bypass in publish attestation scanner ([pm-starter-2899](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/issues/pm-starter-2899.toon))
