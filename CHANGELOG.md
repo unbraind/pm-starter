@@ -4,6 +4,7 @@
 
 ### Fixed
 
+- Pin pm-changelog 2026.8.30 before the next release ([pm-starter-pjdl](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/issues/pm-starter-pjdl.toon))
 - Regenerate the changelog after the release tag exists ([pm-starter-b41g](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/issues/pm-starter-b41g.toon))
 
 ## 2026.8.29 - 2026-08-29
