@@ -4,6 +4,7 @@
 
 ### Fixed
 
+- This repository has never produced a static analysis, because it runs no CodeQL workflow ([pm-starter-io6u](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/issues/pm-starter-io6u.toon))
 - Group codeql-action bumps into one pull request to end the split-PR deadlock ([pm-starter-55ul](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/issues/pm-starter-55ul.toon))
 
 ## 2026.8.31 - 2026-08-31
