@@ -6,6 +6,10 @@
 
 - Consume the canonical attestation gate instead of carrying a copy of it ([pm-starter-wmb7](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/chores/pm-starter-wmb7.toon))
 
+### Other
+
+- Harden the attestation consumer suite to match the rest of the converged fleet ([pm-starter-csko](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/chores/pm-starter-csko.toon))
+
 ## 2026.9.1 - 2026-09-01
 
 ### Fixed
