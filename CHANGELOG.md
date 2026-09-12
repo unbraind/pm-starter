@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Other
+
+- Certify pm CLI 2026.9.12 and the pm-ops 2026.9.11 auditor ([pm-starter-u8nj](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/chores/pm-starter-u8nj.toon))
+
 ## 2026.9.11 - 2026-09-11
 
 ### Other
