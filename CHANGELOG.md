@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Other
+
+- Certify pm CLI 2026.9.17 ([pm-starter-o6xh](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/chores/pm-starter-o6xh.toon))
+
 ## 2026.9.13 - 2026-09-13
 
 ### Other
