@@ -40,6 +40,7 @@
 
 ### Fixed
 
+- A failed provenance publish silently falls back to an unattested one ([pm-starter-uxmy](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/issues/pm-starter-uxmy.toon))
 - Close PR 82 attestation audit bypasses ([pm-starter-83vb](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/issues/pm-starter-83vb.toon))
 - The publish-attestation gate misses a publish routed through an unquoted shell variable ([pm-starter-74p9](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/issues/pm-starter-74p9.toon))
 - Fix same-line scalar assignment bypass in publish attestation scanner ([pm-starter-2899](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/issues/pm-starter-2899.toon))
@@ -48,7 +49,6 @@
 
 ### Fixed
 
-- A failed provenance publish silently falls back to an unattested one ([pm-starter-uxmy](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/issues/pm-starter-uxmy.toon))
 - changelog scripts read the workspace with default budgets, so pm-changelog refuses complete-read checks once the tracker exceeds one page ([pm-starter-ibm7](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/issues/pm-starter-ibm7.toon))
 
 ### Security
@@ -59,11 +59,16 @@
 
 - Retire stale PR 65 evidence note after revert 67 ([pm-starter-pmnm](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/tasks/pm-starter-pmnm.toon))
 
-## 2026.8.16 - 2026-08-16
+## 2026.8.17 - 2026-08-17
 
 ### Fixed
 
 - The pm CLI compatibility floor was declared only in peerDependencies, which only npm enforces, and not in manifest.json pm_min_version, which is the field the CLI enforces ([pm-starter-zhwv](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/issues/pm-starter-zhwv.toon))
+
+## 2026.8.16 - 2026-08-16
+
+### Fixed
+
 - A truncated list-all answer is rendered as if it were the whole workspace ([pm-starter-mg2w](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/issues/pm-starter-mg2w.toon))
 
 ## 2026.8.10 - 2026-08-10
@@ -107,7 +112,7 @@
 
 - Resolve pm-changelog to the release that derives release dates in UTC ([pm-starter-9fbt](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/chores/pm-starter-9fbt.toon))
 
-## 2026.7.31 - 2026-07-31
+## 2026.8.1 - 2026-08-01
 
 ### Fixed
 
