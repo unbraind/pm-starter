@@ -1,0 +1,15 @@
+id: pm-starter-puy5
+title: Measure all executable pm-starter TypeScript and statement coverage
+description: "The current release coverage gate reports 100% lines, branches and functions over three files, while the docstring gate sees six authored TypeScript files. Node V8 coverage does not report statements separately, so 100/100/100/100 cannot be claimed. Executable scripts/main-invocation.ts, scripts/prepare-merge-driver.ts and scripts/verify-release-publish-attestation.ts need explicit inventory and direct behavior coverage, with any type-only exclusion justified."
+type: Issue
+status: open
+priority: 1
+tags[2]: "area:quality",coverage-scope
+created_at: "2026-09-29T14:51:25.166Z"
+updated_at: "2026-09-29T14:51:25.166Z"
+author: codex
+estimated_minutes: 240
+acceptance_criteria: Inventory all six authored executable TypeScript source files and prove which the current gate omits; coverage gate fails when any authored executable source is unmeasured; measure statements lines branches functions at 100% per included file with real tests; retain docstring and release gate parity without artificial exclusions or duplicated tests.
+risk: medium
+confidence: high
+body: ""

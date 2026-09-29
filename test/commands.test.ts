@@ -1166,13 +1166,13 @@ test("beforeCommand hook handles undefined args", (t) => {
 });
 
 // ---------------------------------------------------------------------------
-// Schema — migration up()
+// Schema — migration run()
 // ---------------------------------------------------------------------------
 
-test("migration up() returns a benign no-op summary", () => {
+test("migration run() returns a benign no-op summary", () => {
   const api = activate();
   assert.ok(api.migration, "migration should be registered");
-  const result = api.migration.up({ id: "pm-starter-0001-noop", command: "migration", layer: "project", extension: "pm-starter", pm_root: ".", status: "pending" });
+  const result = api.migration.run({ id: "pm-starter-0001-noop", command: "migration", layer: "project", extension: "pm-starter", pm_root: ".", status: "pending" });
   assert.deepEqual(result, { migrated: 0, note: "pm-starter demo migration is a no-op" });
 });
 
