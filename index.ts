@@ -1007,8 +1007,8 @@ function setupSchema(api: ExtensionApi): void {
   api.registerMigration({
     id: "pm-starter-0001-noop",
     description: "DEMO: inert starter migration (no-op; records that it ran).",
-    // The runtime calls up() during migration runs. We do nothing destructive.
-    up(_ctx: SchemaMigrationRunContext) {
+    // The runtime calls run() during migration runs. We do nothing destructive.
+    run(_ctx: SchemaMigrationRunContext) {
       // Intentionally a no-op. Return a benign summary.
       return { migrated: 0, note: "pm-starter demo migration is a no-op" };
     },

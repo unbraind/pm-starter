@@ -883,8 +883,8 @@ function setupSchema(api) {
     api.registerMigration({
         id: "pm-starter-0001-noop",
         description: "DEMO: inert starter migration (no-op; records that it ran).",
-        // The runtime calls up() during migration runs. We do nothing destructive.
-        up(_ctx) {
+        // The runtime calls run() during migration runs. We do nothing destructive.
+        run(_ctx) {
             // Intentionally a no-op. Return a benign summary.
             return { migrated: 0, note: "pm-starter demo migration is a no-op" };
         },
