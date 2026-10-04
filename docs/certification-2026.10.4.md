@@ -63,7 +63,7 @@ starter setup --name cert-extension --capability commands,search --json
 starter-demo export --json
 ```
 
-Summary, demo and exporter each account for all 71 real tracker items. Search returns the certification item in both runtimes; setup returns its scaffold plan. The scratch tracker was deleted by the exit trap. [Exact commands and complete outputs](evidence/pm-starter-2026.10.4-dogfood.log).
+Summary, demo and exporter each account for all 71 real tracker items. Search returns the coverage issue `pm-starter-puy5` in both runtimes; setup returns its scaffold plan. The scratch tracker was deleted by the exit trap. [Exact commands and complete outputs](evidence/pm-starter-2026.10.4-dogfood.log).
 
 CI and substantive reviewer receipts are assessed separately on the final PR head. Items remain open for orchestrator verification.
 
