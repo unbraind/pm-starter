@@ -6,12 +6,13 @@ status: open
 priority: 1
 tags[2]: "area:quality",coverage-scope
 created_at: "2026-09-29T14:51:25.166Z"
-updated_at: "2026-10-02T22:49:11.894Z"
+updated_at: "2026-10-04T11:19:19.937Z"
 author: codex
 estimated_minutes: 240
 acceptance_criteria: Inventory all six authored executable TypeScript source files and prove which the current gate omits; coverage gate fails when any authored executable source is unmeasured; measure statements lines branches functions at 100% per included file with real tests; retain docstring and release gate parity without artificial exclusions or duplicated tests.; Use instrumentation that separately reports statements before claiming four measured dimensions at 100 percent. The current V8 lines/branches/functions report cannot satisfy that prerequisite
 risk: medium
 confidence: high
-comments[1]{created_at,author,text}:
+comments[2]{created_at,author,text}:
   "2026-10-02T22:48:40.644Z",codex-sol,"Cubic correctly identifies the current V8 metric limitation, already recorded in this issue. Keep the four-dimension 100 percent requirement: changing it to three dimensions would weaken the requested acceptance. Added an explicit instrumentation prerequisite so it is future work, not an impossible claim about the present gate. No threshold, test scope or quality gate changed."
+  "2026-10-04T11:19:19.937Z",codex-sol,Current 2026.10.4 certification preserves this open issue and its four-dimension/all-executable acceptance criteria. Existing package gate only measures configured source subset lines/branches/functions; passing it will not close this issue or establish 100/100/100/100.
 body: ""

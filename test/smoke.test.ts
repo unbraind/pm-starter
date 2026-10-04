@@ -332,3 +332,22 @@ test("extension self-reported version matches package.json and manifest.json", (
     `manifest.json declares "${manifestVersion}" but package.json declares "${packageVersion}"`,
   );
 });
+
+
+test("readPmItems returns the complete large tracker beyond the default output budget", (t) => {
+  const directory = mkdtempSync(join(tmpdir(), "pm-starter-complete-read-"));
+  t.after(() => rmSync(directory, { recursive: true, force: true }));
+  const pmRoot = join(directory, ".agents", "pm");
+  execFileSync("pm", ["init", "--pm-path", pmRoot], { cwd: directory, stdio: "ignore" });
+  const body = "Complete corpus regression text. ".repeat(400).trim();
+  for (let index = 0; index < 6; index++) {
+    execFileSync("pm", ["create", "Issue", `Budget probe ${index}`, "--pm-path", pmRoot, "--body", body, "--author", "test"], {
+      cwd: directory,
+      stdio: "ignore",
+    });
+  }
+  const outcome = readPmItems(pmRoot);
+  assert.ok(outcome.ok, outcome.ok ? "complete read" : outcome.reason);
+  assert.equal(outcome.items.length, 6);
+  assert.ok(outcome.items.every((item) => item.body === body));
+});

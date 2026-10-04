@@ -1,0 +1,1975 @@
+
+added 44 packages, and audited 45 packages in 7s
+
+3 packages are looking for funding
+  run `npm fund` for details
+
+found 0 vulnerabilities
+npm warn allow-scripts 1 package has install scripts not yet covered by allowScripts:
+npm warn allow-scripts   pm-starter@2026.10.3 (prepare: node scripts/prepare-merge-driver.ts)
+npm warn allow-scripts
+npm warn allow-scripts Run `npm approve-scripts --allow-scripts-pending` to review, or `npm approve-scripts <pkg>` to allow.
++ npx -y @unbrained/pm-cli@2026.10.4 package install /tmp/claude-1000/pm-starter-2026.10.3.tgz --project
+ok: true
+action: "install"
+scope: "project"
+roots:
+  project: "/tmp/claude-1000/cert-wt/pm-starter-dogfood/.agents/pm/extensions"
+  global: "$HOME/.pm-cli/extensions"
+  selected: "/tmp/claude-1000/cert-wt/pm-starter-dogfood/.agents/pm/extensions"
+  settings_root: "/tmp/claude-1000/cert-wt/pm-starter-dogfood/.agents/pm"
+warnings:
+  - "extension_preflight_override_collision:project:pm-starter:project:pm-github"
+details:
+  extension:
+    name: "pm-starter"
+    version: "2026.10.3"
+    entry: "./dist/index.js"
+    capabilities:
+      - "commands"
+      - "hooks"
+      - "importers"
+      - "parser"
+      - "preflight"
+      - "renderers"
+      - "schema"
+      - "search"
+      - "services"
+    directory: "pm-starter"
+  source:
+    kind: "local"
+    input: "/tmp/claude-1000/pm-starter-2026.10.3.tgz"
+    location: "/tmp/claude-1000/pm-starter-2026.10.3.tgz"
+  source_resolution:
+    requested: "/tmp/claude-1000/pm-starter-2026.10.3.tgz"
+    selected:
+      kind: "local"
+      input: "/tmp/claude-1000/pm-starter-2026.10.3.tgz"
+    ambiguous: false
+    precedence: "bundled_alias_before_installed_npm"
+  install_plan:
+    source_mode: "archive"
+    archive_bytes: 34168
+    copy:
+      copy_scope: "directory_snapshot"
+      source_directory: "/tmp/pm-local-package-archive-k6CEFF/extract/package"
+      destination_directory: "/tmp/claude-1000/cert-wt/pm-starter-dogfood/.agents/pm/extensions/pm-starter"
+      files: 9
+      bytes: 126754
+      directories: 3
+      symlinks: 1
+      other_entries: 0
+      scanned_entries: 13
+      excluded_entries: 0
+      development_entries: 8
+      complete: true
+      stop_reason: "complete"
+      max_entries: 10000
+      max_depth: 64
+  destination_path: "/tmp/claude-1000/cert-wt/pm-starter-dogfood/.agents/pm/extensions/pm-starter"
+  overwritten: false
+  installed_in_place: false
+  activated: true
+  settings_changed: false
+  runtime_activation_status: "ok"
+  command_paths:
+    - "starter context"
+    - "starter demo"
+    - "starter greet"
+    - "starter plan"
+    - "starter search"
+    - "starter setup"
+    - "starter summary"
+    - "starter-demo export"
+    - "starter-demo import"
+  action_paths:
+    - "starter-context"
+    - "starter-demo"
+    - "starter-demo-export"
+    - "starter-demo-import"
+    - "starter-greet"
+    - "starter-plan"
+    - "starter-search"
+    - "starter-setup"
+    - "starter-summary"
+  contributions:
+    schema_version: 1
+    commands:
+      - "starter context"
+      - "starter demo"
+      - "starter greet"
+      - "starter plan"
+      - "starter search"
+      - "starter setup"
+      - "starter summary"
+      - "starter-demo export"
+      - "starter-demo import"
+    command_handlers:
+      - "starter context"
+      - "starter demo"
+      - "starter greet"
+      - "starter plan"
+      - "starter search"
+      - "starter setup"
+      - "starter summary"
+      - "starter-demo export"
+      - "starter-demo import"
+    hooks:
+      - "before_command"
+      - "after_command"
+      - "on_write"
+      - "on_read"
+      - "on_index"
+    flag_commands:
+      - "list"
+      - "starter context"
+      - "starter greet"
+      - "starter plan"
+      - "starter search"
+      - "starter setup"
+      - "starter summary"
+    item_types:
+      - "StarterNote"
+    item_fields:
+      - "starter_origin"
+      - "starter_score"
+    migrations:
+      - "pm-starter-0001-noop"
+    importers:
+      - "starter-demo"
+    exporters:
+      - "starter-demo"
+    search_providers:
+      - "starter-substring"
+    vector_store_adapters:
+      - "starter-memory"
+    parser_overrides:
+      - "list"
+    service_overrides:
+      - "output_format"
+    renderer_overrides:
+      - "json"
+      - "toon"
+    renderer_ownership:
+      - format: "json"
+        commands:
+          - "starter demo"
+        result_discriminator: true
+      - format: "toon"
+        commands:
+          - "starter demo"
+        result_discriminator: true
+    preflight_overrides: 1
+  command_discovery:
+    package_name: "pm-starter"
+    extension_name: "pm-starter"
+    command_paths:
+      - "starter context"
+      - "starter demo"
+      - "starter greet"
+      - "starter plan"
+      - "starter search"
+      - "starter setup"
+      - "starter summary"
+      - "starter-demo export"
+      - "starter-demo import"
+    action_paths:
+      - "starter-context"
+      - "starter-demo"
+      - "starter-demo-export"
+      - "starter-demo-import"
+      - "starter-greet"
+      - "starter-plan"
+      - "starter-search"
+      - "starter-setup"
+      - "starter-summary"
+    help_commands:
+      - "pm starter context --help"
+      - "pm starter demo --help"
+      - "pm starter greet --help"
+      - "pm starter plan --help"
+      - "pm starter search --help"
+      - "pm starter setup --help"
+      - "pm starter summary --help"
+      - "pm starter-demo export --help"
+      - "pm starter-demo import --help"
+    next_steps:
+      - "pm starter context --help"
+      - "pm starter demo --help"
+      - "pm starter greet --help"
+      - "pm starter plan --help"
+      - "pm starter search --help"
+      - "pm starter setup --help"
+      - "pm starter summary --help"
+      - "pm starter-demo export --help"
+      - "pm starter-demo import --help"
+  verification:
+    status: "ok"
+    target_pm_root: "/tmp/claude-1000/cert-wt/pm-starter-dogfood/.agents/pm"
+    activation_status: "ok"
+    activated: true
+    registered_commands:
+      - "starter context"
+      - "starter demo"
+      - "starter greet"
+      - "starter plan"
+      - "starter search"
+      - "starter setup"
+      - "starter summary"
+      - "starter-demo export"
+      - "starter-demo import"
+    registered_actions:
+      - "starter-context"
+      - "starter-demo"
+      - "starter-demo-export"
+      - "starter-demo-import"
+      - "starter-greet"
+      - "starter-plan"
+      - "starter-search"
+      - "starter-setup"
+      - "starter-summary"
+    registered_item_types[1]{name,folder}:
+      StarterNote,starter-notes
+    module_graph_verification: "fresh_in_topology_snapshot"
+    health:
+      status: "ok"
+      blocking_failure_count: 0
+  activation_diagnostics:
+    failed_count: 0
++ for runtime in npm bun
++ '[' npm = npm ']'
++ runner=(npx -y @unbrained/pm-cli@2026.10.4)
++ npx -y @unbrained/pm-cli@2026.10.4 starter greet --name Certifier --json
+👋 Hello, Certifier!
+{
+  "message": "👋 Hello, Certifier!"
+}
++ npx -y @unbrained/pm-cli@2026.10.4 starter summary --json
+
+  Workspace Summary
+  =================
+  Total items: 71
+  open: 6
+  in_progress: 3
+  closed: 61
+  canceled: 1
+{
+  "totals": {
+    "items": 71,
+    "history_streams": 72,
+    "history_entries": 431
+  },
+  "by_type": [
+    {
+      "type": "Issue",
+      "total": 28,
+      "open": 5,
+      "in_progress": 2,
+      "blocked": 0,
+      "draft": 0,
+      "closed": 21,
+      "canceled": 0,
+      "other": 0
+    },
+    {
+      "type": "Chore",
+      "total": 20,
+      "open": 0,
+      "in_progress": 1,
+      "blocked": 0,
+      "draft": 0,
+      "closed": 18,
+      "canceled": 1,
+      "other": 0
+    },
+    {
+      "type": "Task",
+      "total": 20,
+      "open": 1,
+      "in_progress": 0,
+      "blocked": 0,
+      "draft": 0,
+      "closed": 19,
+      "canceled": 0,
+      "other": 0
+    },
+    {
+      "type": "Feature",
+      "total": 3,
+      "open": 0,
+      "in_progress": 0,
+      "blocked": 0,
+      "draft": 0,
+      "closed": 3,
+      "canceled": 0,
+      "other": 0
+    }
+  ],
+  "by_status": {
+    "open": 6,
+    "in_progress": 3,
+    "closed": 61,
+    "canceled": 1
+  },
+  "omitted_zero_buckets": 10,
+  "generated_at": "2026-10-04T11:48:40.542Z"
+}
++ npx -y @unbrained/pm-cli@2026.10.4 starter demo --json
+{
+  "rendered_by": "pm-starter",
+  "starter_demo": true,
+  "item_count": 71,
+  "sample": [
+    {
+      "id": "pm-starter-kjvk",
+      "title": "A release run bumped and committed a new version every night while publishing was impossible, because the only externally-failable step runs last",
+      "status": "in_progress"
+    },
+    {
+      "id": "pm-starter-fllw",
+      "title": "The release job authenticated with a stored npm token that expired, so publishing stopped while every other gate stayed green",
+      "status": "in_progress"
+    },
+    {
+      "id": "pm-starter-asud",
+      "title": "Sanitize personal identities and legacy host paths from reachable public history",
+      "status": "open"
+    }
+  ]
+}
++ npx -y @unbrained/pm-cli@2026.10.4 starter context --json
+
+  Context Snapshot
+  ================
+  Focus items: 9
+  Agenda entries: 0
+  Activity entries: 0
+
+  Focus:
+    pm-starter-cz6b  Certify pm-starter on PM CLI/SDK 2026.10.4 and consolidate pending dependency updates  [in_progress]
+    pm-starter-fllw  The release job authenticated with a stored npm token that expired, so publishing stopped while every other gate stayed green  [in_progress]
+    pm-starter-kjvk  A release run bumped and committed a new version every night while publishing was impossible, because the only externally-failable step runs last  [in_progress]
+    pm-starter-puy5  Measure all executable pm-starter TypeScript and statement coverage  [open]
+    pm-starter-asud  Sanitize personal identities and legacy host paths from reachable public history  [open]
+{
+  "output_default": "toon",
+  "now": "2026-10-04T11:48:44.150Z",
+  "depth": "brief",
+  "sections_included": [],
+  "window": {
+    "anchor": "2026-10-04T11:48:44.150Z",
+    "start": "2026-10-04T11:48:44.150Z",
+    "end": null,
+    "past": false,
+    "from": null,
+    "to": null
+  },
+  "filters": {
+    "type": null,
+    "tag": null,
+    "priority": null,
+    "assignee": null,
+    "assignee_filter": null,
+    "sprint": null,
+    "release": null,
+    "limit": null,
+    "parent": null,
+    "token_budget": 1600,
+    "runtime_filters": {}
+  },
+  "summary": {
+    "returned_focus": {
+      "active_items": 9,
+      "in_progress": 3,
+      "open": 6,
+      "blocked": 0
+    },
+    "blocked_fallback_used": false,
+    "high_level": 0,
+    "low_level": 9,
+    "agenda_events": 0,
+    "scope": "matching_items",
+    "active_items": 9,
+    "open": 6,
+    "in_progress": 3,
+    "blocked": 0,
+    "total_items": 71,
+    "closed": 61,
+    "canceled": 1
+  },
+  "high_level": [],
+  "low_level": [
+    {
+      "id": "pm-starter-cz6b",
+      "title": "Certify pm-starter on PM CLI/SDK 2026.10.4 and consolidate pending dependency updates",
+      "type": "Chore",
+      "status": "in_progress",
+      "priority": 1,
+      "order": null,
+      "deadline": null,
+      "assignee": "codex-sol",
+      "tags": [
+        "agent-starter",
+        "area:quality",
+        "area:toolchain"
+      ],
+      "updated_at": "2026-10-04T11:41:46.731Z",
+      "parent": null
+    },
+    {
+      "id": "pm-starter-fllw",
+      "title": "The release job authenticated with a stored npm token that expired, so publishing stopped while every other gate stayed green",
+      "type": "Issue",
+      "status": "in_progress",
+      "priority": 0,
+      "order": null,
+      "deadline": "2026-09-02T00:00:00.000Z",
+      "assignee": "claude",
+      "tags": [
+        "npm",
+        "release",
+        "supply-chain"
+      ],
+      "updated_at": "2026-08-26T23:06:18.073Z",
+      "parent": null
+    },
+    {
+      "id": "pm-starter-kjvk",
+      "title": "A release run bumped and committed a new version every night while publishing was impossible, because the only externally-failable step runs last",
+      "type": "Issue",
+      "status": "in_progress",
+      "priority": 0,
+      "order": null,
+      "deadline": null,
+      "assignee": null,
+      "tags": [
+        "ci",
+        "npm",
+        "release",
+        "supply-chain"
+      ],
+      "updated_at": "2026-08-27T18:52:37.416Z",
+      "parent": null
+    },
+    {
+      "id": "pm-starter-puy5",
+      "title": "Measure all executable pm-starter TypeScript and statement coverage",
+      "type": "Issue",
+      "status": "open",
+      "priority": 1,
+      "order": null,
+      "deadline": null,
+      "assignee": null,
+      "tags": [
+        "area:quality",
+        "coverage-scope"
+      ],
+      "updated_at": "2026-10-04T11:19:19.937Z",
+      "parent": null
+    },
+    {
+      "id": "pm-starter-asud",
+      "title": "Sanitize personal identities and legacy host paths from reachable public history",
+      "type": "Issue",
+      "status": "open",
+      "priority": 0,
+      "order": null,
+      "deadline": null,
+      "assignee": null,
+      "tags": [],
+      "updated_at": "2026-08-07T17:34:52.490Z",
+      "parent": null
+    },
+    {
+      "id": "pm-starter-qu97",
+      "title": "Enforce docstring and erasable-TypeScript quality gates in the starter reference",
+      "type": "Issue",
+      "status": "open",
+      "priority": 0,
+      "order": null,
+      "deadline": null,
+      "assignee": null,
+      "tags": [],
+      "updated_at": "2026-08-07T17:23:23.825Z",
+      "parent": null
+    },
+    {
+      "id": "pm-starter-nf9d",
+      "title": "Fix release publish ordering before protected main push",
+      "type": "Issue",
+      "status": "open",
+      "priority": 2,
+      "order": null,
+      "deadline": null,
+      "assignee": null,
+      "tags": [],
+      "updated_at": "2026-08-10T16:57:54.678Z",
+      "parent": null
+    },
+    {
+      "id": "pm-starter-4n5o",
+      "title": "The changelog gate stamps an untagged version with the current date, so its verdict flips every midnight with no commit",
+      "type": "Issue",
+      "status": "open",
+      "priority": 1,
+      "order": null,
+      "deadline": null,
+      "assignee": null,
+      "tags": [
+        "changelog",
+        "gates",
+        "release"
+      ],
+      "updated_at": "2026-08-24T09:18:27.067Z",
+      "parent": null
+    },
+    {
+      "id": "pm-starter-ghq8",
+      "title": "Backfill legacy closure metadata and assign ownership for the LICENSE artifact",
+      "type": "Task",
+      "status": "open",
+      "priority": 1,
+      "order": null,
+      "deadline": null,
+      "assignee": null,
+      "tags": [],
+      "updated_at": "2026-08-07T17:26:15.837Z",
+      "parent": null
+    }
+  ],
+  "blocked_fallback": [],
+  "agenda": {
+    "summary": {
+      "events": 0,
+      "items": 0,
+      "deadlines": 0,
+      "reminders": 0,
+      "scheduled": 0
+    },
+    "events": []
+  },
+  "extension_health": {
+    "total": 2,
+    "ok": 2,
+    "degraded": 0,
+    "packages": [
+      {
+        "name": "pm-github",
+        "status": "ok"
+      },
+      {
+        "name": "pm-starter",
+        "status": "ok"
+      }
+    ]
+  },
+  "warning_details": [
+    {
+      "code": "context_signal_store_stale",
+      "meaning": "The persisted context-signal snapshot did not match the authoritative cursor or item corpus and was rebuilt.",
+      "recovery_command": "pm context",
+      "recovery_effect": "Re-read context and confirm the rebuilt snapshot is now fresh."
+    }
+  ],
+  "warnings": [
+    "context_signal_store_stale"
+  ],
+  "omission_receipt": {
+    "has_omissions": true,
+    "omitted_field_group_count": 10,
+    "omitted_field_groups": [
+      {
+        "name": "hierarchy",
+        "restore_with": "--section hierarchy"
+      },
+      {
+        "name": "activity",
+        "restore_with": "--section activity"
+      },
+      {
+        "name": "progress",
+        "restore_with": "--section progress"
+      },
+      {
+        "name": "blockers",
+        "restore_with": "--section blockers"
+      },
+      {
+        "name": "recently_created",
+        "restore_with": "--section recently_created"
+      },
+      {
+        "name": "unparented",
+        "restore_with": "--section unparented"
+      },
+      {
+        "name": "files",
+        "restore_with": "--section files"
+      },
+      {
+        "name": "workload",
+        "restore_with": "--section workload"
+      },
+      {
+        "name": "staleness",
+        "restore_with": "--section staleness"
+      },
+      {
+        "name": "tests",
+        "restore_with": "--section tests"
+      }
+    ],
+    "summary_scope": "matching_items"
+  }
+}
++ npx -y @unbrained/pm-cli@2026.10.4 starter search certification --json
+
+  Search Results (1 hit(s))
+  =======================
+    pm-starter-puy5  [1.00]  Measure all executable pm-starter TypeScript and statement coverage
+{
+  "query": "certification",
+  "mode": "keyword",
+  "hits": [
+    {
+      "id": "pm-starter-puy5",
+      "title": "Measure all executable pm-starter TypeScript and statement coverage",
+      "status": "open",
+      "type": "Issue",
+      "priority": 1,
+      "updated_at": "2026-10-04T11:19:19.937Z",
+      "score": 1,
+      "matched_fields": [
+        "comments"
+      ]
+    }
+  ],
+  "total": 1
+}
++ npx -y @unbrained/pm-cli@2026.10.4 starter setup --name cert-extension --capability commands,search --json
+
+  Extension Scaffold Plan
+  =======================
+  Name: cert-extension
+  Capabilities: commands, search
+
+  Files to edit:
+    1. manifest.json  -> name: "cert-extension", capabilities: ["commands", "search"]
+    2. index.ts       -> keep setup* functions for: commands, search
+    3. package.json   -> name: "cert-extension"
+
+  Next steps:
+    npm install && npm run build
+    pm install ./cert-extension --project
+    pm extension doctor
+{
+  "name": "cert-extension",
+  "capabilities": [
+    "commands",
+    "search"
+  ],
+  "scaffolded": false,
+  "interactive": false
+}
++ npx -y @unbrained/pm-cli@2026.10.4 starter-demo export --json
+[
+  {
+    "id": "pm-starter-kjvk",
+    "title": "A release run bumped and committed a new version every night while publishing was impossible, because the only externally-failable step runs last",
+    "type": "Issue",
+    "status": "in_progress"
+  },
+  {
+    "id": "pm-starter-fllw",
+    "title": "The release job authenticated with a stored npm token that expired, so publishing stopped while every other gate stayed green",
+    "type": "Issue",
+    "status": "in_progress"
+  },
+  {
+    "id": "pm-starter-asud",
+    "title": "Sanitize personal identities and legacy host paths from reachable public history",
+    "type": "Issue",
+    "status": "open"
+  },
+  {
+    "id": "pm-starter-qu97",
+    "title": "Enforce docstring and erasable-TypeScript quality gates in the starter reference",
+    "type": "Issue",
+    "status": "open"
+  },
+  {
+    "id": "pm-starter-cz6b",
+    "title": "Certify pm-starter on PM CLI/SDK 2026.10.4 and consolidate pending dependency updates",
+    "type": "Chore",
+    "status": "in_progress"
+  },
+  {
+    "id": "pm-starter-puy5",
+    "title": "Measure all executable pm-starter TypeScript and statement coverage",
+    "type": "Issue",
+    "status": "open"
+  },
+  {
+    "id": "pm-starter-4n5o",
+    "title": "The changelog gate stamps an untagged version with the current date, so its verdict flips every midnight with no commit",
+    "type": "Issue",
+    "status": "open"
+  },
+  {
+    "id": "pm-starter-ghq8",
+    "title": "Backfill legacy closure metadata and assign ownership for the LICENSE artifact",
+    "type": "Task",
+    "status": "open"
+  },
+  {
+    "id": "pm-starter-nf9d",
+    "title": "Fix release publish ordering before protected main push",
+    "type": "Issue",
+    "status": "open"
+  },
+  {
+    "id": "pm-starter-t89y",
+    "title": "Adopt pm CLI 2026.8.7 and revalidate the output-format reference contract",
+    "type": "Chore",
+    "status": "closed"
+  },
+  {
+    "id": "pm-starter-50az",
+    "title": "Certify pm CLI 2026.9.23 and adopt the guarded pm-ops merge-driver launcher",
+    "type": "Chore",
+    "status": "closed"
+  },
+  {
+    "id": "pm-starter-4tq9",
+    "title": "A publish that npm accepts late is reported as failed and the GitHub Release is skipped on bun mirror lag",
+    "type": "Issue",
+    "status": "closed"
+  },
+  {
+    "id": "pm-starter-8vta",
+    "title": "Certify pm CLI 2026.9.21 and install merge drivers through the canonical pm-ops launcher",
+    "type": "Task",
+    "status": "closed"
+  },
+  {
+    "id": "pm-starter-wmb7",
+    "title": "Consume the canonical attestation gate instead of carrying a copy of it",
+    "type": "Chore",
+    "status": "closed"
+  },
+  {
+    "id": "pm-starter-74p9",
+    "title": "The publish-attestation gate misses a publish routed through an unquoted shell variable",
+    "type": "Issue",
+    "status": "closed"
+  },
+  {
+    "id": "pm-starter-uxmy",
+    "title": "A failed provenance publish silently falls back to an unattested one",
+    "type": "Issue",
+    "status": "closed"
+  },
+  {
+    "id": "pm-starter-tf19",
+    "title": "The identity gate deadlocks the one remediation its own failure message prescribes",
+    "type": "Issue",
+    "status": "closed"
+  },
+  {
+    "id": "pm-starter-ibm7",
+    "title": "changelog scripts read the workspace with default budgets, so pm-changelog refuses complete-read checks once the tracker exceeds one page",
+    "type": "Issue",
+    "status": "closed"
+  },
+  {
+    "id": "pm-starter-ejr6",
+    "title": "Fix the output_format service override so it declines unclaimed payloads instead of echoing the command context",
+    "type": "Issue",
+    "status": "closed"
+  },
+  {
+    "id": "pm-starter-3a6b",
+    "title": "Reject non-object tsconfig output in the exact coverage gate",
+    "type": "Issue",
+    "status": "closed"
+  },
+  {
+    "id": "pm-starter-cskq",
+    "title": "Gate durable PM project health in CI on pm CLI 2026.8.6",
+    "type": "Issue",
+    "status": "closed"
+  },
+  {
+    "id": "pm-starter-sthp",
+    "title": "Release commits discard the rebuilt dist, so the git-install path serves the previous version",
+    "type": "Issue",
+    "status": "closed"
+  },
+  {
+    "id": "pm-starter-91fh",
+    "title": "Enforce a real coverage gate by running tests against TypeScript sources",
+    "type": "Feature",
+    "status": "closed"
+  },
+  {
+    "id": "pm-starter-se0g",
+    "title": "Full-cycle hardening wave: pm-starter",
+    "type": "Task",
+    "status": "closed"
+  },
+  {
+    "id": "pm-starter-rcbt",
+    "title": "Ecosystem release readiness pass 2026-07-06",
+    "type": "Task",
+    "status": "closed"
+  },
+  {
+    "id": "pm-starter-kre3",
+    "title": "Starter template used any throughout, hiding three wrong SDK contracts and three unguarded pm reads",
+    "type": "Issue",
+    "status": "closed"
+  },
+  {
+    "id": "pm-starter-y8hb",
+    "title": "pm item reads are capped at Node's 1 MiB spawnSync default, so a mature tracker fails with no diagnosis",
+    "type": "Issue",
+    "status": "closed"
+  },
+  {
+    "id": "pm-starter-p9ez",
+    "title": "Harden release bun-verify so registry-mirror lag cannot block the GitHub release",
+    "type": "Chore",
+    "status": "closed"
+  },
+  {
+    "id": "pm-starter-z28y",
+    "title": "Align Node engine with pm CLI runtime",
+    "type": "Task",
+    "status": "closed"
+  },
+  {
+    "id": "pm-starter-4mkx",
+    "title": "Regenerate CHANGELOG after pm close item",
+    "type": "Task",
+    "status": "closed"
+  },
+  {
+    "id": "pm-starter-3hxr",
+    "title": "Fix release CI ordering (publish-before-tag)",
+    "type": "Task",
+    "status": "closed"
+  },
+  {
+    "id": "pm-starter-5wig",
+    "title": "Daily Release publish step runs prepublishOnly post-tag: align npm publish with --ignore-scripts",
+    "type": "Task",
+    "status": "closed"
+  },
+  {
+    "id": "pm-starter-q3m0",
+    "title": "Harden release readiness checks",
+    "type": "Chore",
+    "status": "closed"
+  },
+  {
+    "id": "pm-starter-u0c7",
+    "title": "Strengthen starter SDK capability smoke coverage",
+    "type": "Chore",
+    "status": "closed"
+  },
+  {
+    "id": "pm-starter-u1tx",
+    "title": "Align package dependencies to pm CLI/SDK 2026.6.6",
+    "type": "Chore",
+    "status": "closed"
+  },
+  {
+    "id": "pm-starter-6i6j",
+    "title": "ci: fix release workflow step ordering",
+    "type": "Task",
+    "status": "closed"
+  },
+  {
+    "id": "pm-starter-d7yd",
+    "title": "Release readiness hardening for pm-starter",
+    "type": "Task",
+    "status": "closed"
+  },
+  {
+    "id": "pm-starter-o6xh",
+    "title": "Certify pm CLI 2026.9.17",
+    "type": "Chore",
+    "status": "closed"
+  },
+  {
+    "id": "pm-starter-ckfl",
+    "title": "Certify the CLI and SDK on PM 2026.9.7",
+    "type": "Chore",
+    "status": "canceled"
+  },
+  {
+    "id": "pm-starter-u8nj",
+    "title": "Certify pm CLI 2026.9.12 and the pm-ops 2026.9.11 auditor",
+    "type": "Chore",
+    "status": "closed"
+  },
+  {
+    "id": "pm-starter-dco5",
+    "title": "Certify pm CLI 2026.9.10 and pick up the canonical auditor fixes the lockfile was holding back",
+    "type": "Chore",
+    "status": "closed"
+  },
+  {
+    "id": "pm-starter-io6u",
+    "title": "This repository has never produced a static analysis, because it runs no CodeQL workflow",
+    "type": "Issue",
+    "status": "closed"
+  },
+  {
+    "id": "pm-starter-55ul",
+    "title": "Group codeql-action bumps into one pull request to end the split-PR deadlock",
+    "type": "Issue",
+    "status": "closed"
+  },
+  {
+    "id": "pm-starter-pjdl",
+    "title": "Pin pm-changelog 2026.8.30 before the next release",
+    "type": "Issue",
+    "status": "closed"
+  },
+  {
+    "id": "pm-starter-b41g",
+    "title": "Regenerate the changelog after the release tag exists",
+    "type": "Issue",
+    "status": "closed"
+  },
+  {
+    "id": "pm-starter-83vb",
+    "title": "Close PR 82 attestation audit bypasses",
+    "type": "Issue",
+    "status": "closed"
+  },
+  {
+    "id": "pm-starter-2899",
+    "title": "Fix same-line scalar assignment bypass in publish attestation scanner",
+    "type": "Issue",
+    "status": "closed"
+  },
+  {
+    "id": "pm-starter-pmnm",
+    "title": "Retire stale PR 65 evidence note after revert 67",
+    "type": "Task",
+    "status": "closed"
+  },
+  {
+    "id": "pm-starter-zhwv",
+    "title": "The pm CLI compatibility floor was declared only in peerDependencies, which only npm enforces, and not in manifest.json pm_min_version, which is the field the CLI enforces",
+    "type": "Issue",
+    "status": "closed"
+  },
+  {
+    "id": "pm-starter-mg2w",
+    "title": "A truncated list-all answer is rendered as if it were the whole workspace",
+    "type": "Issue",
+    "status": "closed"
+  },
+  {
+    "id": "pm-starter-9nl0",
+    "title": "Adopt the canonical pm-ops docstring gate",
+    "type": "Task",
+    "status": "closed"
+  },
+  {
+    "id": "pm-starter-d5zy",
+    "title": "Fix review findings: two assertions that could never fail, an unawaited output capture, and a duplicated test",
+    "type": "Task",
+    "status": "closed"
+  },
+  {
+    "id": "pm-starter-64jd",
+    "title": "Bring the coverage gate entry shim under the coverage gate itself",
+    "type": "Task",
+    "status": "closed"
+  },
+  {
+    "id": "pm-starter-5bvm",
+    "title": "Raise the coverage gate to a measured 100/100/100 and bring scripts/coverage-gate.ts under it",
+    "type": "Task",
+    "status": "closed"
+  },
+  {
+    "id": "pm-starter-nf9u",
+    "title": "Declare renderer ownership so the host enforces scoping the package only applied at runtime",
+    "type": "Task",
+    "status": "closed"
+  },
+  {
+    "id": "pm-starter-9fbt",
+    "title": "Resolve pm-changelog to the release that derives release dates in UTC",
+    "type": "Chore",
+    "status": "closed"
+  },
+  {
+    "id": "pm-starter-a28w",
+    "title": "Adopt pm-cli 2026.7.29",
+    "type": "Chore",
+    "status": "closed"
+  },
+  {
+    "id": "pm-starter-toz4",
+    "title": "Adopt --respect-item-release in changelog scripts and bump pm-changelog to 2026.7.24",
+    "type": "Chore",
+    "status": "closed"
+  },
+  {
+    "id": "pm-starter-rmnj",
+    "title": "Production-readiness audit 2026-05-28",
+    "type": "Task",
+    "status": "closed"
+  },
+  {
+    "id": "pm-starter-evym",
+    "title": "Adopt pm-cli 2026.7.28",
+    "type": "Chore",
+    "status": "closed"
+  },
+  {
+    "id": "pm-starter-1atg",
+    "title": "Extension reports a stale runtime version after the 2026.7.27 bump",
+    "type": "Issue",
+    "status": "closed"
+  },
+  {
+    "id": "pm-starter-fafo",
+    "title": "Adopt pm-cli 2026.7.26 typed authoring contracts and remove the any-cast defineExtension shim",
+    "type": "Task",
+    "status": "closed"
+  },
+  {
+    "id": "pm-starter-tfh8",
+    "title": "Enable governance duplicate-detection advisory mode and adopt pm-cli 2026.7.25",
+    "type": "Chore",
+    "status": "closed"
+  },
+  {
+    "id": "pm-starter-ll3f",
+    "title": "Recommend pm merge reconcile (2026.7.22) over raw history-repair in Multi-agent merge safety docs",
+    "type": "Issue",
+    "status": "closed"
+  },
+  {
+    "id": "pm-starter-yly8",
+    "title": "Hands-on functional test pass 2026-05-29 (real data)",
+    "type": "Feature",
+    "status": "closed"
+  },
+  {
+    "id": "pm-starter-xwkh",
+    "title": "Fix README to document all 9 capabilities accurately + strengthen smoke test",
+    "type": "Chore",
+    "status": "closed"
+  },
+  {
+    "id": "pm-starter-oi1i",
+    "title": "Make pm-starter the canonical full ExtensionApi reference",
+    "type": "Feature",
+    "status": "closed"
+  },
+  {
+    "id": "pm-starter-vcxr",
+    "title": "Add publish retry + provenance fallback to release workflow",
+    "type": "Task",
+    "status": "closed"
+  },
+  {
+    "id": "pm-starter-zai7",
+    "title": "Add bun-install verification to release workflow",
+    "type": "Task",
+    "status": "closed"
+  },
+  {
+    "id": "pm-starter-csko",
+    "title": "Harden the attestation consumer suite to match the rest of the converged fleet",
+    "type": "Chore",
+    "status": "closed"
+  },
+  {
+    "id": "pm-starter-ey52",
+    "title": "Adopt pm field-aware merge driver for multi-agent branch-merge safety",
+    "type": "Chore",
+    "status": "closed"
+  }
+]
+{
+  "exported": 71,
+  "format": "json"
+}
++ for runtime in npm bun
++ '[' bun = npm ']'
++ runner=(bunx --bun -y @unbrained/pm-cli@2026.10.4)
++ bunx --bun -y @unbrained/pm-cli@2026.10.4 starter greet --name Certifier --json
+👋 Hello, Certifier!
+{
+  "message": "👋 Hello, Certifier!"
+}
++ bunx --bun -y @unbrained/pm-cli@2026.10.4 starter summary --json
+
+  Workspace Summary
+  =================
+  Total items: 71
+  open: 6
+  in_progress: 3
+  closed: 61
+  canceled: 1
+{
+  "totals": {
+    "items": 71,
+    "history_streams": 72,
+    "history_entries": 431
+  },
+  "by_type": [
+    {
+      "type": "Issue",
+      "total": 28,
+      "open": 5,
+      "in_progress": 2,
+      "blocked": 0,
+      "draft": 0,
+      "closed": 21,
+      "canceled": 0,
+      "other": 0
+    },
+    {
+      "type": "Chore",
+      "total": 20,
+      "open": 0,
+      "in_progress": 1,
+      "blocked": 0,
+      "draft": 0,
+      "closed": 18,
+      "canceled": 1,
+      "other": 0
+    },
+    {
+      "type": "Task",
+      "total": 20,
+      "open": 1,
+      "in_progress": 0,
+      "blocked": 0,
+      "draft": 0,
+      "closed": 19,
+      "canceled": 0,
+      "other": 0
+    },
+    {
+      "type": "Feature",
+      "total": 3,
+      "open": 0,
+      "in_progress": 0,
+      "blocked": 0,
+      "draft": 0,
+      "closed": 3,
+      "canceled": 0,
+      "other": 0
+    }
+  ],
+  "by_status": {
+    "open": 6,
+    "in_progress": 3,
+    "closed": 61,
+    "canceled": 1
+  },
+  "omitted_zero_buckets": 10,
+  "generated_at": "2026-10-04T11:48:52.585Z"
+}
++ bunx --bun -y @unbrained/pm-cli@2026.10.4 starter demo --json
+{
+  "rendered_by": "pm-starter",
+  "starter_demo": true,
+  "item_count": 71,
+  "sample": [
+    {
+      "id": "pm-starter-kjvk",
+      "title": "A release run bumped and committed a new version every night while publishing was impossible, because the only externally-failable step runs last",
+      "status": "in_progress"
+    },
+    {
+      "id": "pm-starter-fllw",
+      "title": "The release job authenticated with a stored npm token that expired, so publishing stopped while every other gate stayed green",
+      "status": "in_progress"
+    },
+    {
+      "id": "pm-starter-asud",
+      "title": "Sanitize personal identities and legacy host paths from reachable public history",
+      "status": "open"
+    }
+  ]
+}
++ bunx --bun -y @unbrained/pm-cli@2026.10.4 starter context --json
+
+  Context Snapshot
+  ================
+  Focus items: 9
+  Agenda entries: 0
+  Activity entries: 0
+
+  Focus:
+    pm-starter-cz6b  Certify pm-starter on PM CLI/SDK 2026.10.4 and consolidate pending dependency updates  [in_progress]
+    pm-starter-fllw  The release job authenticated with a stored npm token that expired, so publishing stopped while every other gate stayed green  [in_progress]
+    pm-starter-kjvk  A release run bumped and committed a new version every night while publishing was impossible, because the only externally-failable step runs last  [in_progress]
+    pm-starter-puy5  Measure all executable pm-starter TypeScript and statement coverage  [open]
+    pm-starter-asud  Sanitize personal identities and legacy host paths from reachable public history  [open]
+{
+  "output_default": "toon",
+  "now": "2026-10-04T11:48:57.915Z",
+  "depth": "brief",
+  "sections_included": [],
+  "window": {
+    "anchor": "2026-10-04T11:48:57.915Z",
+    "start": "2026-10-04T11:48:57.915Z",
+    "end": null,
+    "past": false,
+    "from": null,
+    "to": null
+  },
+  "filters": {
+    "type": null,
+    "tag": null,
+    "priority": null,
+    "assignee": null,
+    "assignee_filter": null,
+    "sprint": null,
+    "release": null,
+    "limit": null,
+    "parent": null,
+    "token_budget": 1600,
+    "runtime_filters": {}
+  },
+  "summary": {
+    "returned_focus": {
+      "active_items": 9,
+      "in_progress": 3,
+      "open": 6,
+      "blocked": 0
+    },
+    "blocked_fallback_used": false,
+    "high_level": 0,
+    "low_level": 9,
+    "agenda_events": 0,
+    "scope": "matching_items",
+    "active_items": 9,
+    "open": 6,
+    "in_progress": 3,
+    "blocked": 0,
+    "total_items": 71,
+    "closed": 61,
+    "canceled": 1
+  },
+  "high_level": [],
+  "low_level": [
+    {
+      "id": "pm-starter-cz6b",
+      "title": "Certify pm-starter on PM CLI/SDK 2026.10.4 and consolidate pending dependency updates",
+      "type": "Chore",
+      "status": "in_progress",
+      "priority": 1,
+      "order": null,
+      "deadline": null,
+      "assignee": "codex-sol",
+      "tags": [
+        "agent-starter",
+        "area:quality",
+        "area:toolchain"
+      ],
+      "updated_at": "2026-10-04T11:41:46.731Z",
+      "parent": null
+    },
+    {
+      "id": "pm-starter-fllw",
+      "title": "The release job authenticated with a stored npm token that expired, so publishing stopped while every other gate stayed green",
+      "type": "Issue",
+      "status": "in_progress",
+      "priority": 0,
+      "order": null,
+      "deadline": "2026-09-02T00:00:00.000Z",
+      "assignee": "claude",
+      "tags": [
+        "npm",
+        "release",
+        "supply-chain"
+      ],
+      "updated_at": "2026-08-26T23:06:18.073Z",
+      "parent": null
+    },
+    {
+      "id": "pm-starter-kjvk",
+      "title": "A release run bumped and committed a new version every night while publishing was impossible, because the only externally-failable step runs last",
+      "type": "Issue",
+      "status": "in_progress",
+      "priority": 0,
+      "order": null,
+      "deadline": null,
+      "assignee": null,
+      "tags": [
+        "ci",
+        "npm",
+        "release",
+        "supply-chain"
+      ],
+      "updated_at": "2026-08-27T18:52:37.416Z",
+      "parent": null
+    },
+    {
+      "id": "pm-starter-puy5",
+      "title": "Measure all executable pm-starter TypeScript and statement coverage",
+      "type": "Issue",
+      "status": "open",
+      "priority": 1,
+      "order": null,
+      "deadline": null,
+      "assignee": null,
+      "tags": [
+        "area:quality",
+        "coverage-scope"
+      ],
+      "updated_at": "2026-10-04T11:19:19.937Z",
+      "parent": null
+    },
+    {
+      "id": "pm-starter-asud",
+      "title": "Sanitize personal identities and legacy host paths from reachable public history",
+      "type": "Issue",
+      "status": "open",
+      "priority": 0,
+      "order": null,
+      "deadline": null,
+      "assignee": null,
+      "tags": [],
+      "updated_at": "2026-08-07T17:34:52.490Z",
+      "parent": null
+    },
+    {
+      "id": "pm-starter-qu97",
+      "title": "Enforce docstring and erasable-TypeScript quality gates in the starter reference",
+      "type": "Issue",
+      "status": "open",
+      "priority": 0,
+      "order": null,
+      "deadline": null,
+      "assignee": null,
+      "tags": [],
+      "updated_at": "2026-08-07T17:23:23.825Z",
+      "parent": null
+    },
+    {
+      "id": "pm-starter-nf9d",
+      "title": "Fix release publish ordering before protected main push",
+      "type": "Issue",
+      "status": "open",
+      "priority": 2,
+      "order": null,
+      "deadline": null,
+      "assignee": null,
+      "tags": [],
+      "updated_at": "2026-08-10T16:57:54.678Z",
+      "parent": null
+    },
+    {
+      "id": "pm-starter-4n5o",
+      "title": "The changelog gate stamps an untagged version with the current date, so its verdict flips every midnight with no commit",
+      "type": "Issue",
+      "status": "open",
+      "priority": 1,
+      "order": null,
+      "deadline": null,
+      "assignee": null,
+      "tags": [
+        "changelog",
+        "gates",
+        "release"
+      ],
+      "updated_at": "2026-08-24T09:18:27.067Z",
+      "parent": null
+    },
+    {
+      "id": "pm-starter-ghq8",
+      "title": "Backfill legacy closure metadata and assign ownership for the LICENSE artifact",
+      "type": "Task",
+      "status": "open",
+      "priority": 1,
+      "order": null,
+      "deadline": null,
+      "assignee": null,
+      "tags": [],
+      "updated_at": "2026-08-07T17:26:15.837Z",
+      "parent": null
+    }
+  ],
+  "blocked_fallback": [],
+  "agenda": {
+    "summary": {
+      "events": 0,
+      "items": 0,
+      "deadlines": 0,
+      "reminders": 0,
+      "scheduled": 0
+    },
+    "events": []
+  },
+  "extension_health": {
+    "total": 2,
+    "ok": 2,
+    "degraded": 0,
+    "packages": [
+      {
+        "name": "pm-github",
+        "status": "ok"
+      },
+      {
+        "name": "pm-starter",
+        "status": "ok"
+      }
+    ]
+  },
+  "warning_details": [
+    {
+      "code": "context_signal_store_stale",
+      "meaning": "The persisted context-signal snapshot did not match the authoritative cursor or item corpus and was rebuilt.",
+      "recovery_command": "pm context",
+      "recovery_effect": "Re-read context and confirm the rebuilt snapshot is now fresh."
+    }
+  ],
+  "warnings": [
+    "context_signal_store_stale"
+  ],
+  "omission_receipt": {
+    "has_omissions": true,
+    "omitted_field_group_count": 10,
+    "omitted_field_groups": [
+      {
+        "name": "hierarchy",
+        "restore_with": "--section hierarchy"
+      },
+      {
+        "name": "activity",
+        "restore_with": "--section activity"
+      },
+      {
+        "name": "progress",
+        "restore_with": "--section progress"
+      },
+      {
+        "name": "blockers",
+        "restore_with": "--section blockers"
+      },
+      {
+        "name": "recently_created",
+        "restore_with": "--section recently_created"
+      },
+      {
+        "name": "unparented",
+        "restore_with": "--section unparented"
+      },
+      {
+        "name": "files",
+        "restore_with": "--section files"
+      },
+      {
+        "name": "workload",
+        "restore_with": "--section workload"
+      },
+      {
+        "name": "staleness",
+        "restore_with": "--section staleness"
+      },
+      {
+        "name": "tests",
+        "restore_with": "--section tests"
+      }
+    ],
+    "summary_scope": "matching_items"
+  }
+}
++ bunx --bun -y @unbrained/pm-cli@2026.10.4 starter search certification --json
+
+  Search Results (1 hit(s))
+  =======================
+    pm-starter-puy5  [1.00]  Measure all executable pm-starter TypeScript and statement coverage
+{
+  "query": "certification",
+  "mode": "keyword",
+  "hits": [
+    {
+      "id": "pm-starter-puy5",
+      "title": "Measure all executable pm-starter TypeScript and statement coverage",
+      "status": "open",
+      "type": "Issue",
+      "priority": 1,
+      "updated_at": "2026-10-04T11:19:19.937Z",
+      "score": 1,
+      "matched_fields": [
+        "comments"
+      ]
+    }
+  ],
+  "total": 1
+}
++ bunx --bun -y @unbrained/pm-cli@2026.10.4 starter setup --name cert-extension --capability commands,search --json
+
+  Extension Scaffold Plan
+  =======================
+  Name: cert-extension
+  Capabilities: commands, search
+
+  Files to edit:
+    1. manifest.json  -> name: "cert-extension", capabilities: ["commands", "search"]
+    2. index.ts       -> keep setup* functions for: commands, search
+    3. package.json   -> name: "cert-extension"
+
+  Next steps:
+    npm install && npm run build
+    pm install ./cert-extension --project
+    pm extension doctor
+{
+  "name": "cert-extension",
+  "capabilities": [
+    "commands",
+    "search"
+  ],
+  "scaffolded": false,
+  "interactive": false
+}
++ bunx --bun -y @unbrained/pm-cli@2026.10.4 starter-demo export --json
+[
+  {
+    "id": "pm-starter-kjvk",
+    "title": "A release run bumped and committed a new version every night while publishing was impossible, because the only externally-failable step runs last",
+    "type": "Issue",
+    "status": "in_progress"
+  },
+  {
+    "id": "pm-starter-fllw",
+    "title": "The release job authenticated with a stored npm token that expired, so publishing stopped while every other gate stayed green",
+    "type": "Issue",
+    "status": "in_progress"
+  },
+  {
+    "id": "pm-starter-asud",
+    "title": "Sanitize personal identities and legacy host paths from reachable public history",
+    "type": "Issue",
+    "status": "open"
+  },
+  {
+    "id": "pm-starter-qu97",
+    "title": "Enforce docstring and erasable-TypeScript quality gates in the starter reference",
+    "type": "Issue",
+    "status": "open"
+  },
+  {
+    "id": "pm-starter-cz6b",
+    "title": "Certify pm-starter on PM CLI/SDK 2026.10.4 and consolidate pending dependency updates",
+    "type": "Chore",
+    "status": "in_progress"
+  },
+  {
+    "id": "pm-starter-puy5",
+    "title": "Measure all executable pm-starter TypeScript and statement coverage",
+    "type": "Issue",
+    "status": "open"
+  },
+  {
+    "id": "pm-starter-4n5o",
+    "title": "The changelog gate stamps an untagged version with the current date, so its verdict flips every midnight with no commit",
+    "type": "Issue",
+    "status": "open"
+  },
+  {
+    "id": "pm-starter-ghq8",
+    "title": "Backfill legacy closure metadata and assign ownership for the LICENSE artifact",
+    "type": "Task",
+    "status": "open"
+  },
+  {
+    "id": "pm-starter-nf9d",
+    "title": "Fix release publish ordering before protected main push",
+    "type": "Issue",
+    "status": "open"
+  },
+  {
+    "id": "pm-starter-t89y",
+    "title": "Adopt pm CLI 2026.8.7 and revalidate the output-format reference contract",
+    "type": "Chore",
+    "status": "closed"
+  },
+  {
+    "id": "pm-starter-50az",
+    "title": "Certify pm CLI 2026.9.23 and adopt the guarded pm-ops merge-driver launcher",
+    "type": "Chore",
+    "status": "closed"
+  },
+  {
+    "id": "pm-starter-4tq9",
+    "title": "A publish that npm accepts late is reported as failed and the GitHub Release is skipped on bun mirror lag",
+    "type": "Issue",
+    "status": "closed"
+  },
+  {
+    "id": "pm-starter-8vta",
+    "title": "Certify pm CLI 2026.9.21 and install merge drivers through the canonical pm-ops launcher",
+    "type": "Task",
+    "status": "closed"
+  },
+  {
+    "id": "pm-starter-wmb7",
+    "title": "Consume the canonical attestation gate instead of carrying a copy of it",
+    "type": "Chore",
+    "status": "closed"
+  },
+  {
+    "id": "pm-starter-74p9",
+    "title": "The publish-attestation gate misses a publish routed through an unquoted shell variable",
+    "type": "Issue",
+    "status": "closed"
+  },
+  {
+    "id": "pm-starter-uxmy",
+    "title": "A failed provenance publish silently falls back to an unattested one",
+    "type": "Issue",
+    "status": "closed"
+  },
+  {
+    "id": "pm-starter-tf19",
+    "title": "The identity gate deadlocks the one remediation its own failure message prescribes",
+    "type": "Issue",
+    "status": "closed"
+  },
+  {
+    "id": "pm-starter-ibm7",
+    "title": "changelog scripts read the workspace with default budgets, so pm-changelog refuses complete-read checks once the tracker exceeds one page",
+    "type": "Issue",
+    "status": "closed"
+  },
+  {
+    "id": "pm-starter-ejr6",
+    "title": "Fix the output_format service override so it declines unclaimed payloads instead of echoing the command context",
+    "type": "Issue",
+    "status": "closed"
+  },
+  {
+    "id": "pm-starter-3a6b",
+    "title": "Reject non-object tsconfig output in the exact coverage gate",
+    "type": "Issue",
+    "status": "closed"
+  },
+  {
+    "id": "pm-starter-cskq",
+    "title": "Gate durable PM project health in CI on pm CLI 2026.8.6",
+    "type": "Issue",
+    "status": "closed"
+  },
+  {
+    "id": "pm-starter-sthp",
+    "title": "Release commits discard the rebuilt dist, so the git-install path serves the previous version",
+    "type": "Issue",
+    "status": "closed"
+  },
+  {
+    "id": "pm-starter-91fh",
+    "title": "Enforce a real coverage gate by running tests against TypeScript sources",
+    "type": "Feature",
+    "status": "closed"
+  },
+  {
+    "id": "pm-starter-se0g",
+    "title": "Full-cycle hardening wave: pm-starter",
+    "type": "Task",
+    "status": "closed"
+  },
+  {
+    "id": "pm-starter-rcbt",
+    "title": "Ecosystem release readiness pass 2026-07-06",
+    "type": "Task",
+    "status": "closed"
+  },
+  {
+    "id": "pm-starter-kre3",
+    "title": "Starter template used any throughout, hiding three wrong SDK contracts and three unguarded pm reads",
+    "type": "Issue",
+    "status": "closed"
+  },
+  {
+    "id": "pm-starter-y8hb",
+    "title": "pm item reads are capped at Node's 1 MiB spawnSync default, so a mature tracker fails with no diagnosis",
+    "type": "Issue",
+    "status": "closed"
+  },
+  {
+    "id": "pm-starter-p9ez",
+    "title": "Harden release bun-verify so registry-mirror lag cannot block the GitHub release",
+    "type": "Chore",
+    "status": "closed"
+  },
+  {
+    "id": "pm-starter-z28y",
+    "title": "Align Node engine with pm CLI runtime",
+    "type": "Task",
+    "status": "closed"
+  },
+  {
+    "id": "pm-starter-4mkx",
+    "title": "Regenerate CHANGELOG after pm close item",
+    "type": "Task",
+    "status": "closed"
+  },
+  {
+    "id": "pm-starter-3hxr",
+    "title": "Fix release CI ordering (publish-before-tag)",
+    "type": "Task",
+    "status": "closed"
+  },
+  {
+    "id": "pm-starter-5wig",
+    "title": "Daily Release publish step runs prepublishOnly post-tag: align npm publish with --ignore-scripts",
+    "type": "Task",
+    "status": "closed"
+  },
+  {
+    "id": "pm-starter-q3m0",
+    "title": "Harden release readiness checks",
+    "type": "Chore",
+    "status": "closed"
+  },
+  {
+    "id": "pm-starter-u0c7",
+    "title": "Strengthen starter SDK capability smoke coverage",
+    "type": "Chore",
+    "status": "closed"
+  },
+  {
+    "id": "pm-starter-u1tx",
+    "title": "Align package dependencies to pm CLI/SDK 2026.6.6",
+    "type": "Chore",
+    "status": "closed"
+  },
+  {
+    "id": "pm-starter-6i6j",
+    "title": "ci: fix release workflow step ordering",
+    "type": "Task",
+    "status": "closed"
+  },
+  {
+    "id": "pm-starter-d7yd",
+    "title": "Release readiness hardening for pm-starter",
+    "type": "Task",
+    "status": "closed"
+  },
+  {
+    "id": "pm-starter-o6xh",
+    "title": "Certify pm CLI 2026.9.17",
+    "type": "Chore",
+    "status": "closed"
+  },
+  {
+    "id": "pm-starter-ckfl",
+    "title": "Certify the CLI and SDK on PM 2026.9.7",
+    "type": "Chore",
+    "status": "canceled"
+  },
+  {
+    "id": "pm-starter-u8nj",
+    "title": "Certify pm CLI 2026.9.12 and the pm-ops 2026.9.11 auditor",
+    "type": "Chore",
+    "status": "closed"
+  },
+  {
+    "id": "pm-starter-dco5",
+    "title": "Certify pm CLI 2026.9.10 and pick up the canonical auditor fixes the lockfile was holding back",
+    "type": "Chore",
+    "status": "closed"
+  },
+  {
+    "id": "pm-starter-io6u",
+    "title": "This repository has never produced a static analysis, because it runs no CodeQL workflow",
+    "type": "Issue",
+    "status": "closed"
+  },
+  {
+    "id": "pm-starter-55ul",
+    "title": "Group codeql-action bumps into one pull request to end the split-PR deadlock",
+    "type": "Issue",
+    "status": "closed"
+  },
+  {
+    "id": "pm-starter-pjdl",
+    "title": "Pin pm-changelog 2026.8.30 before the next release",
+    "type": "Issue",
+    "status": "closed"
+  },
+  {
+    "id": "pm-starter-b41g",
+    "title": "Regenerate the changelog after the release tag exists",
+    "type": "Issue",
+    "status": "closed"
+  },
+  {
+    "id": "pm-starter-83vb",
+    "title": "Close PR 82 attestation audit bypasses",
+    "type": "Issue",
+    "status": "closed"
+  },
+  {
+    "id": "pm-starter-2899",
+    "title": "Fix same-line scalar assignment bypass in publish attestation scanner",
+    "type": "Issue",
+    "status": "closed"
+  },
+  {
+    "id": "pm-starter-pmnm",
+    "title": "Retire stale PR 65 evidence note after revert 67",
+    "type": "Task",
+    "status": "closed"
+  },
+  {
+    "id": "pm-starter-zhwv",
+    "title": "The pm CLI compatibility floor was declared only in peerDependencies, which only npm enforces, and not in manifest.json pm_min_version, which is the field the CLI enforces",
+    "type": "Issue",
+    "status": "closed"
+  },
+  {
+    "id": "pm-starter-mg2w",
+    "title": "A truncated list-all answer is rendered as if it were the whole workspace",
+    "type": "Issue",
+    "status": "closed"
+  },
+  {
+    "id": "pm-starter-9nl0",
+    "title": "Adopt the canonical pm-ops docstring gate",
+    "type": "Task",
+    "status": "closed"
+  },
+  {
+    "id": "pm-starter-d5zy",
+    "title": "Fix review findings: two assertions that could never fail, an unawaited output capture, and a duplicated test",
+    "type": "Task",
+    "status": "closed"
+  },
+  {
+    "id": "pm-starter-64jd",
+    "title": "Bring the coverage gate entry shim under the coverage gate itself",
+    "type": "Task",
+    "status": "closed"
+  },
+  {
+    "id": "pm-starter-5bvm",
+    "title": "Raise the coverage gate to a measured 100/100/100 and bring scripts/coverage-gate.ts under it",
+    "type": "Task",
+    "status": "closed"
+  },
+  {
+    "id": "pm-starter-nf9u",
+    "title": "Declare renderer ownership so the host enforces scoping the package only applied at runtime",
+    "type": "Task",
+    "status": "closed"
+  },
+  {
+    "id": "pm-starter-9fbt",
+    "title": "Resolve pm-changelog to the release that derives release dates in UTC",
+    "type": "Chore",
+    "status": "closed"
+  },
+  {
+    "id": "pm-starter-a28w",
+    "title": "Adopt pm-cli 2026.7.29",
+    "type": "Chore",
+    "status": "closed"
+  },
+  {
+    "id": "pm-starter-toz4",
+    "title": "Adopt --respect-item-release in changelog scripts and bump pm-changelog to 2026.7.24",
+    "type": "Chore",
+    "status": "closed"
+  },
+  {
+    "id": "pm-starter-rmnj",
+    "title": "Production-readiness audit 2026-05-28",
+    "type": "Task",
+    "status": "closed"
+  },
+  {
+    "id": "pm-starter-evym",
+    "title": "Adopt pm-cli 2026.7.28",
+    "type": "Chore",
+    "status": "closed"
+  },
+  {
+    "id": "pm-starter-1atg",
+    "title": "Extension reports a stale runtime version after the 2026.7.27 bump",
+    "type": "Issue",
+    "status": "closed"
+  },
+  {
+    "id": "pm-starter-fafo",
+    "title": "Adopt pm-cli 2026.7.26 typed authoring contracts and remove the any-cast defineExtension shim",
+    "type": "Task",
+    "status": "closed"
+  },
+  {
+    "id": "pm-starter-tfh8",
+    "title": "Enable governance duplicate-detection advisory mode and adopt pm-cli 2026.7.25",
+    "type": "Chore",
+    "status": "closed"
+  },
+  {
+    "id": "pm-starter-ll3f",
+    "title": "Recommend pm merge reconcile (2026.7.22) over raw history-repair in Multi-agent merge safety docs",
+    "type": "Issue",
+    "status": "closed"
+  },
+  {
+    "id": "pm-starter-yly8",
+    "title": "Hands-on functional test pass 2026-05-29 (real data)",
+    "type": "Feature",
+    "status": "closed"
+  },
+  {
+    "id": "pm-starter-xwkh",
+    "title": "Fix README to document all 9 capabilities accurately + strengthen smoke test",
+    "type": "Chore",
+    "status": "closed"
+  },
+  {
+    "id": "pm-starter-oi1i",
+    "title": "Make pm-starter the canonical full ExtensionApi reference",
+    "type": "Feature",
+    "status": "closed"
+  },
+  {
+    "id": "pm-starter-vcxr",
+    "title": "Add publish retry + provenance fallback to release workflow",
+    "type": "Task",
+    "status": "closed"
+  },
+  {
+    "id": "pm-starter-zai7",
+    "title": "Add bun-install verification to release workflow",
+    "type": "Task",
+    "status": "closed"
+  },
+  {
+    "id": "pm-starter-csko",
+    "title": "Harden the attestation consumer suite to match the rest of the converged fleet",
+    "type": "Chore",
+    "status": "closed"
+  },
+  {
+    "id": "pm-starter-ey52",
+    "title": "Adopt pm field-aware merge driver for multi-agent branch-merge safety",
+    "type": "Chore",
+    "status": "closed"
+  }
+]
+{
+  "exported": 71,
+  "format": "json"
+}
++ rm -rf /tmp/claude-1000/cert-wt/pm-starter-dogfood
