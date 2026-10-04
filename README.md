@@ -183,3 +183,17 @@ itself lists each affected stream in its output; `pm history --verify <id>` spot
 content, so `reconcile` only re-greens the hash chain (no data loss) — see the authoritative
 [pm-cli merge-safety guide](https://github.com/unbraind/pm-cli/blob/main/docs/MERGE_SAFETY.md). The
 older blunt `pm history-repair --all` remains available as a lower-level primitive.
+
+
+## Complete tracker reads and certification
+
+The shared demo/export/search reader requests `pm list --status all --full --include-body --no-truncate --strict-read --json`. Full projection and no truncation preserve complete item bodies and rows beyond the CLI's default output budget; strict reads and completeness receipts keep malformed or partial trackers as failures.
+
+Fresh clones install the managed GitHub extension before a read-only preview:
+
+```sh
+npx pm package install npm:pm-github@2026.10.4 --project
+npx pm github sync --repo unbraind/pm-starter --dry-run
+```
+
+This does not enable scheduled sync. See `docs/certification-2026.10.4.md` for validation and copied-real-tracker evidence. Whole-executable and statement coverage remains tracked in `pm-starter-puy5`.

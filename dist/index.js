@@ -200,7 +200,7 @@ function describePmReadFailure(error, limitBytes) {
  */
 export function readPmItems(pmRoot) {
     const maxBuffer = pmJsonMaxBuffer();
-    const result = spawnSync("pm", ["--path", pmRoot, "list-all", "--json", "--include-body"], { encoding: "utf-8", maxBuffer });
+    const result = spawnSync("pm", ["--path", pmRoot, "list", "--status", "all", "--full", "--include-body", "--no-truncate", "--strict-read", "--json"], { encoding: "utf-8", maxBuffer });
     if (result.error) {
         return { ok: false, reason: describePmReadFailure(result.error, maxBuffer) };
     }
@@ -220,7 +220,7 @@ export function readPmItems(pmRoot) {
         // parsed envelope that admits it is partial.
         return {
             ok: false,
-            reason: `could not parse \`pm list-all --json\` output: ${err instanceof Error ? err.message : String(err)}`,
+            reason: `could not parse \`pm list --status all --json\` output: ${err instanceof Error ? err.message : String(err)}`,
         };
     }
     // A bare array carries no completeness receipt, so it cannot prove it is the
@@ -230,7 +230,7 @@ export function readPmItems(pmRoot) {
     if (Array.isArray(parsed)) {
         return {
             ok: false,
-            reason: "`pm list-all --json` returned a bare array, which carries no completeness receipt to verify",
+            reason: "`pm list --status all --json` returned a bare array, which carries no completeness receipt to verify",
         };
     }
     // Anything that is not an object carries no receipt either, and
@@ -241,7 +241,7 @@ export function readPmItems(pmRoot) {
     if (!isObject(parsed)) {
         return {
             ok: false,
-            reason: `\`pm list-all --json\` returned ${parsed === null ? "null" : typeof parsed}, which carries no completeness receipt to verify`,
+            reason: `\`pm list --status all --json\` returned ${parsed === null ? "null" : typeof parsed}, which carries no completeness receipt to verify`,
         };
     }
     const incomplete = describeListAllIncompleteness(parsed);
@@ -255,7 +255,7 @@ export function readPmItems(pmRoot) {
     if (rows === undefined)
         return { ok: true, items: [] };
     if (!Array.isArray(rows)) {
-        return { ok: false, reason: "`pm list-all --json` returned a non-array rows field" };
+        return { ok: false, reason: "`pm list --status all --json` returned a non-array rows field" };
     }
     // Dropping unusable rows would contradict everything above: the receipt said
     // this answer is the whole workspace, so silently returning fewer rows than it
@@ -266,7 +266,7 @@ export function readPmItems(pmRoot) {
     if (unusable !== -1) {
         return {
             ok: false,
-            reason: `\`pm list-all --json\` returned an unusable row at index ${unusable} (${rows[unusable] === null ? "null" : typeof rows[unusable]}); the receipt claimed a complete answer, so dropping it would report a shortened workspace as complete`,
+            reason: `\`pm list --status all --json\` returned an unusable row at index ${unusable} (${rows[unusable] === null ? "null" : typeof rows[unusable]}); the receipt claimed a complete answer, so dropping it would report a shortened workspace as complete`,
         };
     }
     return { ok: true, items: rows };
@@ -295,7 +295,7 @@ function readCount(envelope, key) {
     return typeof value === "number" ? String(value) : "?";
 }
 /**
- * Name the reason a `pm list-all` envelope is not the whole workspace, or
+ * Name the reason a `pm list --status all` envelope is not the whole workspace, or
  * return `null` when it is complete.
  *
  * The envelope has carried a completeness receipt since 2026.8.15, and reading
@@ -309,7 +309,7 @@ function readCount(envelope, key) {
  * answer that cannot be verified is not a verified answer, and treating absence
  * as success is the same mistake one level up.
  *
- * @param envelope - Parsed `pm list-all --json` output.
+ * @param envelope - Parsed `pm list --status all --json` output.
  * @returns A human-readable reason naming the tripped signal and the
  *          count-versus-total figures, or `null` if the answer is complete.
  */
@@ -459,7 +459,7 @@ function setupCommands(api) {
         intent: "demonstrate a command result flowing through a custom renderer",
         examples: ["pm starter demo", "pm starter demo --json"],
         failure_hints: [
-            "The demo reads items via `pm list-all --json`; ensure the workspace is initialized.",
+            "The demo reads items via `pm list --status all --json`; ensure the workspace is initialized.",
         ],
         async run(ctx) {
             const items = readPmItemsOrFail(ctx.pm_root);
