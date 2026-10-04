@@ -68,3 +68,5 @@ Summary, demo and exporter each account for all 71 real tracker items. Search re
 CI and substantive reviewer receipts are assessed separately on the final PR head. Items remain open for orchestrator verification.
 
 Review follow-up: the dangling-link fixture uses a Windows junction and a POSIX directory link, following [Node filesystem APIs](https://nodejs.org/api/fs.html#fssymlinksynctarget-path-type). Scoped launcher tests pass 9/9 on Linux. Native Windows execution has not been verified. No skip guards were added; the canonical launcher is unchanged.
+
+CI follow-up: the captured global extension path is represented as `$HOME/.pm-cli/extensions` in the public receipt. The original absolute path was removed from this PR branch history; the unchanged identity/privacy audit is rerun after commit. CodeRabbit identified stale certification acceptance criteria; only their version target was advanced to 2026.10.4, keeping all other completion checks. GitHub retains old commit objects independently; this change does not resolve older repository-wide public-history privacy debt.
