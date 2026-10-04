@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Other
+
+- Auto-merge green Dependabot updates and group the pm toolchain into one daily PR ([pm-starter-enr4](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/tasks/pm-starter-enr4.toon))
+
 ## 2026.9.26 - 2026-09-26
 
 ### Other
