@@ -70,3 +70,11 @@ CI and substantive reviewer receipts are assessed separately on the final PR hea
 Review follow-up: the dangling-link fixture uses a Windows junction and a POSIX directory link, following [Node filesystem APIs](https://nodejs.org/api/fs.html#fssymlinksynctarget-path-type). Scoped launcher tests pass 9/9 on Linux. Native Windows execution has not been verified. No skip guards were added; the canonical launcher is unchanged.
 
 CI follow-up: the captured global extension path is represented as `$HOME/.pm-cli/extensions` in the public receipt. The original absolute path was removed from this PR branch history; the unchanged identity/privacy audit is rerun after commit. CodeRabbit identified stale certification acceptance criteria; only their version target was advanced to 2026.10.4, keeping all other completion checks. GitHub retains old commit objects independently; this change does not resolve older repository-wide public-history privacy debt.
+
+Full PM-linked gate after review fixes:
+
+```sh
+npx pm test pm-starter-cz6b --only-index 3 --run --progress --workspace-context source --override-linked-workspace-context --pm-context tracker --override-linked-pm-context
+```
+
+The selected command is `flock /tmp/claude-1000/heavy-gate.lock npm run release:check`. Result: `ok: true`, linked test `status: passed`, exit 0; 200/200 tests, zero skipped, all release checks pass. Tracker context copies 71 project items and reports no context mismatch. Snapshot/none mode previously failed because Git metadata is excluded; source/none mode was refused by the CLI. The explicit tracker/source combination satisfies the preserved full linked-gate criterion. Existing test-result recording policy is disabled, so the observed outcome is documented manually rather than changing policy.
