@@ -66,3 +66,5 @@ starter-demo export --json
 Summary, demo and exporter each account for all 71 real tracker items. Search returns the certification item in both runtimes; setup returns its scaffold plan. The scratch tracker was deleted by the exit trap. [Exact commands and complete outputs](evidence/pm-starter-2026.10.4-dogfood.log).
 
 CI and substantive reviewer receipts are assessed separately on the final PR head. Items remain open for orchestrator verification.
+
+Review follow-up: the dangling-link fixture uses a Windows junction and a POSIX directory link, following [Node filesystem APIs](https://nodejs.org/api/fs.html#fssymlinksynctarget-path-type). Scoped launcher tests pass 9/9 on Linux. Native Windows execution has not been verified. No skip guards were added; the canonical launcher is unchanged.
