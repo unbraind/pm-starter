@@ -1,5 +1,23 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+- Enable the gated GitHub issue sync ([pm-starter-wflq](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/chores/pm-starter-wflq.toon))
+- Adopt pm-github 2026.10.16: default-branch-safe gated sync and daily gated closeout PRs ([pm-starter-693w](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/chores/pm-starter-693w.toon))
+
+### Fixed
+
+- Fix release publish ordering before protected main push ([pm-starter-nf9d](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/issues/pm-starter-nf9d.toon))
+- The changelog gate stamps an untagged version with the current date, so its verdict flips every midnight with no commit ([pm-starter-4n5o](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/issues/pm-starter-4n5o.toon))
+- The release job authenticated with a stored npm token that expired, so publishing stopped while every other gate stayed green ([pm-starter-fllw](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/issues/pm-starter-fllw.toon))
+- A release run bumped and committed a new version every night while publishing was impossible, because the only externally-failable step runs last ([pm-starter-kjvk](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/issues/pm-starter-kjvk.toon))
+
+### Other
+
+- Certify pm-starter on PM CLI/SDK 2026.10.4 and consolidate pending dependency updates ([pm-starter-cz6b](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/chores/pm-starter-cz6b.toon))
+
 ## 2026.10.5 - 2026-10-05
 
 ### Other
