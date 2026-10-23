@@ -44,6 +44,8 @@
 //
 // ---------------------------------------------------------------------------
 import { spawnSync } from "node:child_process";
+import { runExportLaboratory, runLaboratoryCommand } from "./laboratories.js";
+export * from "./laboratories.js";
 // Standalone-installed extensions load ONLY their own `dist/` at runtime, so
 // `@unbrained/pm-cli` is not resolvable as a runtime value. We therefore use the
 // zero-runtime-coupling pattern: import `defineExtension` as a TYPE only and
@@ -363,6 +365,16 @@ export function describeListAllIncompleteness(envelope) {
  * @param api - The extension API surface passed to `activate`.
  */
 function setupCommands(api) {
+    api.registerCommand({
+        name: "starter lab",
+        description: "Run one read-only capability laboratory on directory and synthetic remote adapters.",
+        flags: [
+            { long: "--capability", value_name: "capability", type: "string", description: "commands (default) or importers; one extension capability per exercise." },
+            { long: "--operation", value_name: "operation", type: "string", description: "read (default) or mutate (intentional refusal)." },
+        ],
+        failure_hints: ["Use --capability commands or importers with --operation read; initialize the tracker with pm init."],
+        run: runLaboratoryCommand,
+    });
     // DEMO: registerCommand — a self-contained command with typed flags.
     // Because this command declares a `flags` array, the manifest MUST also list
     // the "schema" capability (the flag schema), in addition to "commands".
@@ -911,6 +923,7 @@ function setupSchema(api) {
  * @param api - The extension API surface passed to `activate`.
  */
 function setupImportExport(api) {
+    api.registerExporter("starter-lab", runExportLaboratory);
     // DEMO: registerImporter — `pm starter-demo import`.
     // Inert by design: it describes what a real importer WOULD do and returns a
     // dry-run-style summary. Swap the body for real parse + `pm create` calls.
@@ -1054,7 +1067,8 @@ function setupPreflight(api) {
         return {
             enforce_item_format_gate: d.enforce_item_format_gate ?? true,
             run_preflight_item_format_sync: d.run_preflight_item_format_sync ?? false,
-            run_extension_migrations: d.run_extension_migrations ?? true,
+            run_extension_migrations: ctx.command === "starter lab" || ctx.command === "starter-lab export"
+                ? false : d.run_extension_migrations ?? true,
             enforce_mandatory_migration_gate: d.enforce_mandatory_migration_gate ?? false,
         };
     });

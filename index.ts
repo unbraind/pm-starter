@@ -46,6 +46,8 @@
 
 import type { ExtensionModule } from "@unbrained/pm-cli/sdk/authoring";
 import { spawnSync } from "node:child_process";
+import { runExportLaboratory, runLaboratoryCommand } from "./laboratories.ts";
+export * from "./laboratories.ts";
 
 import type {
   AfterCommandHookContext,
@@ -418,6 +420,17 @@ export function describeListAllIncompleteness(envelope: unknown): string | null 
  * @param api - The extension API surface passed to `activate`.
  */
 function setupCommands(api: ExtensionApi): void {
+  api.registerCommand({
+    name: "starter lab",
+    description: "Run one read-only capability laboratory on directory and synthetic remote adapters.",
+    flags: [
+      { long: "--capability", value_name: "capability", type: "string", description: "commands (default) or importers; one extension capability per exercise." },
+      { long: "--operation", value_name: "operation", type: "string", description: "read (default) or mutate (intentional refusal)." },
+    ],
+    failure_hints: ["Use --capability commands or importers with --operation read; initialize the tracker with pm init."],
+    run: runLaboratoryCommand,
+  });
+
   // DEMO: registerCommand — a self-contained command with typed flags.
   // Because this command declares a `flags` array, the manifest MUST also list
   // the "schema" capability (the flag schema), in addition to "commands".
@@ -1037,6 +1050,7 @@ function setupSchema(api: ExtensionApi): void {
  * @param api - The extension API surface passed to `activate`.
  */
 function setupImportExport(api: ExtensionApi): void {
+  api.registerExporter("starter-lab", runExportLaboratory);
   // DEMO: registerImporter — `pm starter-demo import`.
   // Inert by design: it describes what a real importer WOULD do and returns a
   // dry-run-style summary. Swap the body for real parse + `pm create` calls.
@@ -1187,7 +1201,8 @@ function setupPreflight(api: ExtensionApi): void {
     return {
       enforce_item_format_gate: d.enforce_item_format_gate ?? true,
       run_preflight_item_format_sync: d.run_preflight_item_format_sync ?? false,
-      run_extension_migrations: d.run_extension_migrations ?? true,
+      run_extension_migrations: ctx.command === "starter lab" || ctx.command === "starter-lab export"
+        ? false : d.run_extension_migrations ?? true,
       enforce_mandatory_migration_gate: d.enforce_mandatory_migration_gate ?? false,
     };
   });

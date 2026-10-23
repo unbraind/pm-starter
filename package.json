@@ -17,7 +17,8 @@
     "dist/",
     "manifest.json",
     "README.md",
-    "CHANGELOG.md"
+    "CHANGELOG.md",
+    "docs/capability-laboratories.md"
   ],
   "scripts": {
     "build": "tsc",
@@ -89,10 +90,12 @@
     },
     "docs": [
       "README.md",
-      "CHANGELOG.md"
+      "CHANGELOG.md",
+      "docs/capability-laboratories.md"
     ],
     "examples": [
-      "README.md"
+      "README.md",
+      "docs/capability-laboratories.md"
     ]
   },
   "publishConfig": {

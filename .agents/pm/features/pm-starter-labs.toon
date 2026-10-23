@@ -1,0 +1,31 @@
+id: pm-starter-labs
+title: Run portable capability laboratories with matching backend receipts
+description: "Small executable extension laboratories for directory and synthetic remote adapters. Overlap verified against core extension init, the nine existing starter capability registrations, and the sibling backend conformance project: this feature owns reusable single-capability exercises, not scaffolding or a generated production template."
+type: Feature
+status: in_progress
+priority: 1
+tags: []
+created_at: "2026-10-23T20:00:44.593Z"
+updated_at: "2026-10-23T20:13:13.065Z"
+author: codex-agent
+acceptance_criteria: "Each example runs without Git and proves declared unsupported-capability refusals before mutation.; Typed SDK and CLI return compact identical backend-neutral receipts with remedies, documentation, copied-public-tracker validation, and passing npm and Bun CI release gates."
+comments[6]{created_at,author,text}:
+  "2026-10-23T20:00:47.651Z",codex-agent,"Overlap check: core extension init scaffolds source, manifest and package metadata; starter already registers nine capabilities; pm-ts-starter now additionally owns a generated backend conformance project and complete-list adapter contract. Laboratory scope is two small executable commands/search exercises with host-injected SDK reads, deterministic synthetic transport replay, shared receipts, and preflight refusal probes. No pin bump or Git requirement."
+  "2026-10-23T20:05:54.106Z",codex,"SDK reads and both refusal probes pass with Git absent from PATH. The first installed-CLI check caught the existing starter no-op migration writing workspace history during laboratory invocation. Laboratory preflight now disables extension migrations for its two read-only command paths; regression fingerprints durable tracker files, including workspace history, before and after CLI reads and refusals. Strict lint passed using the shared fleet policy; local pm-ops optional lint peers are absent, so the installed canonical policy toolchain was used without changing package pins."
+  "2026-10-23T20:07:12.024Z",codex-agent,"Author correction: the preceding progress comment inherited the host default author; all subsequent tracker writes explicitly select codex-agent. Laboratory SDK imports remain type-only, with no dynamic loader, new dependency, or SDK pin bump. The installed CLI now passes both example reads, native TOON, JSON, exporter registration, typed nonzero mutation refusal, and durable tracker fingerprint checks with Git absent."
+  "2026-10-23T20:08:57.613Z",codex-agent,"Behavioral revert proof: node --test --test-name-pattern=\"both executable\" test/laboratories.test.ts failed with exit 1 when only executeCapabilityLaboratory unsupported-operation preflight was removed; the same command failed with exit 1 when only setupPreflight laboratory migration suppression was reverted. Both restored. Targeted laboratory coverage: 100% lines, 100% branches, 100% functions; two tests passed, none skipped. Copied public main fd1c630: 75 items, 70 terminal, 156 read-only durable files unchanged; directory/synthetic/SDK/CLI receipts identical; commands JSON 1132 bytes, TOON 910; importers JSON 1200, TOON 998; minimal export 4335 bytes; both mutation CLI probes exit 1."
+  "2026-10-23T20:09:58.969Z",codex-agent,"Local validation complete: npm run typecheck, npm run build:test, npm run docstring and shared strict fleet lint passed. npx pm test pm-starter-labs --run --progress passed the linked node --test test/laboratories.test.ts command: 2 tests, 0 failures, 0 skips; test tracking is disabled by project policy, so this comment retains the result. Full npm run release:check and bun run release:check run on CI Node 22 and 26 at unchanged thresholds. Run URLs and exact counts will be recorded in the PR after completion."
+  "2026-10-23T20:13:13.065Z",codex-agent,"Ready-for-review PR: https://github.com/unbraind/pm-starter/pull/149 . Implementation head 5a24cd770a03b68853f8f3d10242ee1b7e235fc9 passed CI https://github.com/unbraind/pm-starter/actions/runs/40017166390 : npm run release:check and bun run release:check on Node 22 and 26 each passed 202 tests, 0 failures, 0 skipped, 0 canceled. Unchanged coverage gate: 100% lines, branches, functions across four required source files; 37 documented declarations in seven files. Fresh CI tracker health, generated dist parity, audit, pack, changelog, publish-attestation and Bun dependency installation passed. This final tracker-only evidence commit will be verified again by PR CI. Item remains in progress and unclaimed for orchestrator verification. Synthetic remote replay is not hosted-provider acceptance; stable source required for parity."
+files[6]{path,scope}:
+  .github/workflows/ci.yml,project
+  index.ts,project
+  laboratories.ts,project
+  package.json,project
+  test/laboratories.test.ts,project
+  test/smoke.test.ts,project
+tests[1]{command,scope,provenance{author,created_at,source_kind,source_ref}}:
+  node --test test/laboratories.test.ts,project,codex-agent,"2026-10-23T20:08:23.824Z",local_mutation,feat/capability-laboratories
+docs[2]{path,scope}:
+  docs/capability-laboratories.md,project
+  README.md,project
+body: ""

@@ -1,3 +1,4 @@
+export * from "./laboratories.ts";
 import type { ExtensionApi } from "@unbrained/pm-cli/sdk";
 /**
  * Semantic exit codes this package throws via {@link CommandError}.
