@@ -96,6 +96,33 @@ pm starter-demo export     # read-only JSON dump of items
 > importer/exporter live under `pm starter-demo …` so the two command paths never
 > collide. `pm extension doctor` reports 0 collisions as a result.
 
+## Backend-neutral capability laboratories
+
+Run a single capability against directory and synthetic remote adapters with identical,
+compact typed receipts and an unsupported-mutation probe before either source read:
+
+```sh
+pm starter lab --capability commands --json
+pm starter lab --capability importers --json
+pm starter-lab export --json
+pm starter lab --operation mutate --json # typed refusal, exit 1
+```
+
+The command example counts statuses; the exporter returns deterministic byte/digest
+proof. Both use the injected SDK's certified complete read. The SDK exports
+`runCapabilityLaboratory`, `executeCapabilityLaboratory`, both adapter factories,
+and command/exporter handlers. See [the executable examples and contract](docs/capability-laboratories.md).
+The synthetic transport uses structured cloning of certified values; hosted-provider
+acceptance is a separate concern. A changing source fails parity explicitly.
+
+## Without git
+
+All starter commands, the read-only exporters, and both laboratories work in a plain
+initialized tracker with no Git executable. Creating or running a laboratory needs
+no repository. Cloning the starter and repository release/changelog automation need
+Git. Laboratory commands require a host that injects the SDK (tested with 2026.10.20)
+and return an actionable refusal when it is absent.
+
 ## Architecture
 
 Each capability lives in its own `setup*` function for clarity. Delete the ones
