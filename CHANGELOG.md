@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- Run portable capability laboratories with matching backend receipts ([pm-starter-labs](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/features/pm-starter-labs.toon))
+
+### Other
+
+- Correct PR 147 tracker audit evidence ([pm-starter-ubt7](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/chores/pm-starter-ubt7.toon))
+
 ## 2026.10.23 - 2026-10-23
 
 ### Changed

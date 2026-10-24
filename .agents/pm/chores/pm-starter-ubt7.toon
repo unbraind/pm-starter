@@ -2,13 +2,18 @@ id: pm-starter-ubt7
 title: Correct PR 147 tracker audit evidence
 description: "Review round for PR 147: verify every reconciliation against main, correct the contradictory date-gate audit on pm-starter-4n5o through append-only tracker mutations, and regenerate the changelog."
 type: Chore
-status: in_progress
+status: closed
 priority: 2
 tags[2]: review,tracker
 created_at: "2026-10-22T12:11:33.990Z"
-updated_at: "2026-10-22T12:15:23.008Z"
+updated_at: "2026-10-24T23:14:50.348Z"
+closed_at: "2026-10-24T21:48:40.864Z"
+completed_at: "2026-10-22T20:11:05.000Z"
 author: codex-agent
 acceptance_criteria: "The audit comment and close reason name changelog:check with --date-from-version and the publish-attestation verifier accurately; all existing history remains byte-for-byte append-only; tracker-only gates pass or retain explicitly documented baseline diagnostics; leave this review item open for orchestrator verification."
+resolution: Corrects the audit comment and closure attribution for version-derived changelog verification and publish-attestation checks while preserving prior history bytes and tracker-only validation.
+expected_result: "The audit comment and close reason name changelog:check with --date-from-version and the publish-attestation verifier accurately; all existing history remains byte-for-byte append-only; tracker-only gates pass or retain explicitly documented baseline diagnostics; leave this review item open for orchestrator verification."
+actual_result: "https://github.com/unbraind/pm-starter/pull/147, merged 2026-10-22T20:11:05Z, merge c613af05a3d3cef7887a4bb3d1aaac8d6e0b86dc: Corrects the audit comment and closure attribution for version-derived changelog verification and publish-attestation checks while preserving prior history bytes and tracker-only validation."
 dependencies[1]{id,kind,created_at,author,source_kind,author_source}:
   pm-starter-4n5o,related,"2026-10-22T12:11:33.990Z",codex-agent,"cli:create:dep",detected
 comments[3]{created_at,author,text}:
@@ -23,4 +28,5 @@ tests[1]{command,scope,timeout_seconds,pm_context_mode,workspace_context_mode,pr
   "node --input-type=module -e 'import assert from \"node:assert/strict\"; import {readFileSync} from \"node:fs\"; import {execFileSync} from \"node:child_process\"; import {decode} from \"@toon-format/toon\"; const main=JSON.parse(execFileSync(\"git\",[\"show\",\"origin/main:package.json\"],{encoding:\"utf8\"})); const local=JSON.parse(readFileSync(\"package.json\",\"utf8\")); assert.equal(local.scripts[\"release:check\"],main.scripts[\"release:check\"]); assert.ok(main.scripts[\"release:check\"].includes(\"npm run changelog:check\")); assert.ok(main.scripts[\"release:check\"].includes(\"npm run verify:release-publish-attestation\")); for(const name of [\"changelog\",\"changelog:full\",\"changelog:check\",\"release:notes\"]) assert.ok(main.scripts[name].includes(\"--date-from-version\")); const workflow=execFileSync(\"git\",[\"show\",\"origin/main:.github/workflows/release.yml\"],{encoding:\"utf8\"}); const calls=workflow.split(\"\\n\").filter(line=>line.includes(\"npx pm-changelog \")); assert.equal(calls.length,3); for(const line of calls) assert.ok(line.includes(\"--date-from-version\")); const path=\".agents/pm/issues/pm-starter-4n5o.toon\"; const item=decode(process.env.AUDIT_BEFORE===\"1\"?execFileSync(\"git\",[\"show\",\"01715e9:\"+path],{encoding:\"utf8\"}):readFileSync(path,\"utf8\")); assert.equal(item.status,\"closed\"); for(const text of [item.comments[2].text,item.close_reason]) {assert.ok(text.includes(\"release:check runs changelog:check with --date-from-version\")); assert.ok(text.includes(\"verify:release-publish-attestation\")); assert.ok(!text.includes(\"version-date verifier\"));} console.log(\"PASS: 18 tracker evidence assertions against main \"+execFileSync(\"git\",[\"rev-parse\",\"origin/main\"],{encoding:\"utf8\"}).trim());'",project,300,tracker,source,codex-agent,"2026-10-22T12:13:35.252Z",local_mutation,chore/reconcile-tracker-1021
 docs[1]{path,scope}:
   CHANGELOG.md,project
+close_reason: "https://github.com/unbraind/pm-starter/pull/147, merged 2026-10-22T20:11:05Z, merge c613af05a3d3cef7887a4bb3d1aaac8d6e0b86dc: Corrects the audit comment and closure attribution for version-derived changelog verification and publish-attestation checks while preserving prior history bytes and tracker-only validation."
 body: ""
