@@ -2,13 +2,18 @@ id: pm-starter-labs
 title: Run portable capability laboratories with matching backend receipts
 description: "Small executable extension laboratories for directory and synthetic remote adapters. Overlap verified against core extension init, the nine existing starter capability registrations, and the sibling backend conformance project: this feature owns reusable single-capability exercises, not scaffolding or a generated production template."
 type: Feature
-status: in_progress
+status: closed
 priority: 1
 tags: []
 created_at: "2026-10-23T20:00:44.593Z"
-updated_at: "2026-10-23T20:13:13.065Z"
+updated_at: "2026-10-24T21:48:40.779Z"
+closed_at: "2026-10-24T21:48:40.718Z"
+completed_at: "2026-10-24T21:48:40.718Z"
 author: codex-agent
 acceptance_criteria: "Each example runs without Git and proves declared unsupported-capability refusals before mutation.; Typed SDK and CLI return compact identical backend-neutral receipts with remedies, documentation, copied-public-tracker validation, and passing npm and Bun CI release gates."
+resolution: "Backend-neutral read-only labs match directory/remote receipts and refuse unsupported capabilities before mutation, with typed compact no-git SDK/CLI and public-copy plus npm/Bun validation."
+expected_result: "Each example runs without Git and proves declared unsupported-capability refusals before mutation.; Typed SDK and CLI return compact identical backend-neutral receipts with remedies, documentation, copied-public-tracker validation, and passing npm and Bun CI release gates."
+actual_result: "https://github.com/unbraind/pm-starter/pull/149, merged 2026-10-23T20:18:32Z, merge 4f4befe329de2e50d80b5c920577347107f4a094: Backend-neutral read-only labs match directory/remote receipts and refuse unsupported capabilities before mutation, with typed compact no-git SDK/CLI and public-copy plus npm/Bun validation."
 comments[6]{created_at,author,text}:
   "2026-10-23T20:00:47.651Z",codex-agent,"Overlap check: core extension init scaffolds source, manifest and package metadata; starter already registers nine capabilities; pm-ts-starter now additionally owns a generated backend conformance project and complete-list adapter contract. Laboratory scope is two small executable commands/search exercises with host-injected SDK reads, deterministic synthetic transport replay, shared receipts, and preflight refusal probes. No pin bump or Git requirement."
   "2026-10-23T20:05:54.106Z",codex,"SDK reads and both refusal probes pass with Git absent from PATH. The first installed-CLI check caught the existing starter no-op migration writing workspace history during laboratory invocation. Laboratory preflight now disables extension migrations for its two read-only command paths; regression fingerprints durable tracker files, including workspace history, before and after CLI reads and refusals. Strict lint passed using the shared fleet policy; local pm-ops optional lint peers are absent, so the installed canonical policy toolchain was used without changing package pins."
@@ -28,4 +33,5 @@ tests[1]{command,scope,provenance{author,created_at,source_kind,source_ref}}:
 docs[2]{path,scope}:
   docs/capability-laboratories.md,project
   README.md,project
+close_reason: "https://github.com/unbraind/pm-starter/pull/149, merged 2026-10-23T20:18:32Z, merge 4f4befe329de2e50d80b5c920577347107f4a094: Backend-neutral read-only labs match directory/remote receipts and refuse unsupported capabilities before mutation, with typed compact no-git SDK/CLI and public-copy plus npm/Bun validation."
 body: ""
