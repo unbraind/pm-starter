@@ -1,0 +1,30 @@
+id: pm-starter-sdk-adoption-1025
+title: Use SDK-certified complete reads in starter commands and exports
+description: "Replace the audited full-list subprocess and local completeness policy with host listAllComplete and SDK envelope certification; retain failed-read outcomes and integrity refusal. Related prior SDK adoption: pm-starter-fafo; portable host SDK examples: pm-starter-labs."
+type: Task
+status: in_progress
+priority: 1
+tags: []
+created_at: "2026-10-25T17:57:48.894Z"
+updated_at: "2026-10-25T18:12:13.224Z"
+assignee: codex-agent
+claim_principal: codex-agent
+author: codex-agent
+dependencies[2]{id,kind,created_at,author,source_kind,author_source}:
+  pm-starter-fafo,related,"2026-10-25T18:07:32.698Z",codex-agent,"cli:update:dep",detected
+  pm-starter-labs,related,"2026-10-25T18:07:32.698Z",codex-agent,"cli:update:dep",detected
+comments[5]{created_at,author,text}:
+  "2026-10-25T17:57:51.313Z",codex-agent,"Audit scope: index.ts:254-327 owns the full-list subprocess and duplicates completeness checks; adopt host ctx.sdk.client.listAllComplete and certifyCompleteListResult for external envelopes. index.ts:903-919 already uses renderer ownership correctly; retain callback guards as defense in depth. No dependency pin bump. Related SDK adoption pm-starter-fafo and pm-starter-labs. Plan: real non-git trackers, public-corpus before/after differential, stricter-envelope regressions, per-replacement behavioral revert proofs, npm/Bun release gates and review-ready PR."
+  "2026-10-25T18:05:25.636Z",codex-agent,"Implemented host-only async readPmItems: listAllComplete({ includeBody: true }) delegates certification to certifyCompleteListResult, eliminating the external-envelope transport/parser and local completeness policy altogether. No separate external-envelope entry point remains to certify. Both callers await the same explicit outcome. Fresh client.run(\"history\", { id, options: { verify: true, compact: true } }) delegates to verifyHistoryEntries and requires verification.ok before admitting rows. A real SDK event-index cache is primed before same-size record-hash corruption; reader, demo and exporter all refuse it. SDK complete-list alone and the previous strict CLI list did not validate that history hash, so integrity refusal is an intentional stricter behavior. Missing ctx.sdk now fails explicitly; standalone loading remains type-only. Renderer callbacks remain unchanged."
+  "2026-10-25T18:08:06.728Z",codex-agent,"Differential proof: scripts/sdk-differential.ts ran the built origin/main (24849e81615f4bd7adb5e54658539b82bd7cd3d8) and changed implementation on read-only public tracker copies in non-git scratch directories with a git ceiling. pm-starter: 77 items; pm-ts-starter: 84 items. All 10 comparisons passed: reader JSON wire values, demo result, exporter result, exporter stdout, durable-file fingerprints per corpus. No user-visible output differences. SDK in-memory rows retain optional undefined properties omitted by CLI JSON; documented alongside the async helper signature, missing-host refusal and stricter certification/integrity refusal. Dependency pins and coverage thresholds unchanged. There is no lint script; typecheck and the repository docstring gate provide configured source-quality checks."
+  "2026-10-25T18:08:10.385Z",codex-agent,"Revert proof for audited index.ts:254-327 replacement: restoring origin/main index.ts alone makes node --test --test-name-pattern=\"host SDK reads\" test/sdk-adoption.test.ts exit 1 because the actual starter demo command tries to spawn pm with no pm/git on PATH. The regression imports TypeScript directly, so no compiled-output rebuild is needed. Separately removing only the fresh SDK verification loop makes node --test --test-name-pattern=\"fresh verified history\" test/sdk-adoption.test.ts exit 1: the primed-cache corrupted stream is accepted. Restored implementation passes all four targeted tests with zero skips."
+  "2026-10-25T18:12:13.223Z",codex-agent,"Local final gates passed under fresh HOME identities with global/system Git configuration disabled: npm run release:check and bun run release:check each passed 180 tests, zero skipped, with 100% lines/branches/functions across the configured source scope at unchanged thresholds. Typecheck, test typecheck, docstring gate (8 files, 37 declarations), production audit, package dry-run, changelog check and publish-attestation verification passed. Linked pm test run passed all four adoption regressions. Clean-identity strict health passed; default-home health exposed only an unrelated global pm-github host-version skew, without any package-history drift. index.ts diff: 26 added, 167 deleted (141 net lines removed). No missing SDK API blocks this adoption. Ready to push for the CI npm/Bun gates on Node 22 and 26; no merge or release."
+files[3]{path,scope}:
+  index.ts,project
+  scripts/sdk-differential.ts,project
+  test/sdk-adoption.test.ts,project
+tests[1]{command,scope,provenance{author,created_at,source_kind,source_ref}}:
+  node --test test/sdk-adoption.test.ts,project,codex-agent,"2026-10-25T18:05:31.900Z",local_mutation,refactor/sdk-adoption-1025
+docs[1]{path,scope}:
+  README.md,project
+body: ""

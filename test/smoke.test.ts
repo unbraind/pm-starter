@@ -6,6 +6,7 @@ import { join } from "node:path";
 import test from "node:test";
 
 import type { ExtensionApi } from "@unbrained/pm-cli/sdk/authoring";
+import { PmClient, createExtensionCommandSdk } from "@unbrained/pm-cli/sdk";
 import { createExtensionTestHarness, runRegisteredServiceOverrideForTest } from "@unbrained/pm-cli/sdk/testing";
 
 import extension, { optionPositiveInteger, readPmItems } from "../index.ts";
@@ -159,83 +160,6 @@ test("positive integer options honor numeric and string SDK values", () => {
   assert.strictEqual(optionPositiveInteger({ limit: "invalid" }, 10, "limit"), 10);
 });
 
-// --- pm read buffer -----------------------------------------------------------
-// The 64 MiB cap and its ENOBUFS diagnostic are a failure *contract*: a read that
-// outgrows the buffer must not be reported as an empty workspace. The cap is env
-// configurable, which makes the branch testable for real — no spawnSync mocking.
-
-test("readPmItems honors PM_JSON_MAX_BUFFER and reports an overrun instead of returning a silent empty array", async (t) => {
-  const dir = mkdtempSync(join(tmpdir(), "pm-starter-buffer-"));
-  t.after(() => rmSync(dir, { recursive: true, force: true }));
-
-  const pmRoot = join(dir, ".agents", "pm");
-  try {
-    execFileSync("pm", ["init", "--pm-path", pmRoot], { cwd: dir, stdio: "ignore" });
-    execFileSync("pm", ["create", "--pm-path", pmRoot, "--type", "issue", "--title", "Buffer probe item", "--author", "test"], { cwd: dir, stdio: "ignore" });
-  } catch {
-    t.skip("pm CLI unavailable");
-    return;
-  }
-
-  // Sanity: the default cap reads the workspace.
-  const baseline = readPmItems(pmRoot);
-  assert.ok(baseline.ok && baseline.items.length >= 1, "default cap should read the item");
-
-  const messages: string[] = [];
-  const originalError = console.error;
-  const originalCap = process.env.PM_JSON_MAX_BUFFER;
-  console.error = (...values: unknown[]) => messages.push(values.join(" "));
-  // 64 bytes cannot hold any item payload, so the read overruns deterministically.
-  process.env.PM_JSON_MAX_BUFFER = "64";
-  try {
-    const outcome = readPmItems(pmRoot);
-    assert.strictEqual(outcome.ok, false, "the never-throw contract holds, but an overrun is a failed read");
-    assert.match(
-      outcome.reason,
-      /read buffer/,
-      "the overrun must be named in the reason, not merely logged"
-    );
-  } finally {
-    console.error = originalError;
-    if (originalCap === undefined) delete process.env.PM_JSON_MAX_BUFFER;
-    else process.env.PM_JSON_MAX_BUFFER = originalCap;
-  }
-});
-
-test("a malformed PM_JSON_MAX_BUFFER falls back to the default instead of imposing a tiny cap", async (t) => {
-  // parseInt("64MiB") === 64 would have imposed a 64-BYTE cap and broken every
-  // ordinary read while appearing to honor the documented fallback.
-  const dir = mkdtempSync(join(tmpdir(), "pm-starter-badcap-"));
-  t.after(() => rmSync(dir, { recursive: true, force: true }));
-  const pmRoot = join(dir, ".agents", "pm");
-  try {
-    execFileSync("pm", ["init", "--pm-path", pmRoot], { cwd: dir, stdio: "ignore" });
-    execFileSync("pm", ["create", "--pm-path", pmRoot, "--type", "issue", "--title", "Fallback probe item", "--author", "test"], { cwd: dir, stdio: "ignore" });
-  } catch {
-    t.skip("pm CLI unavailable");
-    return;
-  }
-
-  const originalCap = process.env.PM_JSON_MAX_BUFFER;
-  try {
-    for (const malformed of ["64MiB", "64 MB", "abc", "-1", "0", "6.5", ""]) {
-      process.env.PM_JSON_MAX_BUFFER = malformed;
-      const outcome = readPmItems(pmRoot);
-      assert.ok(
-        outcome.ok && outcome.items.length >= 1,
-        `PM_JSON_MAX_BUFFER=${JSON.stringify(malformed)} must fall back to the default, not cap the read`
-      );
-    }
-    // A valid explicit value is still honored.
-    process.env.PM_JSON_MAX_BUFFER = String(32 * 1024 * 1024);
-    const explicit = readPmItems(pmRoot);
-    assert.ok(explicit.ok && explicit.items.length >= 1, "a valid explicit cap should still read the workspace");
-  } finally {
-    if (originalCap === undefined) delete process.env.PM_JSON_MAX_BUFFER;
-    else process.env.PM_JSON_MAX_BUFFER = originalCap;
-  }
-});
-
 // ---------------------------------------------------------------------------
 // Regression: the `output_format` service override MUST decline payloads it
 // does not claim, via the `{ handled: false }` decision.
@@ -334,7 +258,7 @@ test("extension self-reported version matches package.json and manifest.json", (
 });
 
 
-test("readPmItems returns the complete large tracker beyond the default output budget", (t) => {
+test("readPmItems returns the complete large tracker beyond the default output budget", async (t) => {
   const directory = mkdtempSync(join(tmpdir(), "pm-starter-complete-read-"));
   t.after(() => rmSync(directory, { recursive: true, force: true }));
   const pmRoot = join(directory, ".agents", "pm");
@@ -346,7 +270,7 @@ test("readPmItems returns the complete large tracker beyond the default output b
       stdio: "ignore",
     });
   }
-  const outcome = readPmItems(pmRoot);
+  const outcome = await readPmItems({ sdk: createExtensionCommandSdk(pmRoot, new PmClient({ pmRoot, noExtensions: true })) });
   assert.ok(outcome.ok, outcome.ok ? "complete read" : outcome.reason);
   assert.equal(outcome.items.length, 6);
   assert.ok(outcome.items.every((item) => item.body === body));

@@ -148,6 +148,29 @@ implementation; the real CLI supplies the live `api` object at activation time.
 For the same reason the `EXIT_CODE` / `CommandError` error contract is
 re-implemented locally rather than imported from the SDK.
 
+## Complete SDK reads
+
+`starter demo` and `starter-demo export` use `ctx.sdk.client.listAllComplete`
+with full bodies, including closed and canceled items. The SDK calls
+`certifyCompleteListResult` itself: there is no external JSON envelope parser
+or local completeness policy left in this package. Both commands then call the
+SDK history action with `verify: true` for each item. That action reads fresh
+history and uses `verifyHistoryEntries`, including comparison with the current
+item, before returning a verification receipt. A cached event index is never
+accepted as integrity evidence. These reads work without `pm` or `git` on PATH.
+
+These commands require a host that injects `ctx.sdk` (pm-cli >=2026.10.20).
+Older hosts receive an explicit failed-read outcome. Failed or incomplete reads
+continue to fail with exit code 1, including exports; they never become an empty
+workspace. SDK certification is intentionally stricter about counts, unique IDs,
+full projections, unbounded delivery and omission receipts. Invalid history now
+fails explicitly, even if a previous cached read succeeded. `PM_JSON_MAX_BUFFER`
+continues to apply to the other subprocess examples; SDK reads do not use it.
+The exported `readPmItems` helper now accepts the host SDK context and returns a
+Promise. The former `describeListAllIncompleteness` helper was removed with its
+local policy. SDK rows can retain optional properties with value `undefined`
+that CLI JSON omitted; their serialized values are identical. Renderer ownership and callback guards retain their existing scope.
+
 ## SDK 2026.7.6 patterns
 
 The starter demonstrates several patterns introduced or stabilized in the

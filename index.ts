@@ -6,8 +6,8 @@
 //
 // Each demonstration is labelled in comments as "DEMO: <capability>" and is
 // deliberately INERT — no destructive behavior and no network access. The demos
-// only read (via `pm ... --json`), print, or return data; they never delete or
-// mutate your workspace on their own.
+// only read (via the host SDK or `pm ... --json`), print, or return data; they
+// never delete or mutate your workspace on their own.
 //
 // ---------------------------------------------------------------------------
 // CAPABILITY → setup function → manifest capability  (see README for the full
@@ -210,20 +210,6 @@ function pmJsonMaxBuffer(): number {
   return Number.isSafeInteger(raw) && raw > 0 ? raw : 64 * 1024 * 1024;
 }
 
-/** Name the real cause of a failed `pm` read. A stdout overrun kills the child
- * with `status: null` and EMPTY stderr, so without this the failure surfaces as
- * an unexplained error (or, worse, as an empty result set). */
-function describePmReadFailure(error: Error, limitBytes: number): string {
-  const code = (error as NodeJS.ErrnoException).code;
-  if (code === "ENOBUFS") {
-    // This read is always the full workspace, so "narrow the operation" would be a
-    // dead instruction here — name only the lever the reader actually has.
-    return `pm output exceeded the ${limitBytes} byte read buffer. `
-      + "Raise PM_JSON_MAX_BUFFER (in bytes) to increase the read limit for this workspace.";
-  }
-  return `pm read failed: ${error.message}`;
-}
-
 /**
  * The outcome of a workspace read: either the rows, or the reason there are none.
  *
@@ -240,164 +226,37 @@ export type PmReadOutcome =
   | { readonly ok: false; readonly reason: string };
 
 /**
- * Safely read all items from the workspace by shelling out to `pm`.
+ * Read the whole tracker through the host SDK, preserving explicit failure.
  *
- * Never throws, so demos cannot blow up at activation/read time — but it also
- * never reports a failed read as an empty workspace. Every failure path returns
- * `{ ok: false, reason }` naming what went wrong, and callers turn that into a
- * {@link CommandError} rather than rendering it as "no items". This is the SAFE
- * read pattern every demo reuses.
- *
- * @param pmRoot - Workspace root passed through to `pm --path`.
- * @returns The rows on a proven-complete read, or the reason the read failed.
+ * listAllComplete uses certifyCompleteListResult for strict, full, unbounded
+ * delivery. A fresh verified history read checks each item against its durable
+ * stream before any row reaches a command or exporter. History's verification
+ * delegates to verifyHistoryEntries, rather than trusting the cached event index.
+ * No runtime SDK import or pm/git subprocess is required.
  */
-export function readPmItems(pmRoot: string): PmReadOutcome {
-  const maxBuffer = pmJsonMaxBuffer();
-  const result = spawnSync(
-    "pm",
-    ["--path", pmRoot, "list", "--status", "all", "--full", "--include-body", "--no-truncate", "--strict-read", "--json"],
-    { encoding: "utf-8", maxBuffer },
-  );
-  if (result.error) {
-    return { ok: false, reason: describePmReadFailure(result.error, maxBuffer) };
-  }
-  if (result.status !== 0) {
-    return {
-      ok: false,
-      reason: `pm exited ${result.status} — ${result.stderr?.trim() || "no stderr output"}`,
-    };
-  }
-  let parsed: unknown;
+export async function readPmItems(ctx: Pick<CommandHandlerContext, "sdk">): Promise<PmReadOutcome> {
+  if (!ctx.sdk) return { ok: false, reason: "This read requires a pm host with ctx.sdk (pm-cli >=2026.10.20)." };
   try {
-    parsed = JSON.parse(result.stdout);
-  } catch (err) {
-    // Kept separate from the incompleteness check below so the diagnostic names
-    // the actual failure: unparseable output is a different problem from a
-    // parsed envelope that admits it is partial.
-    return {
-      ok: false,
-      reason: `could not parse \`pm list --status all --json\` output: ${err instanceof Error ? err.message : String(err)}`,
-    };
+    const result = await ctx.sdk.client.listAllComplete({ includeBody: true });
+    for (const item of result.items) {
+      const history = await ctx.sdk.client.run("history", { id: item.id, options: { verify: true, compact: true } });
+      if (readPath(history, "verification", "ok") !== true) {
+        return { ok: false, reason: `history integrity verification failed for ${item.id}` };
+      }
+    }
+    return { ok: true, items: result.items };
+  } catch (error) {
+    return { ok: false, reason: String(error) };
   }
-  // A bare array carries no completeness receipt, so it cannot prove it is the
-  // whole workspace — and an unprovable answer is exactly what this reader
-  // exists to refuse. Accepting it would leave a legacy-shaped partial response
-  // as an open bypass around every check below.
-  if (Array.isArray(parsed)) {
-    return {
-      ok: false,
-      reason: "`pm list --status all --json` returned a bare array, which carries no completeness receipt to verify",
-    };
-  }
-  // Anything that is not an object carries no receipt either, and
-  // `describeListAllIncompleteness` answers `null` for every non-object — so
-  // without this check a payload of `null`, `false`, `42` or `"text"` would
-  // fall through to an absent rows field and be reported as a successful empty
-  // workspace. That is the bare-array fail-open one shape over.
-  if (!isObject(parsed)) {
-    return {
-      ok: false,
-      reason: `\`pm list --status all --json\` returned ${parsed === null ? "null" : typeof parsed}, which carries no completeness receipt to verify`,
-    };
-  }
-  const incomplete = describeListAllIncompleteness(parsed);
-  if (incomplete) {
-    // A truncated or degraded envelope is a FAILED read that looks like a
-    // successful one: `items` is present and parses, so without this check the
-    // demo renders a partial workspace and reports success.
-    return { ok: false, reason: `refusing an incomplete pm read — ${incomplete}` };
-  }
-  const rows = readPath(parsed, "items") ?? readPath(parsed, "results");
-  if (rows === undefined) return { ok: true, items: [] };
-  if (!Array.isArray(rows)) {
-    return { ok: false, reason: "`pm list --status all --json` returned a non-array rows field" };
-  }
-  // Dropping unusable rows would contradict everything above: the receipt said
-  // this answer is the whole workspace, so silently returning fewer rows than it
-  // contains is a partial read reported as a complete one — the exact failure
-  // this reader exists to refuse, arriving through the row payload instead of
-  // through the receipt.
-  const unusable = rows.findIndex((row) => !isObject(row));
-  if (unusable !== -1) {
-    return {
-      ok: false,
-      reason: `\`pm list --status all --json\` returned an unusable row at index ${unusable} (${rows[unusable] === null ? "null" : typeof rows[unusable]}); the receipt claimed a complete answer, so dropping it would report a shortened workspace as complete`,
-    };
-  }
-  return { ok: true, items: rows as Array<Record<string, unknown>> };
 }
 
-/**
- * Read the workspace or fail the command, so a failed read never renders as an
- * empty one.
- *
- * @param pmRoot - Workspace root passed through to `pm --path`.
- * @returns The rows of a proven-complete read.
- * @throws {CommandError} With {@link EXIT_CODE.GENERIC_FAILURE} when the read failed.
- */
-function readPmItemsOrFail(pmRoot: string): Array<Record<string, unknown>> {
-  const outcome = readPmItems(pmRoot);
+/** Read verified complete rows or fail with the command runtime's semantic exit code. */
+async function readPmItemsOrFail(ctx: Pick<CommandHandlerContext, "sdk">): Promise<Array<Record<string, unknown>>> {
+  const outcome = await readPmItems(ctx);
   if (!outcome.ok) {
     throw new CommandError(`pm-starter: could not read pm items — ${outcome.reason}`, EXIT_CODE.GENERIC_FAILURE);
   }
   return outcome.items;
-}
-
-/**
- * Render one count field for the scale suffix, tolerating a field the installed
- * CLI does not emit or emits as something other than a number.
- */
-function readCount(envelope: unknown, key: string): string {
-  const value = readPath(envelope, key);
-  return typeof value === "number" ? String(value) : "?";
-}
-
-/**
- * Name the reason a `pm list --status all` envelope is not the whole workspace, or
- * return `null` when it is complete.
- *
- * The envelope has carried a completeness receipt since 2026.8.15, and reading
- * `.items` without consulting it is how a partial answer becomes a
- * successful-looking result. That is not hypothetical: pm-cli 2026.8.14 returned
- * 10 items of a 682-item workspace with `truncated: true`, and every consumer
- * that ignored the receipt reported success on 1.5% of the data.
- *
- * Four independent signals each mean "the rows you got are not all the rows".
- * A missing `completeness` object counts as incomplete rather than complete: an
- * answer that cannot be verified is not a verified answer, and treating absence
- * as success is the same mistake one level up.
- *
- * @param envelope - Parsed `pm list --status all --json` output.
- * @returns A human-readable reason naming the tripped signal and the
- *          count-versus-total figures, or `null` if the answer is complete.
- */
-export function describeListAllIncompleteness(envelope: unknown): string | null {
-  // A non-object, or a bare ARRAY, carries no receipt to contradict — and an
-  // array is `typeof "object"`, so it must be excluded explicitly or the check
-  // reports every array as "completeness absent". `readPmItems` already handles
-  // the array shape on its own line above; only an ENVELOPE can claim to be
-  // incomplete.
-  if (!isObject(envelope)) return null;
-  // Every field below is read through `readPath` rather than asserted with a
-  // cast. These values come from whichever pm build the user has installed, so
-  // their types are an assumption, not a guarantee — and a cast that turns out
-  // to be wrong fails the comparison silently, which for a completeness receipt
-  // means reporting "complete" for an answer that never claimed to be.
-  const scale = `${readCount(envelope, "count")} of ${readCount(envelope, "total")} item(s) returned`;
-  if (readPath(envelope, "truncated") === true) return `the row list was truncated (${scale})`;
-  if (readPath(envelope, "has_more") === true) return `more rows exist past the returned page (${scale})`;
-  const status = readPath(envelope, "completeness", "status");
-  if (status !== "complete") {
-    // Anything that is not the literal string "complete" is treated as
-    // incomplete, including a non-string the cast would previously have let
-    // through untyped.
-    const described = status === undefined ? "absent" : JSON.stringify(status);
-    return `completeness.status is ${described}, not "complete" (${scale})`;
-  }
-  if (readPath(envelope, "omission_receipt", "has_omissions") === true) {
-    return `field groups were omitted from the projection (${scale})`;
-  }
-  return null;
 }
 
 // ---------------------------------------------------------------------------
@@ -530,10 +389,10 @@ function setupCommands(api: ExtensionApi): void {
     intent: "demonstrate a command result flowing through a custom renderer",
     examples: ["pm starter demo", "pm starter demo --json"],
     failure_hints: [
-      "The demo reads items via `pm list --status all --json`; ensure the workspace is initialized.",
+      "The demo uses host SDK complete reads and verified history; initialize the workspace and use pm-cli >=2026.10.20.",
     ],
     async run(ctx: CommandHandlerContext) {
-      const items = readPmItemsOrFail(ctx.pm_root);
+      const items = await readPmItemsOrFail(ctx);
       // Return a small, predictable shape the renderer override can recognize.
       return {
         starter_demo: true,
@@ -1067,7 +926,7 @@ function setupImportExport(api: ExtensionApi): void {
   // Read-only: serializes the current items to a compact JSON payload and
   // prints it (or returns it for --json hosts). Never writes to disk.
   api.registerExporter("starter-demo", async (ctx: ImportExportContext) => {
-    const items = readPmItemsOrFail(ctx.pm_root);
+    const items = await readPmItemsOrFail(ctx);
     const payload = items.map((i) => ({
       id: i.id,
       title: i.title,
