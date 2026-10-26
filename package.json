@@ -43,7 +43,7 @@
     "verify:release-publish-attestation": "node scripts/verify-release-publish-attestation.ts"
   },
   "peerDependencies": {
-    "@unbrained/pm-cli": ">=2026.8.15"
+    "@unbrained/pm-cli": ">=2026.8.18"
   },
   "devDependencies": {
     "@types/node": "26.6.5",
