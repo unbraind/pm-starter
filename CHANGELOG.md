@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Other
+
+- Use SDK-certified complete reads in starter commands and exports ([pm-starter-sdk-adoption-1025](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/tasks/pm-starter-sdk-adoption-1025.toon))
+
 ## 2026.10.25 - 2026-10-25
 
 ### Added
