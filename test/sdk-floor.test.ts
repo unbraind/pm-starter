@@ -1,7 +1,7 @@
 /** Bind supported hosts to source-derived SDK calls and published first-release evidence. */
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { relative, resolve, sep } from "node:path";
+import { relative, resolve } from "node:path";
 import test from "node:test";
 import { checkExtensionManifestCompatibility } from "@unbrained/pm-cli/sdk";
 import * as syntax from "typescript/unstable/ast";
@@ -123,7 +123,8 @@ function collect(): string[] {
         }
         node.forEachChild(visit);
       }
-      const files = program.getSourceFileNames().filter(file => file.startsWith(root + sep) && runtime(file));
+      const prefix = root.replaceAll("\\", "/") + "/";
+      const files = program.getSourceFileNames().filter(file => file.replaceAll("\\", "/").startsWith(prefix) && runtime(file));
       assert.ok(files.length > 0, "an empty source scan cannot certify SDK compatibility");
       for (const file of files) {
         const source = program.getSourceFile(file);
