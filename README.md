@@ -159,8 +159,11 @@ history and uses `verifyHistoryEntries`, including comparison with the current
 item, before returning a verification receipt. A cached event index is never
 accepted as integrity evidence. These reads work without `pm` or `git` on PATH.
 
-These commands require a host that injects `ctx.sdk` (pm-cli >=2026.10.20).
-Older hosts receive an explicit failed-read outcome. Failed or incomplete reads
+Install and activation require pm-cli >=2026.8.18, the first published stable
+release with `PmClient.listAllComplete`. The development SDK remains pinned to
+2026.10.20. See the [published API inventory](docs/sdk-floor.md) for every used
+capability and its first-release artifact evidence. Hosts without SDK injection
+receive an explicit failed-read outcome. Failed or incomplete reads
 continue to fail with exit code 1, including exports; they never become an empty
 workspace. SDK certification is intentionally stricter about counts, unique IDs,
 full projections, unbounded delivery and omission receipts. Invalid history now
