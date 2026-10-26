@@ -19,7 +19,6 @@
 
 ### Fixed
 
-- Fix release publish ordering before protected main push ([pm-starter-nf9d](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/issues/pm-starter-nf9d.toon))
 - The changelog gate stamps an untagged version with the current date, so its verdict flips every midnight with no commit ([pm-starter-4n5o](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/issues/pm-starter-4n5o.toon))
 - The release job authenticated with a stored npm token that expired, so publishing stopped while every other gate stayed green ([pm-starter-fllw](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/issues/pm-starter-fllw.toon))
 - A release run bumped and committed a new version every night while publishing was impossible, because the only externally-failable step runs last ([pm-starter-kjvk](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/issues/pm-starter-kjvk.toon))
@@ -27,6 +26,10 @@
 ### Other
 
 - Certify pm-starter on PM CLI/SDK 2026.10.4 and consolidate pending dependency updates ([pm-starter-cz6b](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/chores/pm-starter-cz6b.toon))
+
+### Closed
+
+- Closed: Fix release publish ordering before protected main push ([pm-starter-nf9d](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/issues/pm-starter-nf9d.toon))
 
 ## 2026.10.5 - 2026-10-05
 
@@ -89,17 +92,23 @@
 
 ### Fixed
 
-- Pin pm-changelog 2026.8.30 before the next release ([pm-starter-pjdl](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/issues/pm-starter-pjdl.toon))
 - Regenerate the changelog after the release tag exists ([pm-starter-b41g](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/issues/pm-starter-b41g.toon))
+
+### Closed
+
+- Closed: Pin pm-changelog 2026.8.30 before the next release ([pm-starter-pjdl](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/issues/pm-starter-pjdl.toon))
 
 ## 2026.8.29 - 2026-08-29
 
 ### Fixed
 
 - A failed provenance publish silently falls back to an unattested one ([pm-starter-uxmy](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/issues/pm-starter-uxmy.toon))
-- Close PR 82 attestation audit bypasses ([pm-starter-83vb](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/issues/pm-starter-83vb.toon))
 - The publish-attestation gate misses a publish routed through an unquoted shell variable ([pm-starter-74p9](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/issues/pm-starter-74p9.toon))
 - Fix same-line scalar assignment bypass in publish attestation scanner ([pm-starter-2899](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/issues/pm-starter-2899.toon))
+
+### Closed
+
+- Closed: Close PR 82 attestation audit bypasses ([pm-starter-83vb](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/issues/pm-starter-83vb.toon))
 
 ## 2026.8.28 - 2026-08-28
 
@@ -107,13 +116,13 @@
 
 - changelog scripts read the workspace with default budgets, so pm-changelog refuses complete-read checks once the tracker exceeds one page ([pm-starter-ibm7](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/issues/pm-starter-ibm7.toon))
 
-### Security
-
-- The identity gate deadlocks the one remediation its own failure message prescribes ([pm-starter-tf19](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/issues/pm-starter-tf19.toon))
-
 ### Other
 
 - Retire stale PR 65 evidence note after revert 67 ([pm-starter-pmnm](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/tasks/pm-starter-pmnm.toon))
+
+### Closed
+
+- Closed: The identity gate deadlocks the one remediation its own failure message prescribes ([pm-starter-tf19](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/issues/pm-starter-tf19.toon))
 
 ## 2026.8.17 - 2026-08-17
 
@@ -186,13 +195,13 @@
 
 ## 2026.7.28 - 2026-07-28
 
-### Fixed
-
-- Extension reports a stale runtime version after the 2026.7.27 bump ([pm-starter-1atg](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/issues/pm-starter-1atg.toon))
-
 ### Other
 
 - Adopt pm-cli 2026.7.28 ([pm-starter-evym](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/chores/pm-starter-evym.toon))
+
+### Closed
+
+- Closed: Extension reports a stale runtime version after the 2026.7.27 bump ([pm-starter-1atg](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/issues/pm-starter-1atg.toon))
 
 ## 2026.7.27 - 2026-07-27
 
@@ -202,33 +211,33 @@
 
 ## 2026.7.26 - 2026-07-26
 
-### Fixed
-
-- Starter template used any throughout, hiding three wrong SDK contracts and three unguarded pm reads ([pm-starter-kre3](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/issues/pm-starter-kre3.toon))
-
 ### Other
 
 - Enable governance duplicate-detection advisory mode and adopt pm-cli 2026.7.25 ([pm-starter-tfh8](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/chores/pm-starter-tfh8.toon))
 
+### Closed
+
+- Closed: Starter template used any throughout, hiding three wrong SDK contracts and three unguarded pm reads ([pm-starter-kre3](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/issues/pm-starter-kre3.toon))
+
 ## 2026.7.25 - 2026-07-25
-
-### Fixed
-
-- pm item reads are capped at Node's 1 MiB spawnSync default, so a mature tracker fails with no diagnosis ([pm-starter-y8hb](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/issues/pm-starter-y8hb.toon))
 
 ### Other
 
 - Adopt --respect-item-release in changelog scripts and bump pm-changelog to 2026.7.24 ([pm-starter-toz4](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/chores/pm-starter-toz4.toon))
 
+### Closed
+
+- Closed: pm item reads are capped at Node's 1 MiB spawnSync default, so a mature tracker fails with no diagnosis ([pm-starter-y8hb](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/issues/pm-starter-y8hb.toon))
+
 ## 2026.7.23 - 2026-07-23
-
-### Fixed
-
-- Recommend pm merge reconcile (2026.7.22) over raw history-repair in Multi-agent merge safety docs ([pm-starter-ll3f](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/issues/pm-starter-ll3f.toon))
 
 ### Other
 
 - Adopt pm field-aware merge driver for multi-agent branch-merge safety ([pm-starter-ey52](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/chores/pm-starter-ey52.toon))
+
+### Closed
+
+- Closed: Recommend pm merge reconcile (2026.7.22) over raw history-repair in Multi-agent merge safety docs ([pm-starter-ll3f](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/issues/pm-starter-ll3f.toon))
 
 ## 2026.7.19 - 2026-07-19
 

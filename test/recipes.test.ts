@@ -6,6 +6,7 @@ import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import test, { type TestContext } from "node:test";
 import { PmClient, createExtensionCommandSdk } from "@unbrained/pm-cli/sdk";
+import type { GetOptions, PmReadOutputOptions } from "@unbrained/pm-cli/sdk/core";
 import { createExtensionTestHarness } from "@unbrained/pm-cli/sdk/testing";
 import extension from "../index.ts";
 import {
@@ -126,7 +127,7 @@ test("empty, unavailable and changed real sources fail explicitly without fabric
     const host = createExtensionCommandSdk(peerRoot, reader);
     const observed = { ...host, client: { ...host.client,
       async listAllComplete() { await transition(); return reader.listAllComplete(); },
-      async get(id: string) { await transition(); return reader.get(id); },
+      async get<Options extends GetOptions & PmReadOutputOptions>(id: string, options?: Options) { await transition(); return reader.get<Options>(id, options); },
       list: reader.list.bind(reader), graph: reader.graph.bind(reader), run: reader.run.bind(reader),
     } };
     const result = await runFailureFirstRecipes(observed, { recipe: "missing-item" });
