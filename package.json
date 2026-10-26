@@ -18,7 +18,8 @@
     "manifest.json",
     "README.md",
     "CHANGELOG.md",
-    "docs/capability-laboratories.md"
+    "docs/capability-laboratories.md",
+    "docs/failure-first-recipes.md"
   ],
   "scripts": {
     "build": "tsc",
@@ -91,11 +92,13 @@
     "docs": [
       "README.md",
       "CHANGELOG.md",
-      "docs/capability-laboratories.md"
+      "docs/capability-laboratories.md",
+      "docs/failure-first-recipes.md"
     ],
     "examples": [
       "README.md",
-      "docs/capability-laboratories.md"
+      "docs/capability-laboratories.md",
+      "docs/failure-first-recipes.md"
     ]
   },
   "publishConfig": {

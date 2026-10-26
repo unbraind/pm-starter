@@ -117,8 +117,8 @@ acceptance is a separate concern. A changing source fails parity explicitly.
 
 ## Without git
 
-All starter commands, the read-only exporters, and both laboratories work in a plain
-initialized tracker with no Git executable. Creating or running a laboratory needs
+All starter commands, the read-only exporters, both laboratories and the failure-first
+recovery recipes work in a plain initialized tracker with no Git executable. Creating or running a laboratory needs
 no repository. Cloning the starter and repository release/changelog automation need
 Git. Laboratory commands require a host that injects the SDK (tested with 2026.10.20)
 and return an actionable refusal when it is absent.
@@ -247,3 +247,19 @@ npx pm github sync --repo unbraind/pm-starter --dry-run
 ```
 
 This does not enable scheduled sync. See `docs/certification-2026.10.4.md` for validation and copied-real-tracker evidence. Whole-executable and statement coverage remains tracked in `pm-starter-puy5`.
+
+## Failure-first task recipes
+
+`pm starter recover --json` deliberately encounters three native refusals and
+finishes each read through a structured recovery contract. Use
+`--recipe missing-item|unsupported-capability|insufficient-budget` for one loop,
+or `--output-format toon` for compact TOON receipts. The typed
+`runFailureFirstRecipes(ctx.sdk, { recipe: 'all' })` API uses the same code path.
+
+The workflows discover a valid item ID, select an advertised graph read, and
+recover an infeasible output budget using the SDK's certified complete-list
+helper. They read existing trackers without Git and never execute suggested
+shell text or write item data. Each receipt asserts its native discriminator,
+remedy and successful retry; the missing-item SDK classifier is labeled
+explicitly. See the [runnable CLI and SDK examples](docs/failure-first-recipes.md)
+for contracts, refusal codes and concurrency limits.

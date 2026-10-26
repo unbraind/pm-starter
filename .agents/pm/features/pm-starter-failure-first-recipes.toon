@@ -1,0 +1,29 @@
+id: pm-starter-failure-first-recipes
+title: Recover read-only tasks from native refusals
+description: "Acceptance: missing item, unsupported capability and insufficient budget recipes use real non-git trackers, assert native code and structured remedy, execute corrected read-only invocation, and never scrape human error prose. Provide typed SDK and agent-sized JSON/TOON CLI, README and runnable example, strict boundary and extreme-value tests, revert proof, read-only public tracker measurements, and npm/Bun CI release gates."
+type: Feature
+status: in_progress
+priority: 2
+tags: []
+created_at: "2026-10-26T01:39:06.987Z"
+updated_at: "2026-10-26T02:04:21.034Z"
+author: codex-agent
+comments[6]{created_at,author,text}:
+  "2026-10-26T01:39:16.643Z",codex-agent,"Overlap check: core SDK owns expected errors, recovery payloads, read-output budget remedies and command capability contracts. pm-starter laboratories already establish certified directory/synthetic read parity with extension-owned mutation refusal; pm-ts-starter covers scaffold/contracts and rehearsal. This feature composes native refusals into completed read-only recovery loops, without another catalog, mock backend, importer, sync engine or journal. No shared durable state, status classification or import/export mutations are introduced. Retain pinned SDK 2026.10.20; current registry CLI is 2026.10.25."
+  "2026-10-26T01:48:34.609Z",codex-agent,"Implemented host-bound typed recipes and starter recover. Native missing-item errors on the pinned SDK lack context.code, so receipts identify the public SDK classifier as code_source rather than claiming an emitted field. Unsupported graph capability uses native unknown_subcommand plus allowed_values; insufficient budget uses native requested_budget_infeasible plus recovery.outputBudget. Retries are fixed SDK reads. Targeted native/no-git and extreme-value tests pass; seeded 500-sequence state replay validation and public-copy measurements are underway. No import/export/sync, journal, status classification or shared mutable state was added, so mutation round-trip and lease rules introduce no new paths here."
+  "2026-10-26T01:56:24.104Z",codex-agent,"Revert proof: removed only the corrected graph ancestors await from runFailureFirstRecipes. The real native call-trace regression failed 1/1 because graph:ok was absent; restored implementation passed. Four targeted contract tests pass with recipes.ts measured at 100% lines, branches and functions. npm run typecheck, npm run build:test and npm run docstring pass; no lint script is defined. Seed 0x51f17e passed 500 operation sequences (1000 recovery invocations plus 500 canonical SDK state readbacks) with native custom status roles, CRLF bodies, dependencies, artifacts and log entries. No handwritten normalization or SDK backend mocks."
+  "2026-10-26T01:56:28.508Z",codex-agent,"Real-data validation: public pm-starter main 4f39fb2e9d207ad47297102bb56a1863568e6e58 copied into a non-git scratch project; extension setup preceded read-only baseline. 78 certified items including terminal work, 78 graph nodes, 11 directed edges, 162 public files and 1072404 source bytes. All 3 recipes recovered. Authoritative files were mode 0444; SDK readback state and durable bytes unchanged. With no Git executable, both CLI 2026.10.20 and 2026.10.25 returned exit 0, JSON 811 bytes and TOON 455 bytes. SDK JSON was 617 bytes; one SDK run took 1044 ms. Full release gates are delegated to CI npm and Bun per the host CPU constraint; results will be linked in the PR."
+  "2026-10-26T02:00:45.130Z",codex-agent,"Final CLI regression additionally checks core item_not_found JSON on stderr with exit 3. That independent diagnostic probe uses no extensions so unrelated native-command migration setup cannot contaminate the recovery commands durable-state baseline. Clean-HOME strict health passes; the interactive environment has a global extension host-version-skew warning, which does not reproduce in the CI identity. No dependency pin or global configuration was changed."
+  "2026-10-26T02:04:15.707Z",codex-agent,"Final linked test execution passed: npx pm test pm-starter-failure-first-recipes --run --progress ran the registered targeted coverage command, 6/6 tests passing, 0 failures/skips/cancellations, recipes.ts 100% lines/branches/functions. This includes the packaged CLI and the 500-sequence SDK-readback model. Native durable test recording is disabled in the tracker; this comment preserves the receipt without changing tracking policy. Typecheck, test typecheck, docstring gate and clean-HOME strict health passed. Implementation is ready for CI npm/Bun full release gates and orchestrator review."
+files[5]{path,scope}:
+  index.ts,project
+  package.json,project
+  recipes.ts,project
+  test/recipes.test.ts,project
+  test/smoke.test.ts,project
+tests[1]{command,scope,timeout_seconds,provenance{author,created_at,source_kind,source_ref}}:
+  node --experimental-test-coverage --test-coverage-include=recipes.ts --test-coverage-lines=100 --test-coverage-branches=100 --test-coverage-functions=100 --test test/recipes.test.ts,project,420,codex-agent,"2026-10-26T01:53:48.258Z",local_mutation,feat/failure-first-task-recipes
+docs[2]{path,scope}:
+  docs/failure-first-recipes.md,project
+  README.md,project
+body: ""
