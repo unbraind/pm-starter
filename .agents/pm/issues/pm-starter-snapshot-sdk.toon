@@ -1,0 +1,11 @@
+id: pm-starter-snapshot-sdk
+title: Snapshot linked-test extension installation can replace the source SDK with a self-symlink
+description: "Running the linked recipes test with no PM context and snapshot workspace exposes shared node_modules through a symlink. The packaged extension-install fixture then replaces the source SDK dependency with a self-referential link. Subsequent source typecheck cannot resolve the SDK. Reproduce through pm test on the recipes fixture; npm ci restores the dependency tree. This affects linked-test snapshot isolation, not package runtime behavior. Evidence is recorded on pm-starter-7tp5."
+type: Issue
+status: open
+priority: 2
+tags: []
+created_at: "2026-10-26T18:19:52.063Z"
+updated_at: "2026-10-26T18:19:52.063Z"
+author: codex-agent
+body: ""
