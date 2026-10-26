@@ -46,6 +46,8 @@
 import { spawnSync } from "node:child_process";
 import { runExportLaboratory, runLaboratoryCommand } from "./laboratories.js";
 export * from "./laboratories.js";
+import { runFailureFirstCommand } from "./recipes.js";
+export * from "./recipes.js";
 // Standalone-installed extensions load ONLY their own `dist/` at runtime, so
 // `@unbrained/pm-cli` is not resolvable as a runtime value. We therefore use the
 // zero-runtime-coupling pattern: import `defineExtension` as a TYPE only and
@@ -228,6 +230,14 @@ async function readPmItemsOrFail(ctx) {
  * @param api - The extension API surface passed to `activate`.
  */
 function setupCommands(api) {
+    api.registerCommand({
+        name: "starter recover",
+        description: "Encounter native refusals and finish read-only tasks through their structured remedies.",
+        examples: ["pm starter recover --json", "pm starter recover --recipe insufficient-budget"],
+        flags: [{ long: "--recipe", value_name: "recipe", type: "string", description: "all (default), missing-item, unsupported-capability or insufficient-budget." }],
+        failure_hints: ["Select an initialized tracker with at least one item and a host with ctx.sdk."],
+        run: runFailureFirstCommand,
+    });
     api.registerCommand({
         name: "starter lab",
         description: "Run one read-only capability laboratory on directory and synthetic remote adapters.",
@@ -930,7 +940,7 @@ function setupPreflight(api) {
         return {
             enforce_item_format_gate: d.enforce_item_format_gate ?? true,
             run_preflight_item_format_sync: d.run_preflight_item_format_sync ?? false,
-            run_extension_migrations: ctx.command === "starter lab" || ctx.command === "starter-lab export"
+            run_extension_migrations: ctx.command === "starter lab" || ctx.command === "starter-lab export" || ctx.command === "starter recover"
                 ? false : d.run_extension_migrations ?? true,
             enforce_mandatory_migration_gate: d.enforce_mandatory_migration_gate ?? false,
         };
