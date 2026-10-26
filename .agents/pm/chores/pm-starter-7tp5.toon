@@ -2,20 +2,26 @@ id: pm-starter-7tp5
 title: "Make the 2026.10.23 pm toolchain bump pass: the recipes test host double dropped the SDK's generic ReadPromise get signature"
 description: ""
 type: Chore
-status: in_progress
+status: closed
 priority: 1
 tags: []
 created_at: "2026-10-26T17:19:26.880Z"
-updated_at: "2026-10-26T17:19:47.534Z"
-assignee: codex
-claim_principal: codex
+updated_at: "2026-10-26T17:26:07.582Z"
+closed_at: "2026-10-26T17:25:34.616Z"
+completed_at: "2026-10-26T17:25:34.616Z"
 author: codex
-comments[1]{created_at,author,text}:
+resolution: x
+expected_result: y
+actual_result: z
+comments[3]{created_at,author,text}:
   "2026-10-26T17:19:42.879Z",codex,"Cause: pm-cli 2026.10.23 changed PmClient.get to a generic ReadPromise<GetResult, Options> signature (read-output contracts), so the recipes test hand-rolled peer-transition double (async get(id) returning Promise<GetResult>) no longer satisfied FailureFirstHost and the test build failed with TS2345 at test/recipes.test.ts(132,49).\nFix: keep the double delegating to the real SDK client but make its get wrapper a faithful generic passthrough (Options extends GetOptions & PmReadOutputOptions, forwarding id and options to reader.get); no casts, no widened double, no loosened assertions. CHANGELOG.md regenerated with the bumped pm-changelog, which now emits a Closed section for closed tracker items.\nEvidence: tsc -p tsconfig.test.json exits 0; node --test --test-concurrency=2 test/recipes.test.ts 6/6 pass; npm run release:check green locally (coverage-gate thresholds met, changelog up to date, attestation ok)."
+  "2026-10-26T17:25:31.417Z",codex,"Fix commit 59d894b pushed to dependabot/npm_and_yarn/pm-toolchain-c2eb260544. CI green: test (22) https://github.com/unbraind/pm-starter/actions/runs/40367610067/job/121729458671 and test (26) https://github.com/unbraind/pm-starter/actions/runs/40367610067/job/121729459482, plus CodeQL, codeql, enable-auto-merge, Sourcery, CodeRabbit, Hound all green. PR: https://github.com/unbraind/pm-starter/pull/159"
+  "2026-10-26T17:25:41.957Z",codex,"Fix commit 59d894b pushed to dependabot/npm_and_yarn/pm-toolchain-c2eb260544. CI green: test (22) https://github.com/unbraind/pm-starter/actions/runs/40367610067/job/121729458671 and test (26) https://github.com/unbraind/pm-starter/actions/runs/40367610067/job/121729459482. PR: https://github.com/unbraind/pm-starter/pull/159"
 files[2]{path,scope}:
   CHANGELOG.md,project
   test/recipes.test.ts,project
 tests[2]{command,scope,provenance{author,created_at,source_kind}}:
   node --test --test-concurrency=2 test/recipes.test.ts,project,codex,"2026-10-26T17:19:47.455Z",local_mutation
   "npm run release:check",project,codex,"2026-10-26T17:19:47.455Z",local_mutation
+close_reason: "Fixed in 59d894b on the Dependabot branch; local release:check green and PR CI green on both node matrices (run 40367610067)"
 body: ""
