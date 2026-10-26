@@ -19,7 +19,9 @@
     "README.md",
     "CHANGELOG.md",
     "docs/capability-laboratories.md",
-    "docs/failure-first-recipes.md"
+    "docs/failure-first-recipes.md",
+    "docs/sdk-floor.md",
+    "docs/sdk-floor.json"
   ],
   "scripts": {
     "build": "tsc",
@@ -43,7 +45,7 @@
     "verify:release-publish-attestation": "node scripts/verify-release-publish-attestation.ts"
   },
   "peerDependencies": {
-    "@unbrained/pm-cli": ">=2026.8.15"
+    "@unbrained/pm-cli": ">=2026.8.18"
   },
   "devDependencies": {
     "@types/node": "26.6.5",
