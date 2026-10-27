@@ -1,4 +1,4 @@
-import type { CommandHandlerContext, PmCompleteListResult } from "@unbrained/pm-cli/sdk";
+import type { CommandHandlerContext, PmClient } from "@unbrained/pm-cli/sdk";
 /** Closed scenario set. Callers cannot name an arbitrary workflow. */
 export type TaskCostScenario = "orientation" | "targeted-read" | "resume";
 /** Directory client versus a structured-clone transport of the same reads. */
@@ -130,25 +130,7 @@ export interface TaskCostRefusal {
 /** Result shared by the SDK and the CLI. */
 export type TaskCostResult = TaskCostSuccess | TaskCostRefusal;
 /** Host-injected reads. The package never resolves an SDK install path. */
-export interface TaskCostClient {
-    context(options: {
-        for: "orient";
-    }): Promise<unknown>;
-    get(id: string, options?: {
-        fields?: string;
-        outputBudget?: "unbounded";
-    }): Promise<unknown>;
-    list(options: {
-        status: "all";
-        limit: string;
-        fields: string;
-        outputBudget: "unbounded";
-        outputLimit: "unbounded";
-        after?: string;
-    }): Promise<unknown>;
-    listAllComplete(): Promise<Pick<PmCompleteListResult, "items" | "complete_list">>;
-    schemaList(): Promise<unknown>;
-}
+export type TaskCostClient = Pick<PmClient, "context" | "get" | "list" | "listAllComplete" | "schemaList">;
 /** Injected host. Tests pass a real client; the CLI passes `ctx.sdk`. */
 export interface TaskCostHost {
     readonly client: TaskCostClient;

@@ -8,7 +8,7 @@
  * native operation benchmark.
  */
 import { createHash } from "node:crypto";
-import type { CommandHandlerContext, PmCompleteListResult } from "@unbrained/pm-cli/sdk";
+import type { CommandHandlerContext, PmClient } from "@unbrained/pm-cli/sdk";
 
 /** Closed scenario set. Callers cannot name an arbitrary workflow. */
 export type TaskCostScenario = "orientation" | "targeted-read" | "resume";
@@ -127,13 +127,7 @@ export interface TaskCostRefusal {
 export type TaskCostResult = TaskCostSuccess | TaskCostRefusal;
 
 /** Host-injected reads. The package never resolves an SDK install path. */
-export interface TaskCostClient {
-  context(options: { for: "orient" }): Promise<unknown>;
-  get(id: string, options?: { fields?: string; outputBudget?: "unbounded" }): Promise<unknown>;
-  list(options: { status: "all"; limit: string; fields: string; outputBudget: "unbounded"; outputLimit: "unbounded"; after?: string }): Promise<unknown>;
-  listAllComplete(): Promise<Pick<PmCompleteListResult, "items" | "complete_list">>;
-  schemaList(): Promise<unknown>;
-}
+export type TaskCostClient = Pick<PmClient, "context" | "get" | "list" | "listAllComplete" | "schemaList">;
 
 /** Injected host. Tests pass a real client; the CLI passes `ctx.sdk`. */
 export interface TaskCostHost {
@@ -733,13 +727,15 @@ async function observeCorpus(client: TaskCostClient): Promise<{ items: { id: str
  * @returns Client whose methods return structured clones.
  */
 export function syntheticRemoteClient(client: TaskCostClient): TaskCostClient {
-  return {
-    context: async (options) => structuredClone(await client.context(options)),
-    get: async (id, options) => structuredClone(await client.get(id, options)),
-    list: async (options) => structuredClone(await client.list(options)),
-    listAllComplete: async () => structuredClone(await client.listAllComplete()),
-    schemaList: async () => structuredClone(await client.schemaList()),
-  };
+  const reads = new Set<keyof TaskCostClient>(["context", "get", "list", "listAllComplete", "schemaList"]);
+  return new Proxy({} as TaskCostClient, {
+    /** Bind the native read allowlist and isolate each delivered object. */
+    get(_target, property) {
+      if (!reads.has(property as keyof TaskCostClient)) return undefined;
+      const method = client[property as keyof TaskCostClient];
+      return async (...args: unknown[]) => structuredClone(await Reflect.apply(method, client, args));
+    },
+  });
 }
 
 /**

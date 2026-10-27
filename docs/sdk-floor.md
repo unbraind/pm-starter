@@ -4,7 +4,7 @@ Audited main: `af1722d8414ddeb016fc8a4e8a91732c1ca04f9f`. Required API floor: **
 
 Previous main host floor: `2026.8.15`. Previous npm peer: `>=2026.8.15`.
 
-This change raises the host and npm peer declarations to `2026.8.18`. The exact development SDK pin stays at `2026.10.20`.
+This change raises the host and npm peer declarations to `2026.8.18`. The exact development SDK pin is `2026.10.23`; this additive baseline audit does not change it.
 
 ## Artifact method and limits
 
@@ -63,6 +63,23 @@ The machine-readable source inventory and artifact hashes are in [sdk-floor.json
 | `SearchProviderQueryContext.query` | 2026.5.1 | 2026.3.12 | [index.ts:971](../index.ts#L971) |
 | `VectorStoreQueryContext.limit` | 2026.5.1 | 2026.3.12 | [index.ts:1016](../index.ts#L1016) |
 
+## Agent task baseline additions
+
+The baseline extension adds three source-derived API entries. Its client surface
+uses `Pick<PmClient, ...>` so the inventory resolves native methods through the
+consumer boundary. Published declarations were inspected as inert archive data,
+with an adjacent negative release for every added API. These releases all precede
+the existing 2026.8.18 API floor, so host and npm peer declarations remain valid.
+The new source locations below refer to the baseline feature; earlier locations
+refer to the original audited main commit. The baseline's orient-intent protocol
+has its separately documented 2026.10.23 semantic requirement and typed refusal.
+
+| Added API | First stable release | Previous stable release lacking it | Source uses |
+| --- | --- | --- | --- |
+| `PmClient.context` | 2026.7.6 | 2026.7.5 | [baselines.ts:622](../baselines.ts#L622) |
+| `PmClient.schemaList` | 2026.7.9 | 2026.7.8 | [baselines.ts:605](../baselines.ts#L605) |
+| `ExtensionCommandSdk.isItemNotFoundError` | 2026.7.24 | 2026.7.23 | [baselines.ts:1164](../baselines.ts#L1164) |
+
 ## Tarball provenance
 
 SHA-256 of the exact packed `.tgz` bytes; package archives and extracted files are not committed.
@@ -78,5 +95,14 @@ SHA-256 of the exact packed `.tgz` bytes; package archives and extracted files a
 | 2026.7.19 | `513e0aead42767a113a26b8b2e2cbb8a22879d0cb0500d4d3cdd16d21d9f7a39` |
 | 2026.8.17 | `fda330eb4887031751889ef85b510d52886fa5f70b4813f3951d7eed705023f2` |
 | 2026.8.18 | `b00374f0e32c98ccec03a5893d8bfbbae45650f44bd04292ceafd8d9aac059f7` |
+
+Additional baseline audit archives:
+
+| pm release | Tarball SHA-256 |
+| --- | --- |
+| 2026.7.8 | `b892cce02e555decd3f0d09af0d2a5d8817494fe577e357ffaea84ef385a9b6a` |
+| 2026.7.9 | `87600f77a82d5e66c8ac05f120b435a0fb22b5fad42ae5db4540bb4ca45a01ea` |
+| 2026.7.23 | `caf1a21b0b587dc55c3509654466dd1e20383e30f2d17b47678887a15a5490af` |
+| 2026.7.24 | `ae7757c7e4b02bf5c0908a7bcfd487926912bc2f71332c68c9e1be4017d796ab` |
 
 The regression in `test/sdk-floor.test.ts` resolves current runtime source symbols and requires exact agreement with the committed table. A new SDK API without an evidence row fails; adding a newer row without raising both declarations also fails. It runs with the existing test glob in the CI npm and Bun release gates.

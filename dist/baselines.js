@@ -595,13 +595,16 @@ async function observeCorpus(client) {
  * @returns Client whose methods return structured clones.
  */
 export function syntheticRemoteClient(client) {
-    return {
-        context: async (options) => structuredClone(await client.context(options)),
-        get: async (id, options) => structuredClone(await client.get(id, options)),
-        list: async (options) => structuredClone(await client.list(options)),
-        listAllComplete: async () => structuredClone(await client.listAllComplete()),
-        schemaList: async () => structuredClone(await client.schemaList()),
-    };
+    const reads = new Set(["context", "get", "list", "listAllComplete", "schemaList"]);
+    return new Proxy({}, {
+        /** Bind the native read allowlist and isolate each delivered object. */
+        get(_target, property) {
+            if (!reads.has(property))
+                return undefined;
+            const method = client[property];
+            return async (...args) => structuredClone(await Reflect.apply(method, client, args));
+        },
+    });
 }
 /**
  * Execute one scenario once, optionally appending a certified full list.

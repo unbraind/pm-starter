@@ -65,6 +65,19 @@ test("orientation, targeted-read and resume agree across runtimes and a full lis
   const { directory, pmRoot, client, host, sdk } = await tracker(t);
   await client.create({ id: "item-a", type: "Task", title: "Alpha", priority: 1, unset: ["parent", "assignee", "sprint", "release"], author: "baseline-test" });
   await client.create({ id: "item-b", type: "Task", title: "Beta", status: "closed", closeReason: "done", priority: 2, unset: ["parent", "assignee", "sprint", "release"], author: "baseline-test" });
+  for (const property of ["not_a_method", "create", "update", "delete", "constructor", "__proto__"]) {
+    assert.equal(Reflect.get(syntheticRemoteClient(client), property), undefined);
+  }
+  let nativeReply: unknown;
+  const cloneSource = intercept(client, (_method, value) => { nativeReply = value; return value; });
+  const cloneReply = await syntheticRemoteClient(cloneSource).get("item-a", { fields: "id,status" });
+  assert.notEqual(cloneReply, nativeReply);
+  const nativeItem = (nativeReply as { item: { id: string } }).item;
+  assert.notEqual(cloneReply.item, nativeItem);
+  const expectedId = nativeItem.id;
+  Object.assign(cloneReply.item, { id: "changed-clone" });
+  assert.equal(nativeItem.id, expectedId);
+  assert.equal((await client.get("item-a", { fields: "id,status" })).item.id, expectedId);
   const before = fingerprint(pmRoot);
   process.env.PATH = directory;
   const contexts: unknown[] = [];
