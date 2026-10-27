@@ -1,5 +1,6 @@
 export * from "./laboratories.ts";
 export * from "./recipes.ts";
+export * from "./baselines.ts";
 import type { CommandHandlerContext, ExtensionApi } from "@unbrained/pm-cli/sdk";
 /**
  * Semantic exit codes this package throws via {@link CommandError}.

@@ -21,7 +21,8 @@
     "docs/capability-laboratories.md",
     "docs/failure-first-recipes.md",
     "docs/sdk-floor.md",
-    "docs/sdk-floor.json"
+    "docs/sdk-floor.json",
+    "docs/agent-task-cost-baselines.md"
   ],
   "scripts": {
     "build": "tsc",
@@ -98,12 +99,14 @@
       "README.md",
       "CHANGELOG.md",
       "docs/capability-laboratories.md",
-      "docs/failure-first-recipes.md"
+      "docs/failure-first-recipes.md",
+      "docs/agent-task-cost-baselines.md"
     ],
     "examples": [
       "README.md",
       "docs/capability-laboratories.md",
-      "docs/failure-first-recipes.md"
+      "docs/failure-first-recipes.md",
+      "docs/agent-task-cost-baselines.md"
     ]
   },
   "publishConfig": {

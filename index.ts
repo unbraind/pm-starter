@@ -50,6 +50,8 @@ import { runExportLaboratory, runLaboratoryCommand } from "./laboratories.ts";
 export * from "./laboratories.ts";
 import { runFailureFirstCommand } from "./recipes.ts";
 export * from "./recipes.ts";
+import { runTaskCostCommand } from "./baselines.ts";
+export * from "./baselines.ts";
 
 import type {
   AfterCommandHookContext,
@@ -281,6 +283,24 @@ async function readPmItemsOrFail(ctx: Pick<CommandHandlerContext, "sdk">): Promi
  * @param api - The extension API surface passed to `activate`.
  */
 function setupCommands(api: ExtensionApi): void {
+  api.registerCommand({
+    name: "starter baseline",
+    description: "Measure orientation, targeted-read and resume cost against a declared corpus.",
+    examples: ["pm starter baseline --mode declare --scenario orientation --corpus-id example --json", "pm starter baseline --mode probe --scenario orientation --corpus-id example --corpus-version digest:abc --expected-answer orientation:active=0,blocked=0,done=0,canceled=0,terminal=0,focus=abc --json"],
+    flags: [
+      { long: "--mode", value_name: "mode", type: "string", description: "declare, run (default) or probe. Probe adds one full list and requires a worse call and byte budget." },
+      { long: "--scenario", value_name: "scenario", type: "string", description: "orientation (default), targeted-read, resume or all." },
+      { long: "--repeats", value_name: "count", type: "string", description: "Repeated runs, 1 to 8. Distributions use an exact median." },
+      { long: "--corpus-id", value_name: "id", type: "string", description: "Declared corpus identity." },
+      { long: "--corpus-version", value_name: "version", type: "string", description: "Declared corpus version. digest: values are checked against a certified read." },
+      { long: "--expected-answer", value_name: "answer", type: "string", description: "Answer token pinned for run and probe." },
+      { long: "--target-id", value_name: "id", type: "string", description: "Item id for targeted-read." },
+      { long: "--id", value_name: "id", type: "string", description: "Baseline declaration id." },
+      { long: "--declarations", value_name: "json", type: "string", description: "Replay the declarations array emitted by declare; required to run all scenarios together." },
+    ],
+    failure_hints: ["Pass --corpus-id. Run and probe also need --corpus-version and --expected-answer. byte/4 figures are estimates, not measurements."],
+    run: runTaskCostCommand,
+  });
   api.registerCommand({
     name: "starter recover",
     description: "Encounter native refusals and finish read-only tasks through their structured remedies.",
@@ -1070,7 +1090,7 @@ function setupPreflight(api: ExtensionApi): void {
     return {
       enforce_item_format_gate: d.enforce_item_format_gate ?? true,
       run_preflight_item_format_sync: d.run_preflight_item_format_sync ?? false,
-      run_extension_migrations: ctx.command === "starter lab" || ctx.command === "starter-lab export" || ctx.command === "starter recover"
+      run_extension_migrations: ctx.command === "starter lab" || ctx.command === "starter-lab export" || ctx.command === "starter recover" || ctx.command === "starter baseline"
         ? false : d.run_extension_migrations ?? true,
       enforce_mandatory_migration_gate: d.enforce_mandatory_migration_gate ?? false,
     };
