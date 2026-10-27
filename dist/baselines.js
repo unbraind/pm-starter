@@ -516,16 +516,49 @@ async function runTargeted(client, meter, targetId, host) {
     return targetedAnswer(item.id, item.status, index);
 }
 /**
+ * Validate producer-owned paging signals together, including compact continuations.
+ * A terminal marker cannot override a contrary flag, count or completeness receipt.
+ */
+function resumeCursor(root, rowCount, expectedCount) {
+    if (root.has_more !== undefined && typeof root.has_more !== "boolean") {
+        throw new TaskCostContractError("resume_contract_unavailable", "Retry with a host that reports a valid list continuation.");
+    }
+    if ((root.count !== undefined && root.count !== rowCount) || (root.total !== undefined && root.total !== expectedCount)) {
+        throw new TaskCostContractError("resume_contract_unavailable", "Retry resume on an unchanged corpus; page counts disagree with the certified source.");
+    }
+    if (root.completeness !== undefined) {
+        const completeness = plainRecord(root.completeness);
+        if (!completeness || (completeness.status !== "complete" && completeness.status !== "unchecked")
+            || completeness.unreadable_item_count !== 0 || completeness.unreadable_directory_count !== 0) {
+            throw new TaskCostContractError("resume_contract_unavailable", "Retry resume after every source item and directory is readable.");
+        }
+    }
+    const cursor = root.next_cursor;
+    if (cursor === null) {
+        if (root.has_more === true)
+            throw new TaskCostContractError("resume_contract_unavailable", "Retry with consistent pagination: has_more true requires a next_cursor.");
+        return null;
+    }
+    if (typeof cursor !== "string" || cursor.length === 0 || cursor.length > 4096 || root.has_more === false) {
+        throw new TaskCostContractError("resume_contract_unavailable", "Retry with consistent pagination: continuation requires a bounded cursor and cannot declare has_more false.");
+    }
+    return cursor;
+}
+/**
  * Read list pages until the SDK cursor is exhausted, checkpointing `next_cursor` between calls.
  *
  * @param client - Host client.
  * @param meter - Call meter.
- * @returns Answer token.
+ * @param corpus - Independently certified native item identities and statuses.
+ * @returns Answer token, only after the whole certified set is read exactly once.
  */
-async function runResume(client, meter) {
+async function runResume(client, meter, corpus) {
     const index = await loadRoles(client, meter);
     const ids = [];
     const statuses = [];
+    const expected = new Map(corpus.map((item) => [item.id, item.status]));
+    const seen = new Set();
+    const cursors = new Set();
     let after;
     let pages = 0;
     while (pages < TASK_COST_MAX_RESUME_PAGES) {
@@ -533,14 +566,16 @@ async function runResume(client, meter) {
             status: "all",
             limit: String(TASK_COST_RESUME_LIMIT),
             fields: "id,status",
+            strictRead: true,
             outputBudget: "unbounded",
             outputLimit: "unbounded",
             ...(after ? { after } : {}),
         }));
         const root = plainRecord(page);
         const items = root?.items;
-        if (!Array.isArray(items))
-            throw new TaskCostContractError("resume_contract_unavailable", "Retry resume on a host whose list result includes an items array and next_cursor.");
+        if (!root || !Array.isArray(items) || items.length > TASK_COST_RESUME_LIMIT)
+            throw new TaskCostContractError("resume_contract_unavailable", "Retry resume with bounded list pages containing items and next_cursor.");
+        const cursor = resumeCursor(root, items.length, corpus.length);
         for (let indexCursor = 0; indexCursor < items.length; indexCursor += 1) {
             if (!Object.hasOwn(items, indexCursor))
                 throw new TaskCostContractError("resume_contract_unavailable", "Retry resume; a list page was sparse.");
@@ -548,20 +583,23 @@ async function runResume(client, meter) {
             if (!row || typeof row.id !== "string" || typeof row.status !== "string") {
                 throw new TaskCostContractError("resume_contract_unavailable", "Retry resume with field projection id,status so each row is classifiable.");
             }
+            // Both values come from native SDK metadata normalization, not raw user input.
+            if (!expected.has(row.id) || expected.get(row.id) !== row.status || seen.has(row.id)) {
+                throw new TaskCostContractError("resume_contract_unavailable", "Re-declare on an unchanged corpus; every certified item must appear exactly once with its original status.");
+            }
+            seen.add(row.id);
             ids.push(row.id);
             statuses.push(row.status);
         }
         pages += 1;
-        if (root?.has_more !== undefined && typeof root.has_more !== "boolean")
-            throw new TaskCostContractError("resume_contract_unavailable", "Retry with a host that reports a valid list continuation.");
-        const cursor = root?.next_cursor;
-        if (cursor === null)
+        if (cursor === null) {
+            if (seen.size !== corpus.length)
+                throw new TaskCostContractError("resume_contract_unavailable", "Retry resume; a terminal page omitted items from the certified corpus.");
             return resumeAnswer(pages, ids, statuses, index);
-        if (typeof cursor !== "string" || cursor.length === 0 || cursor.length > 4096) {
-            throw new TaskCostContractError("resume_contract_unavailable", "Retry resume; the host omitted a producer next_cursor while has_more was true.");
         }
-        if (cursor === after || items.length === 0)
+        if (cursors.has(cursor) || items.length === 0 || seen.size === corpus.length)
             throw new TaskCostContractError("resume_contract_unavailable", "Retry with a progressing cursor and a non-empty continuation page.");
+        cursors.add(cursor);
         after = cursor;
     }
     throw new TaskCostContractError("resume_contract_unavailable", "Narrow the corpus or raise the documented page cap; resume stopped after 8 pages.");
@@ -614,13 +652,14 @@ export function syntheticRemoteClient(client) {
  * @param targetId - Required for targeted-read.
  * @param host - Missing-item classifier.
  * @param injectFullList - When true, add one `listAllComplete` inside the meter.
+ * @param corpus - Certified source snapshot shared by all repetitions and transports.
  * @returns Answer and meter totals.
  */
-async function executeOnce(client, scenario, targetId, host, injectFullList) {
+async function executeOnce(client, scenario, targetId, host, injectFullList, corpus) {
     const meter = { calls: 0, bytes: 0, elapsedNs: 0, tools: [] };
     const answer = scenario === "orientation" ? await runOrientation(client, meter)
         : scenario === "targeted-read" ? await runTargeted(client, meter, targetId, host)
-            : await runResume(client, meter);
+            : await runResume(client, meter, corpus);
     if (injectFullList)
         await measureCall(meter, "listAllComplete", () => client.listAllComplete());
     return { answer, calls: meter.calls, bytes: meter.bytes, elapsedNs: meter.elapsedNs, tools: meter.tools };
@@ -634,16 +673,17 @@ async function executeOnce(client, scenario, targetId, host, injectFullList) {
  * @param targetId - Targeted-read id.
  * @param host - Classifier.
  * @param injectFullList - Waste probe switch.
+ * @param corpus - Certified source snapshot used to verify resume completeness.
  * @returns Samples and the shared answer.
  */
-async function repeatScenario(client, scenario, repeats, targetId, host, injectFullList) {
+async function repeatScenario(client, scenario, repeats, targetId, host, injectFullList, corpus) {
     const calls = [];
     const bytes = [];
     const elapsed = [];
     let answer = "";
     let tools = [];
     for (let index = 0; index < repeats; index += 1) {
-        const sample = await executeOnce(client, scenario, targetId, host, injectFullList);
+        const sample = await executeOnce(client, scenario, targetId, host, injectFullList, corpus);
         if (index === 0) {
             answer = sample.answer;
             tools = sample.tools;
@@ -951,8 +991,8 @@ export async function runTaskCostBaselines(host, input) {
         const scenarios = [];
         let probe;
         for (const declaration of selected) {
-            const directory = await repeatScenario(host.client, declaration.scenario, declaration.repeats, declaration.target_id, host, false);
-            const synthetic = await repeatScenario(remote, declaration.scenario, declaration.repeats, declaration.target_id, host, false);
+            const directory = await repeatScenario(host.client, declaration.scenario, declaration.repeats, declaration.target_id, host, false, corpus.items);
+            const synthetic = await repeatScenario(remote, declaration.scenario, declaration.repeats, declaration.target_id, host, false, corpus.items);
             if (directory.answer !== synthetic.answer) {
                 return refuse("runtime_answer_mismatch", "Retry on a stable corpus; directory and synthetic-remote answers differed.");
             }
@@ -981,8 +1021,8 @@ export async function runTaskCostBaselines(host, input) {
             };
             scenarios.push(row);
             if (request.mode === "probe" && probe === undefined) {
-                const wastedDirectory = await repeatScenario(host.client, declaration.scenario, declaration.repeats, declaration.target_id, host, true);
-                const wastedRemote = await repeatScenario(remote, declaration.scenario, declaration.repeats, declaration.target_id, host, true);
+                const wastedDirectory = await repeatScenario(host.client, declaration.scenario, declaration.repeats, declaration.target_id, host, true, corpus.items);
+                const wastedRemote = await repeatScenario(remote, declaration.scenario, declaration.repeats, declaration.target_id, host, true, corpus.items);
                 if (wastedDirectory.answer !== directory.answer || wastedRemote.answer !== directory.answer) {
                     return refuse("runtime_answer_mismatch", "The extra full-list probe must not change the checked answer; retry on a stable corpus.");
                 }

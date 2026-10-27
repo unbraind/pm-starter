@@ -7,6 +7,7 @@ import { dirname, join, resolve } from "node:path";
 import test, { type TestContext } from "node:test";
 import { PmClient, createExtensionCommandSdk, readSettings, resolveRuntimeStatusRegistry, serializeItemDocument, getItemPath } from "@unbrained/pm-cli/sdk";
 import { createExtensionTestHarness } from "@unbrained/pm-cli/sdk/testing";
+import { writePaginationFaultExtension } from "./pagination-fault-fixture.ts";
 import extension from "../index.ts";
 import {
   assertTaskCostReport, budgetWorsened, bytesDiv4Estimate, ceilBytesDiv4, ceilRational, corpusDigest, exactMedian, exactRational,
@@ -460,5 +461,176 @@ test("shipped CLI formats compact JSON and TOON, replays declarations, and refus
     assert.equal(value.code, "invalid_request");
     assert.ok(value.remediation);
   }
+  assert.equal(fingerprint(pmRoot), before);
+});
+
+/** Page through real SDK cursors, with faults injected only after native reads. */
+function nativePager(client: TaskCostHost["client"], pageSize: number, fault: (page: Record<string, unknown>, call: number) => Record<string, unknown>) {
+  let calls = 0;
+  const strict: boolean[] = [];
+  const paged = new Proxy(client, { get(target, property) {
+    if (property === "list") return async (options: Parameters<PmClient["list"]>[0]) => {
+      strict.push(options?.strictRead === true);
+      const value = await target.list({ ...options, limit: String(pageSize) });
+      return fault(value as unknown as Record<string, unknown>, ++calls);
+    };
+    const value: unknown = Reflect.get(target, property);
+    return typeof value === "function" ? value.bind(target) : value;
+  } });
+  return { client: paged, strict, calls: () => calls };
+}
+
+/** Failures must remain refusals through both portable output representations. */
+function assertResumeRefusal(value: Awaited<ReturnType<typeof runTaskCostBaselines>>, label: string): void {
+  assert.ok(!value.ok && value.code === "resume_contract_unavailable", `${label}: ${JSON.stringify(value)}`);
+  assert.equal(value.exit_code, 1);
+  assert.ok(value.remediation);
+  assert.equal((JSON.parse(JSON.stringify(value)) as { ok: boolean }).ok, false);
+}
+
+test("resume completion is consistent with flags, cursors and the independently certified set in every execution path", async (t) => {
+  const { client, host, pmRoot } = await tracker(t);
+  for (const id of ["first", "second"]) await client.create({ id, title: id, type: "Task", author: "baseline-test", unset: ["parent", "assignee", "sprint", "release"] });
+  const reference = await client.listAllComplete();
+  assert.equal(reference.items.length, 2);
+  const before = fingerprint(pmRoot);
+  const request = { mode: "declare", scenario: "resume", corpus_id: "pagination", repeats: 1 };
+  const goodPager = nativePager(client, 1, (page) => page);
+  const good = await runTaskCostBaselines({ ...host, client: goodPager.client }, request);
+  assert.ok(good.ok, JSON.stringify(good));
+  assert.match(good.scenarios[0]!.answer, /pages=2,rows=2,duplicates=0/);
+  assert.ok(goodPager.strict.every(Boolean));
+  const faults: [string, (page: Record<string, unknown>) => Record<string, unknown>][] = [
+    ["more-with-null", (page) => ({ ...page, has_more: true, next_cursor: null })],
+    ["stop-with-cursor", (page) => ({ ...page, has_more: false })],
+    ["premature-stop", (page) => ({ ...page, has_more: false, next_cursor: null })],
+    ["compact-premature-stop", (page) => { const copy: Record<string, unknown> = { ...page, next_cursor: null }; delete copy.has_more; return copy; }],
+    ["false-count", (page) => ({ ...page, count: 0 })],
+    ["false-total", (page) => ({ ...page, total: 1 })],
+    ["foreign-row", (page) => ({ ...page, items: [{ id: "foreign-item", status: "open" }] })],
+    ["changed-status", (page) => ({ ...page, items: (page.items as { id: string }[]).map((row) => ({ ...row, status: "closed" })) })],
+  ];
+  for (const mode of ["declare", "run", "probe"] as const) {
+    const input = mode === "declare" ? request : { mode, corpus_id: "pagination", declarations: good.declarations };
+    const stages = mode === "probe" ? 4 : 2;
+    for (let stage = 0; stage < stages; stage++) {
+      for (const [name, fault] of faults) {
+        const at = stage * 2 + 1;
+        const pager = nativePager(client, 1, (page, call) => call === at ? fault(page) : page);
+        const result = await runTaskCostBaselines({ ...host, client: pager.client }, input);
+        assertResumeRefusal(result, `${mode}/${stage}/${name}`);
+        assert.equal(pager.calls(), at, "stop at the first contradictory or foreign page");
+      }
+    }
+  }
+  assert.equal(fingerprint(pmRoot), before);
+});
+
+test("resume validates optional receipts, exact row coverage and cursor cycles without losing compact-page compatibility", async (t) => {
+  const { client, host, pmRoot } = await tracker(t);
+  for (let index = 0; index < 6; index++) await client.create({ id: `row-${index}`, title: `Row ${index}`, type: "Task", author: "baseline-test", unset: ["parent", "assignee", "sprint", "release"] });
+  const request = { mode: "declare", scenario: "resume", corpus_id: "pagination", repeats: 1 };
+  const before = fingerprint(pmRoot);
+  // A partition/reference model compares every native id/status, independent of page boundaries.
+  const reference = (await client.listAllComplete()).items;
+  let expected: string | undefined;
+  for (const size of [1, 2, 3, 4, 5, 6]) {
+    const pager = nativePager(client, size, (page) => page);
+    const report = await runTaskCostBaselines({ ...host, client: pager.client }, request);
+    assert.ok(report.ok, JSON.stringify(report));
+    const answer = report.scenarios[0]!.answer;
+    assert.match(answer, new RegExp(`pages=${Math.ceil(6 / size)},rows=6,duplicates=0`));
+    const digest = answer.slice(answer.indexOf("ids="));
+    if (expected !== undefined) assert.equal(digest, expected); else expected = digest;
+    assert.ok(pager.strict.every(Boolean));
+  }
+  const malformed: Record<string, unknown>[] = [
+    { has_more: true, next_cursor: undefined },
+    { next_cursor: "x".repeat(4097) }, { next_cursor: 42 },
+    { items: [{ id: reference[0]!.id }] },
+    { count: NaN }, { total: Infinity }, { count: "1" },
+    { completeness: null }, { completeness: {} },
+    { completeness: { status: "partial", unreadable_item_count: 1, unreadable_directory_count: 0 } },
+    { completeness: { status: "complete", unreadable_item_count: 1, unreadable_directory_count: 0 } },
+    { completeness: { status: "complete", unreadable_item_count: 0, unreadable_directory_count: 1 } },
+    { items: Array(51).fill({ id: reference[0]!.id, status: reference[0]!.status }), count: 51 },
+  ];
+  for (const patch of malformed) {
+    const pager = nativePager(client, 1, (page, call) => call === 1 ? { ...page, ...patch } : page);
+    assertResumeRefusal(await runTaskCostBaselines({ ...host, client: pager.client }, request), JSON.stringify(patch));
+  }
+  for (const envelope of [null, []]) {
+    const invalidRoot = intercept(client, (method, value) => method === "list" ? envelope : value);
+    assertResumeRefusal(await runTaskCostBaselines({ ...host, client: invalidRoot }, request), "invalid page envelope");
+  }
+  for (const completion of ["complete", "unchecked"]) {
+    const pager = nativePager(client, 2, (page) => ({ ...page, completeness: { status: completion, unreadable_item_count: 0, unreadable_directory_count: 0 } }));
+    assert.ok((await runTaskCostBaselines({ ...host, client: pager.client }, request)).ok);
+  }
+  const excess = nativePager(client, 6, (page) => ({ ...page, has_more: true, next_cursor: "excess-continuation" }));
+  assertResumeRefusal(await runTaskCostBaselines({ ...host, client: excess.client }, request), "continuation beyond the certified set");
+  assert.equal(excess.calls(), 1);
+  let firstCursor: unknown;
+  const cycle = nativePager(client, 1, (page, call) => {
+    if (call === 1) firstCursor = page.next_cursor;
+    return call === 3 ? { ...page, next_cursor: firstCursor } : page;
+  });
+  assertResumeRefusal(await runTaskCostBaselines({ ...host, client: cycle.client }, request), "cursor cycle");
+  assert.equal(cycle.calls(), 3);
+  let firstRow: unknown;
+  const duplicate = nativePager(client, 1, (page, call) => {
+    if (call === 1) firstRow = (page.items as unknown[])[0];
+    return call === 2 ? { ...page, items: [firstRow] } : page;
+  });
+  assertResumeRefusal(await runTaskCostBaselines({ ...host, client: duplicate.client }, request), "duplicate row");
+  assert.equal(duplicate.calls(), 2);
+  const opaque = nativePager(client, 1, (page) => ({ ...page, count: undefined, total: undefined, completeness: undefined, has_more: undefined }));
+  assert.ok((await runTaskCostBaselines({ ...host, client: opaque.client }, request)).ok, "previously released compact envelopes remain valid");
+  assert.equal(fingerprint(pmRoot), before);
+});
+
+
+test("CLI JSON and TOON refuse contradictory and short pages for declare, run and probe without Git", async (t) => {
+  const { directory, pmRoot, client } = await tracker(t);
+  for (const id of ["first", "second"]) await client.create({ id, title: id, type: "Task", author: "baseline-test", unset: ["parent", "assignee", "sprint", "release"] });
+  const packageRoot = resolve(import.meta.dirname, "..");
+  const cli = join(packageRoot, "node_modules/@unbrained/pm-cli/dist/cli.js");
+  const packed = join(directory, "package");
+  mkdirSync(packed);
+  for (const entry of ["dist", "manifest.json", "package.json", "README.md", "docs"]) cpSync(join(packageRoot, entry), join(packed, entry), { recursive: true });
+  const diagnostic = join(directory, "diagnostic");
+  writePaginationFaultExtension(diagnostic, join(packed, "dist/baselines.js"));
+  const installed = spawnSync(process.execPath, [cli, "--path", pmRoot, "extension", "install", diagnostic], { cwd: directory, encoding: "utf8" });
+  assert.equal(installed.status, 0, installed.stderr + installed.stdout);
+  symlinkSync(process.execPath, join(directory, "node"));
+  const childEnv = { ...process.env, PATH: directory, GIT_CEILING_DIRECTORIES: dirname(directory) };
+  const before = fingerprint(pmRoot);
+  for (const mode of ["declare", "run", "probe"]) {
+    for (const format of ["json", "toon"]) {
+      for (const fault of ["contradictory", "short"]) {
+        const result = spawnSync(process.execPath, [cli, "--path", pmRoot, "baseline", "adversary", "--mode", mode, "--fault", fault,
+          ...(format === "json" ? ["--json"] : [])], { cwd: directory, env: childEnv, encoding: "utf8" });
+        assert.equal(result.status, 1, `${mode}/${format}/${fault}: ${result.stderr} ${result.stdout}`);
+        if (format === "json") assertResumeRefusal(JSON.parse(result.stdout) as Awaited<ReturnType<typeof runTaskCostBaselines>>, mode);
+        else {
+          assert.match(result.stdout, /ok: false/);
+          assert.match(result.stdout, /code: "?resume_contract_unavailable"?/);
+          assert.match(result.stdout, /remediation:/);
+        }
+      }
+    }
+  }
+  assert.equal(fingerprint(pmRoot), before);
+});
+
+
+test("two-item certified corpus refuses the reviewed one-row terminal contradiction", async (t) => {
+  const { client, host, pmRoot } = await tracker(t);
+  for (const id of ["first", "second"]) await client.create({ id, title: id, type: "Task", author: "baseline-test", unset: ["parent", "assignee", "sprint", "release"] });
+  const before = fingerprint(pmRoot);
+  const paged = nativePager(client, 1, (page) => ({ ...page, has_more: true, next_cursor: null }));
+  const result = await runTaskCostBaselines({ ...host, client: paged.client }, { mode: "declare", scenario: "resume", corpus_id: "review-repro", repeats: 1 });
+  assertResumeRefusal(result, "reviewed contradiction");
+  assert.equal(paged.calls(), 1);
   assert.equal(fingerprint(pmRoot), before);
 });

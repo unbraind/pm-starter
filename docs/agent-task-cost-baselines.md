@@ -84,7 +84,14 @@ are canonicalized by the declaration producer/parser. Repeats are integers 1–8
 declaration batches contain 1–3 rows, corpus IDs and item IDs are at most 64
 characters, versions at most 128, and expected answers at most 512. Corpus
 observation caps at 5,000 items; resume caps at eight 50-row pages and refuses
-incomplete traversal. Every emitted numeric value is a non-negative safe integer;
+incomplete traversal. Resume requests strict native reads and checks each page against
+the independently certified IDs and SDK-normalized statuses. Optional flags,
+counts and completeness receipts must agree with the cursor and certified set;
+missing, foreign or repeated rows, empty continuations and cursor cycles refuse
+with `resume_contract_unavailable`. Compact SDK continuation envelopes that omit
+optional metadata remain supported. These checks apply to declaration, replay and
+probe on both transports before an answer can succeed. Every emitted numeric
+value is a non-negative safe integer;
 ratio denominators are positive. Exact integer cross-products decide budgets.
 
 A refusal returns `ok: false`, a stable code, `exit_code`, and `remediation`.
