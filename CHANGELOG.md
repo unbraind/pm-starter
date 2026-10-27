@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Other
+
+- Make the 2026.10.23 pm toolchain bump pass: the recipes test host double dropped the SDK's generic ReadPromise get signature ([pm-starter-7tp5](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/chores/pm-starter-7tp5.toon))
+
 ## 2026.10.27 - 2026-10-27
 
 ### Other
