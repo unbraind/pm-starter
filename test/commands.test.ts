@@ -1058,6 +1058,17 @@ test("preflight override preserves the runtime decision", () => {
   assert.strictEqual(result.enforce_mandatory_migration_gate, true);
 });
 
+test("baseline preflight disables migration writes before measurement", () => {
+  const api = activate();
+  const result = api.preflight!({
+    command: "starter baseline",
+    decision: { enforce_item_format_gate: true, run_preflight_item_format_sync: false,
+      run_extension_migrations: true, enforce_mandatory_migration_gate: false },
+  });
+  assert.strictEqual(result.run_extension_migrations, false);
+  assert.strictEqual(result.run_preflight_item_format_sync, false);
+});
+
 test("preflight override applies defaults when decision is absent", () => {
   const api = activate();
   const result = api.preflight!({});

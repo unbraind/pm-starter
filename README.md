@@ -266,3 +266,13 @@ shell text or write item data. Each receipt asserts its native discriminator,
 remedy and successful retry; the missing-item SDK classifier is labeled
 explicitly. See the [runnable CLI and SDK examples](docs/failure-first-recipes.md)
 for contracts, refusal codes and concurrency limits.
+
+## Agent task cost baselines
+
+`pm starter baseline --mode declare --scenario all --corpus-id example --json`
+pins expected answers for orientation, targeted reads, and cursor resume. Replay
+the emitted declarations with `--mode run`; `--mode probe` proves that one extra
+full-list call increases both SDK call and delivered-byte budgets. Repeated runs
+report distributions; byte/4 token figures are explicitly estimates. This is a
+read-only consumer example, with no model-performance claim. It works without Git.
+See [the protocols, typed SDK example, refusals and public-data validation](docs/agent-task-cost-baselines.md).

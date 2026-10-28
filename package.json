@@ -21,12 +21,13 @@
     "docs/capability-laboratories.md",
     "docs/failure-first-recipes.md",
     "docs/sdk-floor.md",
-    "docs/sdk-floor.json"
+    "docs/sdk-floor.json",
+    "docs/agent-task-cost-baselines.md"
   ],
   "scripts": {
     "build": "tsc",
     "build:test": "tsc -p tsconfig.test.json",
-    "test": "npm run build && npm run build:test && node --test test/*.test.ts",
+    "test": "npm run build && npm run build:test && node --test --test-concurrency=2 test/*.test.ts",
     "prepack": "npm run build",
     "typecheck": "tsc --noEmit",
     "check": "npm run typecheck",
@@ -98,12 +99,14 @@
       "README.md",
       "CHANGELOG.md",
       "docs/capability-laboratories.md",
-      "docs/failure-first-recipes.md"
+      "docs/failure-first-recipes.md",
+      "docs/agent-task-cost-baselines.md"
     ],
     "examples": [
       "README.md",
       "docs/capability-laboratories.md",
-      "docs/failure-first-recipes.md"
+      "docs/failure-first-recipes.md",
+      "docs/agent-task-cost-baselines.md"
     ]
   },
   "publishConfig": {

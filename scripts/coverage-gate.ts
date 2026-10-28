@@ -316,6 +316,7 @@ export function runGate(root: string): void {
     process.execPath,
     [
       "--test",
+      "--test-concurrency=2",
       "--experimental-test-coverage",
       // Scope the report to exactly the files the presence check requires.
       // Passing the enumerated paths rather than a directory glob keeps the two

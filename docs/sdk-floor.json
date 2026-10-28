@@ -15,7 +15,8 @@
       "name": "PmClient",
       "uses": [
         "laboratories.ts:3",
-        "recipes.ts:2"
+        "recipes.ts:2",
+        "baselines.ts:11"
       ],
       "first": "2026.7.6",
       "previous": "2026.7.5",
@@ -347,12 +348,25 @@
       "uses": [
         "laboratories.ts:135",
         "index.ts:242",
-        "index.ts:244"
+        "index.ts:244",
+        "baselines.ts:1164"
       ],
       "first": "2026.7.19",
       "previous": "2026.7.18",
       "sha256": "513e0aead42767a113a26b8b2e2cbb8a22879d0cb0500d4d3cdd16d21d9f7a39",
       "previousSha256": "44b48fe680cf330254a4ab8d42b55cbcee81ba5cf21e4d4550b40413265d64b9"
+    },
+    {
+      "kind": "member",
+      "module": "ExtensionCommandSdk",
+      "name": "isItemNotFoundError",
+      "uses": [
+        "baselines.ts:1164"
+      ],
+      "first": "2026.7.24",
+      "previous": "2026.7.23",
+      "sha256": "ae7757c7e4b02bf5c0908a7bcfd487926912bc2f71332c68c9e1be4017d796ab",
+      "previousSha256": "caf1a21b0b587dc55c3509654466dd1e20383e30f2d17b47678887a15a5490af"
     },
     {
       "kind": "member",
@@ -441,10 +455,23 @@
     {
       "kind": "member",
       "module": "PmClient",
+      "name": "context",
+      "uses": [
+        "baselines.ts:622"
+      ],
+      "first": "2026.7.6",
+      "previous": "2026.7.5",
+      "sha256": "0d6e446cf93a0f0660ce4e21943adf1e0c21381010ef67369f40cc9834b8d158",
+      "previousSha256": "4a6664f68120cace5648faf48d51b08c14e969d9c7e185e592f1a0fceae57274"
+    },
+    {
+      "kind": "member",
+      "module": "PmClient",
       "name": "get",
       "uses": [
         "recipes.ts:132",
-        "recipes.ts:139"
+        "recipes.ts:139",
+        "baselines.ts:639"
       ],
       "first": "2026.7.6",
       "previous": "2026.7.5",
@@ -468,7 +495,8 @@
       "module": "PmClient",
       "name": "list",
       "uses": [
-        "recipes.ts:148"
+        "recipes.ts:148",
+        "baselines.ts:667"
       ],
       "first": "2026.7.6",
       "previous": "2026.7.5",
@@ -485,7 +513,9 @@
         "recipes.ts:121",
         "recipes.ts:136",
         "recipes.ts:151",
-        "index.ts:242"
+        "index.ts:242",
+        "baselines.ts:708",
+        "baselines.ts:754"
       ],
       "first": "2026.8.18",
       "previous": "2026.8.17",
@@ -504,6 +534,18 @@
       "previous": "2026.7.5",
       "sha256": "0d6e446cf93a0f0660ce4e21943adf1e0c21381010ef67369f40cc9834b8d158",
       "previousSha256": "4a6664f68120cace5648faf48d51b08c14e969d9c7e185e592f1a0fceae57274"
+    },
+    {
+      "kind": "member",
+      "module": "PmClient",
+      "name": "schemaList",
+      "uses": [
+        "baselines.ts:605"
+      ],
+      "first": "2026.7.9",
+      "previous": "2026.7.8",
+      "sha256": "87600f77a82d5e66c8ac05f120b435a0fb22b5fad42ae5db4540bb4ca45a01ea",
+      "previousSha256": "b892cce02e555decd3f0d09af0d2a5d8817494fe577e357ffaea84ef385a9b6a"
     },
     {
       "kind": "member",
@@ -566,5 +608,6 @@
       "sha256": "730de8b79aa0074dc2ca81a54ce37f9aaa0a4167b690c9a62b87d2121a8b37f7",
       "previousSha256": "4e4e6a33cb45d665f072120e9e1ce25d2e5773e738cbc914b29e8f54367747fb"
     }
-  ]
+  ],
+  "additionalAuditBase": "bef8690101fd5ebfe4723929997a4f1e68c34a4e"
 }
