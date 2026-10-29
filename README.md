@@ -117,7 +117,7 @@ acceptance is a separate concern. A changing source fails parity explicitly.
 
 ## Without git
 
-All starter commands, the read-only exporters, both laboratories and the failure-first
+All starter commands, the paginated consumer, the read-only exporters, both laboratories and the failure-first
 recovery recipes work in a plain initialized tracker with no Git executable. Creating or running a laboratory needs
 no repository. Cloning the starter and repository release/changelog automation need
 Git. Laboratory commands require a host that injects the SDK (tested with 2026.10.20)
@@ -266,6 +266,17 @@ shell text or write item data. Each receipt asserts its native discriminator,
 remedy and successful retry; the missing-item SDK classifier is labeled
 explicitly. See the [runnable CLI and SDK examples](docs/failure-first-recipes.md)
 for contracts, refusal codes and concurrency limits.
+
+## Cancellation-safe paginated consumer
+
+`pm starter consume --page-size 2 --max-pages 2 --json` consumes native host pages
+under a cumulative task budget and returns a caller-owned checkpoint. Resume with
+`--checkpoint '<checkpoint JSON>'`. The typed `consumePaginated` SDK API accepts
+an AbortSignal, admits whole pages and retains the last admitted cursor on
+cancellation. Output cursors preserve native snapshot refusals and typed remedies.
+No source tracker writes or git repository are required.
+
+See the [CLI and SDK recipe, cancellation boundaries and recovery contract](docs/cancellation-safe-consumer.md).
 
 ## Agent task cost baselines
 
