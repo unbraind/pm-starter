@@ -22,7 +22,8 @@
     "docs/failure-first-recipes.md",
     "docs/sdk-floor.md",
     "docs/sdk-floor.json",
-    "docs/agent-task-cost-baselines.md"
+    "docs/agent-task-cost-baselines.md",
+    "docs/cancellation-safe-consumer.md"
   ],
   "scripts": {
     "build": "tsc",
@@ -100,13 +101,15 @@
       "CHANGELOG.md",
       "docs/capability-laboratories.md",
       "docs/failure-first-recipes.md",
-      "docs/agent-task-cost-baselines.md"
+      "docs/agent-task-cost-baselines.md",
+      "docs/cancellation-safe-consumer.md"
     ],
     "examples": [
       "README.md",
       "docs/capability-laboratories.md",
       "docs/failure-first-recipes.md",
-      "docs/agent-task-cost-baselines.md"
+      "docs/agent-task-cost-baselines.md",
+      "docs/cancellation-safe-consumer.md"
     ]
   },
   "publishConfig": {

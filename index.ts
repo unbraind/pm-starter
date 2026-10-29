@@ -52,6 +52,8 @@ import { runFailureFirstCommand } from "./recipes.ts";
 export * from "./recipes.ts";
 import { runTaskCostCommand } from "./baselines.ts";
 export * from "./baselines.ts";
+import { runConsumerCommand } from "./paginated-consumer.ts";
+export * from "./paginated-consumer.ts";
 
 import type {
   AfterCommandHookContext,
@@ -283,6 +285,21 @@ async function readPmItemsOrFail(ctx: Pick<CommandHandlerContext, "sdk">): Promi
  * @param api - The extension API surface passed to `activate`.
  */
 function setupCommands(api: ExtensionApi): void {
+  api.registerCommand({
+    name: "starter consume",
+    description: "Consume budgeted host pages with cancellation-safe, caller-carried checkpoints.",
+    examples: ["pm starter consume --max-pages 2 --json", "pm starter consume --mode output --page-tokens 1024 --json"],
+    flags: [
+      { long: "--mode", value_name: "mode", type: "string", description: "producer (default) or snapshot-bound output continuation." },
+      { long: "--page-size", value_name: "count", type: "string", description: "Producer rows per page, 1..128 (default 16)." },
+      { long: "--page-tokens", value_name: "tokens", type: "string", description: "Per-page host token ceiling, 256..8192 (default 2048)." },
+      { long: "--token-budget", value_name: "tokens", type: "string", description: "Cumulative task ceiling, 256..10000000 (default 16000); resume may increase it." },
+      { long: "--max-pages", value_name: "count", type: "string", description: "Reads per invocation, 1..16 (default 4)." },
+      { long: "--checkpoint", value_name: "json", type: "string", description: "Unchanged checkpoint object from an earlier receipt." },
+    ],
+    failure_hints: ["Resume the returned checkpoint on the same stable tracker; restart after a native snapshot refusal."],
+    run: runConsumerCommand,
+  });
   api.registerCommand({
     name: "starter baseline",
     description: "Measure orientation, targeted-read and resume cost against a declared corpus.",
@@ -1090,7 +1107,7 @@ function setupPreflight(api: ExtensionApi): void {
     return {
       enforce_item_format_gate: d.enforce_item_format_gate ?? true,
       run_preflight_item_format_sync: d.run_preflight_item_format_sync ?? false,
-      run_extension_migrations: ctx.command === "starter lab" || ctx.command === "starter-lab export" || ctx.command === "starter recover" || ctx.command === "starter baseline"
+      run_extension_migrations: ctx.command === "starter consume" || ctx.command === "starter lab" || ctx.command === "starter-lab export" || ctx.command === "starter recover" || ctx.command === "starter baseline"
         ? false : d.run_extension_migrations ?? true,
       enforce_mandatory_migration_gate: d.enforce_mandatory_migration_gate ?? false,
     };

@@ -93,7 +93,7 @@ test("extension registers at least one capability", () => {
     assert.ok(registered.includes(cap), `extension should register "${cap}" (got: ${JSON.stringify(registered)})`);
   }
 
-  assert.deepStrictEqual(Object.keys(commands).sort(), ["starter baseline", "starter context", "starter demo", "starter greet", "starter lab", "starter plan", "starter recover", "starter search", "starter setup", "starter summary"]);
+  assert.deepStrictEqual(Object.keys(commands).sort(), ["starter baseline", "starter consume", "starter context", "starter demo", "starter greet", "starter lab", "starter plan", "starter recover", "starter search", "starter setup", "starter summary"]);
   assert.strictEqual(commands["starter greet"].flags.length, 3);
   assert.ok(commands["starter plan"].failure_hints && commands["starter plan"].failure_hints.length > 0, "starter plan should have failure_hints");
   assert.ok(commands["starter search"].arguments && commands["starter search"].arguments.length > 0, "starter search should declare arguments");
