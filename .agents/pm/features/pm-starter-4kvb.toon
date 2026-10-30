@@ -2,13 +2,19 @@ id: pm-starter-4kvb
 title: Measure agent task cost baselines for extension authors
 description: "Reproducible consumer-example baselines for orientation, targeted-read and resume scenarios. Measures tool calls, delivered bytes and elapsed work. Not model performance, not external capture accounting, and not native operation benchmarks."
 type: Feature
-status: in_progress
+status: closed
 priority: 2
 tags[2]: audit-1026,cost-baseline
 created_at: "2026-10-27T16:56:48.970Z"
-updated_at: "2026-10-27T20:48:10.098Z"
+updated_at: "2026-10-30T14:25:32.313Z"
+closed_at: "2026-10-30T14:25:27.737Z"
+completed_at: "2026-10-28T16:11:05.000Z"
 author: pi-agent
 acceptance_criteria: Every baseline declares corpus/version and expected answer; repeated runs report distributions; byte/4 estimates are labeled estimates; a deliberate extra full-list call worsens the measured call/byte budget.
+release: 2026.10.29
+resolution: "Delivered by PR #167 (b8a6d5b): Measure repeatable agent task costs and expose wasted full reads"
+expected_result: Every baseline declares corpus/version and expected answer; repeated runs report distributions; byte/4 estimates are labeled estimates; a deliberate extra full-list call worsens the measured call/byte budget.
+actual_result: "PR #167 merged at 2026-10-28T16:11:05Z as b8a6d5b; required CI passed on the merged head."
 comments[15]{created_at,author,text}:
   "2026-10-27T16:57:06.330Z",pi-agent,"Overlap check (re-run against the pinned SDK 2026.10.23 and sibling package READMEs before design):\n\n- pm-cli ships an internal release ratchet (docs/agent-task-token-baseline.json plus the agent-task token gate). It replays fixed CLI transcripts and compares ceil(bytes/4) estimates for core protocols. That gate is a core release claim, not a consumer example extension authors can run against their own tracker.\n- pm-observer measures external producer captures (transcript tokens, attribution, continuity). It does not measure SDK tool-call and delivered-byte budgets for fixed orientation, targeted-read and resume scenarios.\n- pm-rust benchmarks native workspace operations. It is not a TypeScript consumer example.\n\nThis item is a reproducible pm-starter example for extension authors. It declares corpus/version and an expected answer, reports distributions over repeated runs, labels byte/4 figures as estimates, and shows that one extra full-list call worsens the measured call and byte budget. It does not claim model performance.\n\nDesign: host-injected SDK only (context orient intent, certified list, get, producer cursors, schemaList roles, workspace transactions). No argv/which/symlink SDK resolution."
   "2026-10-27T17:36:51.493Z",codex-agent,"Continuation audit: the prior work is uncommitted on the requested branch; no remote feature branch or open PR exists. Reusing this item and its acceptance criteria. Rechecked sibling scope: observer owns external capture attribution; rust owns native-operation benchmarks; the CLI internal task-token ratchet owns its core release protocol. This package supplies a reproducible consumer example. Preserve the read-only scenario measurement, exact budget comparisons and host injection. The speculative baseline-sync mutation surface is not part of the requested task: it currently splits preview/apply decisions, does not use its transaction hook, and cannot prove deletion ownership. Remove that unsafe unshipped surface; baseline declarations are portable JSON values, with no tracker import, sync, journal, lease or compensation path. Test producer/validator round trips and seeded read-back scenarios instead."
@@ -46,4 +52,5 @@ docs[4]{path,scope}:
   docs/sdk-floor.json,project
   docs/sdk-floor.md,project
   README.md,project
+close_reason: "Delivered by PR #167 (b8a6d5b): Measure repeatable agent task costs and expose wasted full reads"
 body: ""

@@ -2,12 +2,18 @@ id: pm-starter-failure-first-recipes
 title: Recover read-only tasks from native refusals
 description: "Acceptance: missing item, unsupported capability and insufficient budget recipes use real non-git trackers, assert native code and structured remedy, execute corrected read-only invocation, and never scrape human error prose. Provide typed SDK and agent-sized JSON/TOON CLI, README and runnable example, strict boundary and extreme-value tests, revert proof, read-only public tracker measurements, and npm/Bun CI release gates."
 type: Feature
-status: in_progress
+status: closed
 priority: 2
 tags: []
 created_at: "2026-10-26T01:39:06.987Z"
-updated_at: "2026-10-26T02:04:21.034Z"
+updated_at: "2026-10-30T14:25:53.766Z"
+closed_at: "2026-10-30T14:25:48.672Z"
+completed_at: "2026-10-26T02:19:20.000Z"
 author: codex-agent
+release: 2026.10.26
+resolution: "Delivered by PR #160 (af1722d): Recover read-only tasks from native refusals"
+expected_result: Recover read-only tasks from native refusals
+actual_result: "PR #160 merged at 2026-10-26T02:19:20Z as af1722d; required CI passed on the merged head."
 comments[6]{created_at,author,text}:
   "2026-10-26T01:39:16.643Z",codex-agent,"Overlap check: core SDK owns expected errors, recovery payloads, read-output budget remedies and command capability contracts. pm-starter laboratories already establish certified directory/synthetic read parity with extension-owned mutation refusal; pm-ts-starter covers scaffold/contracts and rehearsal. This feature composes native refusals into completed read-only recovery loops, without another catalog, mock backend, importer, sync engine or journal. No shared durable state, status classification or import/export mutations are introduced. Retain pinned SDK 2026.10.20; current registry CLI is 2026.10.25."
   "2026-10-26T01:48:34.609Z",codex-agent,"Implemented host-bound typed recipes and starter recover. Native missing-item errors on the pinned SDK lack context.code, so receipts identify the public SDK classifier as code_source rather than claiming an emitted field. Unsupported graph capability uses native unknown_subcommand plus allowed_values; insufficient budget uses native requested_budget_infeasible plus recovery.outputBudget. Retries are fixed SDK reads. Targeted native/no-git and extreme-value tests pass; seeded 500-sequence state replay validation and public-copy measurements are underway. No import/export/sync, journal, status classification or shared mutable state was added, so mutation round-trip and lease rules introduce no new paths here."
@@ -26,4 +32,5 @@ tests[1]{command,scope,timeout_seconds,provenance{author,created_at,source_kind,
 docs[2]{path,scope}:
   docs/failure-first-recipes.md,project
   README.md,project
+close_reason: "Delivered by PR #160 (af1722d): Recover read-only tasks from native refusals"
 body: ""
