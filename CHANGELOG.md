@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026.10.29 - 2026-10-29
+
+### Added
+
+- Resume budgeted paginated reads safely after cancellation ([pm-starter-cancellation-consumer](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/features/pm-starter-cancellation-consumer.toon))
+- Measure agent task cost baselines for extension authors ([pm-starter-4kvb](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/features/pm-starter-4kvb.toon))
+
 ## 2026.10.28 - 2026-10-28
 
 ### Other
@@ -11,6 +18,17 @@
 ### Other
 
 - Use SDK-certified complete reads in starter commands and exports ([pm-starter-sdk-adoption-1025](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/tasks/pm-starter-sdk-adoption-1025.toon))
+
+## 2026.10.26 - 2026-10-26
+
+### Added
+
+- Recover read-only tasks from native refusals ([pm-starter-failure-first-recipes](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/features/pm-starter-failure-first-recipes.toon))
+
+### Other
+
+- Point the npm homepage at the package catalog and link the author ([pm-starter-wg8s](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/chores/pm-starter-wg8s.toon))
+- Align host and npm floors with published SDK capabilities ([pm-starter-sdk-floor-1025](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/tasks/pm-starter-sdk-floor-1025.toon))
 
 ## 2026.10.25 - 2026-10-25
 

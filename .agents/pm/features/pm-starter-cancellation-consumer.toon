@@ -2,13 +2,19 @@ id: pm-starter-cancellation-consumer
 title: Resume budgeted paginated reads safely after cancellation
 description: "Compose host output sessions and producer/output continuations in a read-only extension recipe; caller-owned checkpoints, typed SDK and CLI, bounded agent receipts."
 type: Feature
-status: in_progress
+status: closed
 priority: 2
 tags[3]: audit-1025,cancellation,pagination
 created_at: "2026-10-29T02:13:45.874Z"
-updated_at: "2026-10-29T02:45:11.576Z"
+updated_at: "2026-10-30T14:25:42.007Z"
+closed_at: "2026-10-30T14:25:38.275Z"
+completed_at: "2026-10-29T03:01:45.000Z"
 author: codex-agent
 acceptance_criteria: Canceling after page two resumes after the last admitted row without duplicates; Wrong-snapshot cursors produce typed recovery; No source tracker writes are required
+release: 2026.10.29
+resolution: "Delivered by PR #171 (c859b8c): Resume budgeted paginated reads safely after cancellation"
+expected_result: Canceling after page two resumes after the last admitted row without duplicates; Wrong-snapshot cursors produce typed recovery; No source tracker writes are required
+actual_result: "PR #171 merged at 2026-10-29T03:01:45Z as c859b8c; required CI passed on the merged head."
 comments[7]{created_at,author,text}:
   "2026-10-29T02:13:50.260Z",codex-agent,"Overlap recheck: pinned pm-cli 2026.10.25 SDK already exposes PmClient.list, outputSession/read_session.next_state, outputCursor, after, producer continuation discriminators and typed native refusals. Current public host is 2026.10.28. pm-rust owns native read sessions (src/read_session.rs); pm-ts-starter owns generated type-control-flow templates. Existing pm-starter labs, failure-first recovery and task baselines do not provide a cancellation/checkpoint consumer. No matching open package PR or issue found. This feature composes those host contracts without another cursor encoder, snapshot store or source mutations. Caller-carried checkpoints avoid shared mutable package state; no transaction isolation is claimed (pm-cli#1620)."
   "2026-10-29T02:20:14.417Z",codex-agent,"Implementation: consumePaginated and starter consume use injected PmClient.list only. Host-owned outputSession accounting is carried as scalar budget state; ID-only pages require no previous full-fact retention. Native producer after/outputCursor are preserved verbatim, including mixed continuation routing. Admission is page-atomic; an aborted in-flight page is charged but not admitted. Checkpoints are caller-owned values, never shared package files: external delivery and checkpoint persistence require a caller journal/lease and are not claimed exactly once. Producer cursors require a stable source; output cursors fail closed on host snapshot mismatch. Tests use non-git native trackers, output fault injection after genuine SDK reads, and a 500-sequence state/read-back model."
@@ -28,4 +34,5 @@ tests[1]{command,scope,provenance{author,created_at,source_kind,source_ref}}:
 docs[2]{path,scope}:
   docs/cancellation-safe-consumer.md,project
   README.md,project
+close_reason: "Delivered by PR #171 (c859b8c): Resume budgeted paginated reads safely after cancellation"
 body: ""

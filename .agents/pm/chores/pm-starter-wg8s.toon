@@ -2,13 +2,19 @@ id: pm-starter-wg8s
 title: Point the npm homepage at the package catalog and link the author
 description: Apply the owner-requested package homepage and linked author metadata; verify the matching GitHub repository website. Published npm metadata updates with the next release.
 type: Chore
-status: in_progress
+status: closed
 priority: 2
 tags[1]: "gh:unbraind/pm-starter#158"
 created_at: "2026-10-26T06:42:00.287Z"
-updated_at: "2026-10-26T07:32:42.444Z"
+updated_at: "2026-10-30T14:26:18.285Z"
+closed_at: "2026-10-30T14:26:13.028Z"
+completed_at: "2026-10-26T08:23:03.000Z"
 author: codex-agent
 acceptance_criteria: Package homepage points to its catalog page; author links to the about page; repository and bugs remain unchanged; GitHub website matches; local manifest checks pass.
+release: 2026.10.26
+resolution: "Delivered by PR #163 (5dab3ad): Point the npm homepage at the package catalog and link the author"
+expected_result: Package homepage points to its catalog page; author links to the about page; repository and bugs remain unchanged; GitHub website matches; local manifest checks pass.
+actual_result: "PR #163 merged at 2026-10-26T08:23:03Z as 5dab3ad; required CI passed on the merged head."
 comments[4]{created_at,author,text}:
   "2026-10-26T06:42:03.265Z",codex-agent,"Plan: update homepage and author in package.json, preserve repository and bugs, set and verify the GitHub website, run local manifest checks, and regenerate the changelog. CI provides the full gate; npm metadata changes on the next release."
   "2026-10-26T06:42:16.754Z",codex-agent,"Verified GitHub website: https://pm-cli.unbrained.dev/packages/pm-starter. Local linked checks passed: npm run typecheck; npm run pack:dry-run. Package metadata now matches the owner request and repository/bugs are unchanged. Metadata-only change: no runtime behavior changes, so behavioral revert proof is not applicable. Full release gates are delegated to CI as requested; no release or merge performed."
@@ -23,4 +29,5 @@ tests[3]{command,scope,provenance{author,created_at,source_kind,source_ref}}:
   node --test test/package-metadata.test.ts,project,codex-agent,"2026-10-26T07:32:37.737Z",local_mutation,chore/npm-homepage-author
 docs[1]{path,scope}:
   CHANGELOG.md,project
+close_reason: "Delivered by PR #163 (5dab3ad): Point the npm homepage at the package catalog and link the author"
 body: ""
