@@ -1,6 +1,6 @@
 {
   "name": "pm-starter",
-  "version": "2026.10.29",
+  "version": "2026.10.30",
   "description": "Complete starter/scaffold extension for pm-cli showing all capability types",
   "repository": {
     "type": "git",
