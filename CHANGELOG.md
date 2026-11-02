@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+- Ignore managed extension files so the scheduled issue sync can commit ([pm-starter-p0nt](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/issues/pm-starter-p0nt.toon))
+
 ## 2026.10.29 - 2026-10-29
 
 ### Added
