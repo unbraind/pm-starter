@@ -1,0 +1,18 @@
+id: pm-starter-p0nt
+title: Ignore managed extension files so the scheduled issue sync can commit
+description: "Every scheduled pm-github-sync run since pm-github 2026.10.29 failed with 'Changed path outside sync commit scope: .agents/pm/extensions/pm-github/…'. The sync installs its pinned pm-github into .agents/pm/extensions/pm-github, and this template never ignored managed extension artifacts, so the installed files appear as untracked changes outside the sync's commit scope. pm-ts-starter and the other fleet packages already ignore them while keeping the registry tracked."
+type: Issue
+status: closed
+priority: 1
+tags[2]: gitignore,sync
+created_at: "2026-11-02T11:15:57.584Z"
+updated_at: "2026-11-02T11:16:10.159Z"
+closed_at: "2026-11-02T11:16:10.144Z"
+completed_at: "2026-11-02T11:16:10.144Z"
+author: claude-orchestrator
+comments[1]{created_at,author,text}:
+  "2026-11-02T11:16:09.206Z",claude-orchestrator,"Evidence: failing run https://github.com/unbraind/pm-starter/actions/runs/41421550980 (Commit gated sync step: changed paths outside sync commit scope under .agents/pm/extensions/pm-github). Fix: ignore .agents/pm/extensions/* and re-include .agents/pm/extensions/.managed-extensions.json, the same rule pm-ts-starter uses. Local check: with placeholder pm-github extension files in place, git ls-files --others --exclude-standard -- .agents/pm lists 0 paths, and the registry stays tracked."
+files[1]{path,scope}:
+  .gitignore,project
+close_reason: Managed extension artifacts are ignored and the registry stays tracked; the sync's untracked-path check lists 0 paths with an installed extension present.
+body: ""
