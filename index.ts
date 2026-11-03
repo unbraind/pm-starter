@@ -1197,7 +1197,7 @@ const defineExtension = <TModule extends ExtensionModule>(module: TModule): TMod
 
 export default defineExtension({
   name: "pm-starter",
-  version: "2026.11.1",
+  version: "2026.11.3",
 
   activate(api: ExtensionApi) {
     // Register every capability group. Each helper is defensive enough to be
