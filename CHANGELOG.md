@@ -31,10 +31,10 @@
 
 - Recover read-only tasks from native refusals ([pm-starter-failure-first-recipes](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/features/pm-starter-failure-first-recipes.toon))
 
-### Other
+### Fixed
 
-- Point the npm homepage at the package catalog and link the author ([pm-starter-wg8s](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/chores/pm-starter-wg8s.toon))
-- Align host and npm floors with published SDK capabilities ([pm-starter-sdk-floor-1025](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/tasks/pm-starter-sdk-floor-1025.toon))
+- Point the npm homepage at the package's website and link the author ([pm-starter-wg8s](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/issues/pm-starter-wg8s.toon))
+- Align enforced host floor with SDK complete-read capability required after \#156 ([pm-starter-sdk-floor-1025](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/issues/pm-starter-sdk-floor-1025.toon))
 
 ## 2026.10.25 - 2026-10-25
 
