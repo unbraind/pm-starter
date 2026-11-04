@@ -50,7 +50,7 @@ try {
     const client = new PmClient({ pmRoot, author: "consumer-pack-test", noExtensions: true });
     await client.init("pack", { defaults: true, mergeFence: false, agentGuidance: "skip" });
     for (let index = 0; index < 5; index++) await client.create({ type: "Task", title: `Packed synthetic ${index}`,
-      parent: "none", goal: "none", objective: "none", sprint: "none", release: "none" });
+      unset: ["parent", "goal", "objective", "sprint", "release"] });
     const state = (await client.listAllComplete({ includeBody: true })).items;
     run(executable, [...prefix, "--path", pmRoot, "extension", "install", extensionPath], cwd);
     const first = run(executable, [...prefix, "--path", pmRoot, "starter", "consume", "--page-size", "2", "--max-pages", "2", "--json"], cwd);
