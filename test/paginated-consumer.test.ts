@@ -40,13 +40,14 @@ async function tracker(t: TestContext, count = 12, longIds = false) {
     await client.schemaAddStatus(status, { role: [...role] }); statuses.push(status);
   }
   for (let index = 0; index < count; index++) {
-    await client.create({ id: `consumer-${String(index).padStart(3, "0")}${longIds ? "-" + "x".repeat(180) : ""}`,
+    const created = await client.create({ id: `consumer-${String(index).padStart(3, "0")}${longIds ? "-" + "x".repeat(180) : ""}`,
       type: "Task", title: `  Native title ${index}  `, description: ` A\r\n B ${index} `,
       body: ` Body\r\n ${index} \n`, status: statuses[index % statuses.length], closeReason: "Synthetic lifecycle state",
-      parent: "none", goal: "none", objective: "none", sprint: "none", release: "none", assignee: "none",
+      unset: ["parent", "goal", "objective", "sprint", "release", "assignee"],
       priority: index % 5, tags: "one,two", dep: index === 0 ? [] : [`id=consumer-000${longIds ? "-" + "x".repeat(180) : ""},kind=related`],
       comment: ["text=Native comment"], note: ["text=Native note"], learning: ["text=Native learning"],
       file: ["path=paginated-consumer.ts,scope=project"], doc: ["path=README.md,scope=project"], test: ["command=node --version,scope=project"] });
+    for (const field of ["parent", "goal", "objective", "sprint", "release", "assignee"] as const) assert.equal(created.item[field], undefined, field);
   }
   const host: ConsumerHost = { client, sourceKey: pmRoot };
   return { client, host, pmRoot, directory, sdk: createExtensionCommandSdk(pmRoot, client) };
@@ -106,7 +107,7 @@ test("native snapshot continuation is consumed unchanged and a changed snapshot 
   const sourceRefusal = await consumePaginated(wrong, { checkpoint: first.checkpoint });
   assert.ok(!sourceRefusal.ok && sourceRefusal.code === "wrong_source");
   assert.equal(fingerprint(pmRoot), before);
-  await client.create({ type: "Task", title: "Peer added a row", parent: "none", goal: "none", objective: "none", sprint: "none", release: "none" });
+  await client.create({ type: "Task", title: "Peer added a row", unset: ["parent", "goal", "objective", "sprint", "release"] });
   const changed = (await client.listAllComplete({ includeBody: true })).items;
   const rejected = await consumePaginated(host, { checkpoint: first.checkpoint });
   assert.ok(!rejected.ok && rejected.code === "cursor_rejected", JSON.stringify(rejected));
@@ -267,7 +268,7 @@ test("peer snapshot changes at every read/admission boundary refuse or report co
     let calls = 0; const admitted: string[] = [];
     const observed: ConsumerHost = { ...host, client: { async list<Options extends ListOptions & PmReadOutputOptions>(options?: Options) {
       calls++;
-      const transition = async () => { await client.create({ type: "Task", title: `Foreign transition ${phase} ${boundary}`, parent: "none", goal: "none", objective: "none", sprint: "none", release: "none" }); };
+      const transition = async () => { await client.create({ type: "Task", title: `Foreign transition ${phase} ${boundary}`, unset: ["parent", "goal", "objective", "sprint", "release"] }); };
       if (calls === boundary && phase === "before") await transition();
       const page = await client.list(options);
       if (calls === boundary && phase === "after") await transition();
