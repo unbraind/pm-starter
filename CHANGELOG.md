@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+- SDK 2026.11.1 upgrade: parent "none" fixture blocks all eight paginated-consumer tests ([pm-starter-toolchain-1104](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/issues/pm-starter-toolchain-1104.toon))
+
 ## 2026.11.4 - 2026-11-04
 
 ### Fixed

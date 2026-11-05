@@ -1,0 +1,40 @@
+id: pm-starter-toolchain-1104
+title: "SDK 2026.11.1 upgrade: parent \"none\" fixture blocks all eight paginated-consumer tests"
+description: "GH issue #190: https://github.com/unbraind/pm-starter/issues/190 · author @unbraind · state reason completed · created 2026-11-04T14:05:38Z · updated 2026-11-04T23:39:00Z"
+type: Issue
+status: closed
+priority: 2
+tags[2]: "gh:unbraind/pm-starter#190","github_author:unbraind"
+created_at: "2026-11-04T14:05:38Z"
+updated_at: "2026-11-05T09:32:12.944Z"
+closed_at: "2026-11-04T23:39:00Z"
+completed_at: "2026-11-04T23:39:00Z"
+author: codex-toolchain-1104
+acceptance_criteria: All eight genuine native consumer tests pass with six formerly sentinel-valued fields absent; complete coverage remains 100 percent without reduced thresholds; record each root cause and gate result.
+comments[5]{created_at,author,text}:
+  "2026-11-04T19:16:18.545Z",codex-toolchain-1104,"Test: verified issue #190 on pm-cli 2026.11.4. test/paginated-consumer.test.ts reports 1/9 passing; its eight native-consumer cases fail during setup because GH-1614 (2026.10.30) rejects typed parent:none. Replace all six intended empty fields with unset:[parent,goal,objective,sprint,release,assignee] and assert each create result has those fields absent. Preserve every pagination/cancellation/snapshot/native-read assertion; no production consumer change."
+  "2026-11-04T19:17:17.381Z",codex-toolchain-1104,"The first repaired run exposed two additional sentinel-generating creates in the same file: peer snapshot mutation and between-read/write transition fixtures. Migrate those and scripts/validate-consumer-pack.ts too. The snapshot test reached its intended continuation assertions before the remaining peer-create sentinel failed; this is the same GH-1614 test migration, not evidence of a consumer runtime regression."
+  "2026-11-04T19:26:07.326Z",codex-toolchain-1104,"Final-fixture verification: linked pm test selects native snapshot and peer snapshot cases and passes 2/2 (38.9 seconds), with genuine SDK continuation/refusal behavior. The diagnostic file run passed its other seven cases, including the permanent 500-sequence model and installed JSON/TOON CLI acceptance; its two stale-module failures were both the additional sentinel creates now repaired. Typecheck, build:test, docstrings, production audit (0 vulnerabilities), pack dry-run, changelog and publish-attestation gates pass. Full coverage is queued behind earlier PRs."
+  "2026-11-04T19:39:57.098Z",codex-toolchain-1104,"Secondary pin audit: refresh tracked bun.lock, which still resolved CLI/ops/changelog 2026.10.4 and an older peer floor. bun install --lockfile-only --ignore-scripts resolves the declared exact CLI/ops 2026.11.4 and changelog 2026.10.31, with the existing minimum >=2026.8.18 retained. No executable SDK installation changed during lockfile regeneration."
+  "2026-11-04T21:01:32.231Z",codex-toolchain-1104,"Final full gate PASS: nice -n 10 env NPM_CONFIG_USERCONFIG=/dev/null npm run coverage reports 217 tests passed, 0 failed/cancelled/skipped; 100.00 percent lines, branches and functions across all 7 configured source files, with the source-presence check passing. All nine paginated-consumer cases execute successfully on the final fixture. Typecheck, build/test compilation, docstrings, audit (0 vulnerabilities), pack dry-run, changelog and attestation checks passed. Tracked dist was rebuilt with no diff. Regenerated bun.lock matches the declared CLI/ops 2026.11.4 and changelog 2026.10.31 and validates with frozen lockfile-only resolution. No production consumer defect or new upstream defect established."
+files[5]{path,scope}:
+  bun.lock,project
+  package-lock.json,project
+  package.json,project
+  scripts/validate-consumer-pack.ts,project
+  test/paginated-consumer.test.ts,project
+tests[2]{command,scope,provenance{author,created_at,source_kind,source_ref}}:
+  nice -n 10 node --test test/paginated-consumer.test.ts,project,codex-toolchain-1104,"2026-11-04T19:16:29.604Z",local_mutation,dependabot/npm_and_yarn/pm-toolchain-e75a7720a9
+  "nice -n 10 node --test --test-name-pattern=\"native snapshot|peer snapshot\" test/paginated-consumer.test.ts",project,codex-toolchain-1104,"2026-11-04T19:24:38.915Z",local_mutation,dependabot/npm_and_yarn/pm-toolchain-e75a7720a9
+close_reason: "Closed on GitHub as completed on 2026-11-04T23:39:00Z"
+github_close_reason: "Closed on GitHub as completed on 2026-11-04T23:39:00Z"
+github_closed_at: "2026-11-04T23:39:00Z"
+github_created_at: "2026-11-04T14:05:38Z"
+github_link_only: false
+github_number: 190
+github_release: ""
+github_state: closed
+github_state_reason: completed
+github_updated_at: "2026-11-04T23:39:00Z"
+github_url: "https://github.com/unbraind/pm-starter/issues/190"
+body: "## Evidenced SDK-upgrade test blocker\n[PR #187](https://github.com/unbraind/pm-starter/pull/187), head `8eca1c4f16bbc00308dfd98fff2f853902ff5b70`, is tested as merge `5e639ab80fcd6bab319d58b1286315ef753655b7` into main `be4e877b1deb4150d1d195f2825ee77e0bb975a0`, with SDK `2026.11.1`. Head and failed checks reverified November4 at14:04 UTC.\n\n[Node22 job](https://github.com/unbraind/pm-starter/actions/runs/41828727080/job/126570074635) and [Node26 job](https://github.com/unbraind/pm-starter/actions/runs/41828727080/job/126570073852) both report217 tests,209 passed,8 failed. All eight paginated-consumer tests fail during [fixture creation](https://github.com/unbraind/pm-starter/blob/8eca1c4f16bbc00308dfd98fff2f853902ff5b70/test/paginated-consumer.test.ts#L43-L47), before their intended assertions:\n`--parent must not use placeholder token \"none\". Use --unset parent to clear this field.`\n\nThe fixture passes `\"none\"` for parent, goal, objective, sprint, release and assignee.\n\n## Goal, expected and actual\nThe [canonical consumer acceptance criteria](https://github.com/unbraind/pm-starter/blob/be4e877b1deb4150d1d195f2825ee77e0bb975a0/.agents/pm/features/pm-starter-cancellation-consumer.toon) require cancellation/resume and snapshot behavior against genuine native SDK reads with passing CI gates.\n\nExpected: valid native fixture items let those assertions execute. Actual: rejected fixture input blocks the SDK upgrade and full gate. This is a test-fixture migration defect; the evidence does not establish a consumer-runtime defect.\n\n[Core #1658](https://github.com/unbraind/pm-cli/pull/1658) changes typed refusal wording and adds null clears, but still rejects `parent:\"none\"`; that PR alone does not migrate this caller.\n\n## Acceptance and regression criteria\n- Replace intended empty fixture scopes with supported omission/unset semantics; check all six former sentinel fields.\n- All eight genuine-native consumer tests execute and pass.\n- Full Node22/26 gates pass on the repaired exact head without weakening assertions, coverage, or replacing native reads with mocks.\n\n## Evidence limits and deduplication\nCI logs and immutable source only; no local reproduction or replacement-fixture validation. Complete189-entry all-status issue/PR collection, PR187 conversation, and canonical tracker records checked; no matching current defect owner found. PR187 is the existing SDK dependency-upgrade vehicle; this issue records its newly diagnosed fixture blocker, not a request for a second upgrade PR.\n\n---\n\n### GitHub comments (1)\n\n> **@unbraind** (2026-11-04T23:38:59Z)\n>\n> Fixed by #187 (merged as b3e7b72): the pm-toolchain bump to pm-cli 2026.11.4 now clears typed fields with `unset` instead of placeholder sentinels (pm-cli GH-1614), its tests pass and its coverage meets the unchanged thresholds. The agent's commits were reviewed by a read-only codex reviewer before the merge."
