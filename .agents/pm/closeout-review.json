@@ -1,0 +1,156 @@
+{
+  "needs_review": [
+    {
+      "item": "pm-starter-asud",
+      "action": "needs_review",
+      "candidates": [
+        102
+      ],
+      "missing_evidence": [
+        {
+          "pr": 102,
+          "code": "head_evidence_unavailable",
+          "reason": "GitHub GET /repos/unbraind/pm-starter/pulls/102 failed; verify token read access and retry."
+        },
+        {
+          "pr": 102,
+          "code": "head_evidence_unavailable",
+          "reason": "Commit delivery evidence unavailable or incomplete."
+        }
+      ]
+    },
+    {
+      "item": "pm-starter-ghq8",
+      "action": "needs_review",
+      "candidates": [
+        102
+      ],
+      "missing_evidence": [
+        {
+          "pr": 102,
+          "code": "head_evidence_unavailable",
+          "reason": "GitHub GET /repos/unbraind/pm-starter/pulls/102 failed; verify token read access and retry."
+        },
+        {
+          "pr": 102,
+          "code": "head_evidence_unavailable",
+          "reason": "Commit delivery evidence unavailable or incomplete."
+        }
+      ]
+    },
+    {
+      "item": "pm-starter-github-a5804d0dfca8-186",
+      "action": "needs_review",
+      "candidates": [
+        102
+      ],
+      "missing_evidence": [
+        {
+          "pr": 102,
+          "code": "head_evidence_unavailable",
+          "reason": "GitHub GET /repos/unbraind/pm-starter/pulls/102 failed; verify token read access and retry."
+        },
+        {
+          "pr": 102,
+          "code": "head_evidence_unavailable",
+          "reason": "Commit delivery evidence unavailable or incomplete."
+        }
+      ]
+    },
+    {
+      "item": "pm-starter-n9nq",
+      "action": "needs_review",
+      "candidates": [
+        102
+      ],
+      "missing_evidence": [
+        {
+          "pr": 102,
+          "code": "head_evidence_unavailable",
+          "reason": "GitHub GET /repos/unbraind/pm-starter/pulls/102 failed; verify token read access and retry."
+        },
+        {
+          "pr": 102,
+          "code": "head_evidence_unavailable",
+          "reason": "Commit delivery evidence unavailable or incomplete."
+        }
+      ]
+    },
+    {
+      "item": "pm-starter-puy5",
+      "action": "needs_review",
+      "candidates": [
+        102
+      ],
+      "missing_evidence": [
+        {
+          "pr": 102,
+          "code": "head_evidence_unavailable",
+          "reason": "GitHub GET /repos/unbraind/pm-starter/pulls/102 failed; verify token read access and retry."
+        },
+        {
+          "pr": 102,
+          "code": "head_evidence_unavailable",
+          "reason": "Commit delivery evidence unavailable or incomplete."
+        }
+      ]
+    },
+    {
+      "item": "pm-starter-qu97",
+      "action": "needs_review",
+      "candidates": [
+        102
+      ],
+      "missing_evidence": [
+        {
+          "pr": 102,
+          "code": "head_evidence_unavailable",
+          "reason": "GitHub GET /repos/unbraind/pm-starter/pulls/102 failed; verify token read access and retry."
+        },
+        {
+          "pr": 102,
+          "code": "head_evidence_unavailable",
+          "reason": "Commit delivery evidence unavailable or incomplete."
+        }
+      ]
+    },
+    {
+      "item": "pm-starter-session-refusal-code",
+      "action": "needs_review",
+      "candidates": [
+        102
+      ],
+      "missing_evidence": [
+        {
+          "pr": 102,
+          "code": "head_evidence_unavailable",
+          "reason": "GitHub GET /repos/unbraind/pm-starter/pulls/102 failed; verify token read access and retry."
+        },
+        {
+          "pr": 102,
+          "code": "head_evidence_unavailable",
+          "reason": "Commit delivery evidence unavailable or incomplete."
+        }
+      ]
+    },
+    {
+      "item": "pm-starter-snapshot-sdk",
+      "action": "needs_review",
+      "candidates": [
+        102
+      ],
+      "missing_evidence": [
+        {
+          "pr": 102,
+          "code": "head_evidence_unavailable",
+          "reason": "GitHub GET /repos/unbraind/pm-starter/pulls/102 failed; verify token read access and retry."
+        },
+        {
+          "pr": 102,
+          "code": "head_evidence_unavailable",
+          "reason": "Commit delivery evidence unavailable or incomplete."
+        }
+      ]
+    }
+  ]
+}
