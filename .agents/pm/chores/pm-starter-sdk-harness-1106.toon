@@ -1,0 +1,25 @@
+id: pm-starter-sdk-harness-1106
+title: Adopt SDK harness for starter smoke registration and invocation
+description: Replace residual handwritten positive extension hosts in smoke tests with the public SDK testing harness and teach the recommended real-tracker pattern in README.
+type: Chore
+status: in_progress
+priority: 2
+tags[2]: sdk-adoption,testing
+created_at: "2026-11-06T15:47:27.112Z"
+updated_at: "2026-11-06T16:35:05.397Z"
+author: codex-sol
+acceptance_criteria: "Positive registration and invocation smoke tests use the SDK harness; real non-git trackers exercise schema, flags, output and mutation context; README documents the recommended pattern; targeted tests fail on behavioral revert."
+comments[5]{created_at,author,text}:
+  "2026-11-06T15:47:38.859Z",codex-sol,"Scope: companion pm-cli-website-28c9 (G9), audit pm-cli-website-7zcy. Companion evidence read only. Remove smoke registration sinks and opaque callback casts; use createExtensionTestHarness assertions and invocation against real non-git temp trackers. Preserve domain assertions and pure option unit tests. Pinned SDK 2026.11.4 already exports the required harness; keep dependency pins unchanged. Registry latest reports 2026.11.6."
+  "2026-11-06T15:53:13.708Z",codex-sol,"Implementation: removed both smoke ExtensionApi sinks and CapturedValue callable/index casts. SDK assertions now check the full command registry (including importer/exporter paths), native list flags, schema, all hooks and remaining capability surfaces. Invocation uses the shipped manifest plus real initialized non-git temp trackers; tests cover renderer ownership, USAGE failures, interactive receipts, laboratory refusal, observe-only write context and complete reads. README recommends this pattern and explains focused unit doubles. Targeted smoke tests: 13/13 pass. build:test, typecheck and docstring pass; no separate lint script exists."
+  "2026-11-06T15:57:14.771Z",codex-sol,Linked smoke run passes 13/13 via pm test --run --progress --shared-host-safe --timeout 180. The mutation-context example uses the canonical SDK-created id for locateItem and real before/after documents plus update.changed_fields. An initial linked run caught a raw-id lookup in that example; corrected without changing production code or rewriting history. No SDK gap found.
+  "2026-11-06T15:59:30.968Z",codex-sol,"Behavioral revert proofs: 12/12 isolated single-function mutations fail the targeted smoke tests: schema field rename, native flag rename, renderer ownership mismatch, omitted plan/search/setup USAGE guards, missing interactive scaffold step, wrong laboratory item_count, bypassed mutation refusal, inert onWrite callback, service payload echo and truncated complete read. The original mock registration test still passes the schema/flag/renderer/hook variants (4/4), demonstrating added sensitivity. Restored implementation remains untouched; final gate reruns the positive suite. README example was extracted and executed in a disposable non-git tracker: 1/1 pass."
+  "2026-11-06T16:35:05.396Z",codex-sol,"Final local gates: npm run release:check PASS; bun run release:check PASS; npm run release:check with a fresh HOME, GIT_CONFIG_GLOBAL=/dev/null and GIT_CONFIG_NOSYSTEM=1 PASS. Each full suite passed 220/220 tests and the unchanged configured coverage gate measured 100% lines, branches and functions across seven source files. Production audit, package dry-run, changelog and publish-attestation checks passed. Targeted smoke 13/13, executable README example 1/1, build:test, typecheck, docstring and git diff --check also pass. All 12 behavioral sensitivity proofs failed as intended in disposable copies; original mock missed four. No SDK gap or production change. Claim released; item stays in_progress for orchestrator verification. Opening the single adoption PR next; CI and exact-head bot review remain required."
+files[2]{path,scope}:
+  test/commands.test.ts,project
+  test/smoke.test.ts,project
+tests[1]{command,scope,provenance{author,created_at,source_kind,source_ref}}:
+  node --test --test-concurrency=2 test/smoke.test.ts,project,codex-sol,"2026-11-06T15:54:03.683Z",local_mutation,starter-sdk-extension-test-harness
+docs[1]{path,scope}:
+  README.md,project
+body: ""

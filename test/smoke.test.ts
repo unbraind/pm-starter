@@ -1,41 +1,26 @@
 import assert from "node:assert/strict";
-import { execFileSync } from "node:child_process";
 import { mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import test from "node:test";
+import test, { type TestContext } from "node:test";
 
-import type { ExtensionApi } from "@unbrained/pm-cli/sdk/authoring";
-import { PmClient, createExtensionCommandSdk } from "@unbrained/pm-cli/sdk";
-import { createExtensionTestHarness, runRegisteredServiceOverrideForTest } from "@unbrained/pm-cli/sdk/testing";
+import { PmClient, createExtensionCommandSdk, locateItem, readLocatedItem } from "@unbrained/pm-cli/sdk";
+import { createExtensionTestHarness } from "@unbrained/pm-cli/sdk/testing";
 
 import extension, { optionPositiveInteger, readPmItems } from "../index.ts";
+import type { LaboratoryRun, LaboratoryCommandRefusal } from "../laboratories.ts";
 
-/** Opaque callback/value capture used only across the deliberately loose test-double boundary. */
-interface CapturedValue {
-  (...args: unknown[]): CapturedValue;
-  readonly [key: string]: CapturedValue;
-  readonly [index: number]: CapturedValue;
-}
-
-/** Create the minimal registration sink used by command-focused smoke cases. */
-function createMockApi(commands: Record<string, CapturedValue> = {}): ExtensionApi {
-  return {
-    registerCommand: (command: CapturedValue) => { commands[String(command.name)] = command; },
-    registerParser: () => {},
-    registerPreflight: () => {},
-    registerService: () => {},
-    registerFlags: () => {},
-    registerItemFields: () => {},
-    registerItemTypes: () => {},
-    registerMigration: () => {},
-    registerRenderer: () => {},
-    registerImporter: () => {},
-    registerExporter: () => {},
-    registerSearchProvider: () => {},
-    registerVectorStoreAdapter: () => {},
-    hooks: { beforeCommand: () => {}, afterCommand: () => {}, onWrite: () => {}, onRead: () => {}, onIndex: () => {} },
-  } as unknown as ExtensionApi;
+/** Activate the shipped manifest and bind invocations to an initialized, non-git tracker. */
+async function smokeTracker(t: TestContext) {
+  const directory = mkdtempSync(join(tmpdir(), "pm-starter-smoke-"));
+  t.after(() => rmSync(directory, { recursive: true, force: true }));
+  const pmRoot = join(directory, ".agents", "pm");
+  const client = new PmClient({ pmRoot, noExtensions: true, author: "smoke-test" });
+  await client.init("smoke", { defaults: true, mergeFence: false, agentGuidance: "skip" });
+  const manifest: unknown = JSON.parse(readFileSync(new URL("../manifest.json", import.meta.url), "utf8"));
+  const harness = await createExtensionTestHarness({ default: extension, manifest });
+  t.after(() => harness.deactivate());
+  return { harness, pmRoot, client };
 }
 
 test("extension has required shape", () => {
@@ -46,110 +31,128 @@ test("extension has required shape", () => {
   assert.strictEqual(typeof extension.activate, "function", "activate should be a function");
 });
 
-test("extension registers at least one capability", () => {
-  const registered: string[] = [];
-  const commands: Record<string, CapturedValue> = {};
-  const renderers: Record<string, CapturedValue> = {};
-  let importer: CapturedValue | undefined;
-  let exporter: CapturedValue | undefined;
-  // Mirror the full ExtensionApi so the reference extension can register every
-  // demonstrated capability (this template exercises all of them).
-  const api = {
-    registerCommand: (command: CapturedValue) => { registered.push("command"); commands[String(command.name)] = command; },
-    registerParser: () => { registered.push("parser"); },
-    registerPreflight: () => { registered.push("preflight"); },
-    registerService: () => { registered.push("service"); },
-    registerFlags: () => { registered.push("flags"); },
-    registerItemFields: () => { registered.push("itemFields"); },
-    registerItemTypes: () => { registered.push("itemTypes"); },
-    registerMigration: () => { registered.push("migration"); },
-    registerRenderer: (format: string, renderer: CapturedValue) => { registered.push("renderer"); renderers[format] = renderer; },
-    registerImporter: (_name: string, handler: CapturedValue) => { registered.push("importer"); importer = handler; },
-    registerExporter: (_name: string, handler: CapturedValue) => { registered.push("exporter"); exporter = handler; },
-    registerSearchProvider: () => { registered.push("search"); },
-    registerVectorStoreAdapter: () => { registered.push("vectorStore"); },
-    hooks: {
-      beforeCommand: () => { registered.push("hook:before"); },
-      afterCommand: () => { registered.push("hook:after"); },
-      onWrite: () => { registered.push("hook:onWrite"); },
-      onRead: () => { registered.push("hook:onRead"); },
-      onIndex: () => { registered.push("hook:onIndex"); },
-    },
-  };
-  extension.activate(api as unknown as ExtensionApi);
-  assert.ok(registered.length > 0, `extension should register at least one capability, got: ${JSON.stringify(registered)}`);
-
-  // This reference extension demonstrates ALL 9 SDK capability types, so the
-  // mock above must let every register*/hook call fire. Assert each one ran so
-  // the template stays a faithful, complete reference (a dropped capability or a
-  // renamed SDK method surfaces here, not silently at install time).
-  const expected = [
-    "command", "renderer", "hook:before", "hook:after", "hook:onWrite",
-    "hook:onRead", "hook:onIndex", "itemFields", "itemTypes", "migration",
-    "importer", "exporter", "search", "vectorStore", "parser", "preflight",
-    "service", "flags",
-  ];
-  for (const cap of expected) {
-    assert.ok(registered.includes(cap), `extension should register "${cap}" (got: ${JSON.stringify(registered)})`);
+test("extension registers every demonstrated capability through the SDK host", async (t) => {
+  const { harness } = await smokeTracker(t);
+  harness.assertCapabilityUsage({ declared: ["commands", "renderers", "hooks", "schema", "importers", "search", "parser", "preflight", "services"] });
+  assert.deepEqual(harness.activation.registrations.commands.map((command) => command.command).sort(), [
+    "starter baseline", "starter consume", "starter context", "starter demo", "starter greet", "starter lab", "starter plan", "starter recover", "starter search", "starter setup", "starter summary", "starter-demo export", "starter-demo import", "starter-lab export",
+  ]);
+  assert.equal(harness.assertCommandContract({ name: "starter greet", flags: ["--name", "--emoji", "--uppercase"] }).flags.length, 3);
+  assert.ok(harness.assertCommandContract({ name: "starter plan" }).command.failure_hints.length > 0);
+  assert.ok(harness.assertCommandContract({ name: "starter search" }).command.arguments.length > 0);
+  assert.equal(harness.assertCommandContract({ name: "starter setup" }).flags.length, 3);
+  assert.ok(harness.assertCommandContract({ name: "starter summary" }).command.failure_hints.length > 0);
+  harness.assertFlags({ name: "list", flags: ["--starter-tag"] });
+  harness.assertItemField({ name: "starter_origin", type: "string" });
+  harness.assertItemField({ name: "starter_score", type: "number" });
+  harness.assertItemType({ name: "StarterNote", folder: "starter-notes" });
+  harness.assertMigration({ name: "pm-starter-0001-noop", mandatory: false });
+  for (const kind of ["before_command", "after_command", "on_write", "on_read", "on_index"] as const) {
+    harness.assertHook({ kind });
   }
-
-  assert.deepStrictEqual(Object.keys(commands).sort(), ["starter baseline", "starter consume", "starter context", "starter demo", "starter greet", "starter lab", "starter plan", "starter recover", "starter search", "starter setup", "starter summary"]);
-  assert.strictEqual(commands["starter greet"].flags.length, 3);
-  assert.ok(commands["starter plan"].failure_hints && commands["starter plan"].failure_hints.length > 0, "starter plan should have failure_hints");
-  assert.ok(commands["starter search"].arguments && commands["starter search"].arguments.length > 0, "starter search should declare arguments");
-  assert.strictEqual(commands["starter setup"].flags.length, 3);
-  assert.ok(commands["starter summary"].failure_hints && commands["starter summary"].failure_hints.length > 0, "starter summary should have failure_hints");
-  assert.strictEqual(renderers.json({ result: { other: true } }), null);
-  assert.match(
-    String(renderers.toon({ result: { starter_demo: true, item_count: 1, sample: [{ id: "pm-1", status: "open", title: "Demo" }] } })),
-    /pm-starter demo/
-  );
-  assert.ok(importer, "starter importer should be captured");
-  assert.ok(exporter, "starter exporter should be captured");
+  harness.assertParserOverride({ name: "list" });
+  harness.assertPreflightOverride();
+  harness.assertServiceOverride({ name: "output_format" });
+  harness.assertSearchProvider({ name: "starter-substring" });
+  harness.assertVectorStoreAdapter({ name: "starter-memory" });
+  harness.assertImporter({ name: "starter-demo" });
+  harness.assertExporter({ name: "starter-demo" });
+  harness.assertExporter({ name: "starter-lab" });
+  for (const format of ["json", "toon"] as const) harness.assertRendererOverride({ name: format });
 });
 
-test("starter plan throws USAGE error when no id is provided", async () => {
-  const commands: Record<string, CapturedValue> = {};
-  const api = createMockApi(commands);
-  extension.activate(api);
+test("registered renderers retain ownership and output receipts", async (t) => {
+  const { harness, pmRoot, client } = await smokeTracker(t);
+  await client.create({ id: "sample", type: "Task", title: "Demo" });
+  const outcome = await harness.runCommand({ command: "starter demo", pmRoot });
+  assert.equal(outcome.handled, true);
+  assert.deepEqual(outcome.warnings, []);
+  const rendered = await harness.runRendererOverride({ format: "toon", command: "starter demo", result: outcome.result, pm_root: pmRoot });
+  assert.equal(rendered.overridden, true);
+  assert.match(rendered.rendered ?? "", /pm-starter demo.*1 item/);
+  assert.match(rendered.rendered ?? "", /Demo/);
+  assert.deepEqual(rendered.warnings, []);
+  const unrelated = await harness.runRendererOverride({ format: "json", command: "list", result: outcome.result, pm_root: pmRoot });
+  assert.deepEqual(unrelated, { overridden: false, rendered: null, warnings: [] });
+  const wrongPayload = await harness.runRendererOverride({ format: "json", command: "starter demo", result: { other: true }, pm_root: pmRoot });
+  assert.deepEqual(wrongPayload, { overridden: false, rendered: null, warnings: [] });
+});
 
-  // No ID provided -> should throw CommandError with exitCode USAGE (2)
+test("starter plan throws USAGE error when no id is provided", async (t) => {
+  const { harness, pmRoot } = await smokeTracker(t);
   await assert.rejects(
-    async () => commands["starter plan"].run({ args: [], options: {}, pm_root: "." }),
+    () => harness.runCommand({ command: "starter plan", pmRoot }),
     (error: unknown) => typeof error === "object" && error !== null && "exitCode" in error && error.exitCode === 2,
   );
 });
 
-test("starter search throws USAGE error when no keywords are provided", async () => {
-  const commands: Record<string, CapturedValue> = {};
-  const api = createMockApi(commands);
-  extension.activate(api);
-
+test("starter search throws USAGE error when no keywords are provided", async (t) => {
+  const { harness, pmRoot } = await smokeTracker(t);
   await assert.rejects(
-    async () => commands["starter search"].run({ args: [], options: {}, pm_root: "." }),
+    () => harness.runCommand({ command: "starter search", pmRoot }),
     (error: unknown) => typeof error === "object" && error !== null && "exitCode" in error && error.exitCode === 2,
   );
 });
 
-test("starter setup throws USAGE error when --name is missing in non-interactive mode", async () => {
-  const commands: Record<string, CapturedValue> = {};
-  const api = createMockApi(commands);
-  extension.activate(api);
-
+test("starter setup throws USAGE error when --name is missing in non-interactive mode", async (t) => {
+  const { harness, pmRoot } = await smokeTracker(t);
   await assert.rejects(
-    async () => commands["starter setup"].run({ args: [], options: {}, pm_root: "." }),
+    () => harness.runCommand({ command: "starter setup", pmRoot }),
     (error: unknown) => typeof error === "object" && error !== null && "exitCode" in error && error.exitCode === 2,
   );
 });
 
-test("starter setup interactive mode returns guided steps", async () => {
-  const commands: Record<string, CapturedValue> = {};
-  const api = createMockApi(commands);
-  extension.activate(api);
+test("starter setup interactive mode returns guided steps", async (t) => {
+  const { harness, pmRoot } = await smokeTracker(t);
+  const outcome = await harness.runCommand({ command: "starter setup", options: { interactive: true }, pmRoot });
+  assert.equal(outcome.handled, true);
+  assert.deepEqual(outcome.warnings, []);
+  assert.deepEqual(outcome.result, { interactive: true, steps: ["name", "capability", "scaffold", "verify"] });
+});
 
-  const result = await commands["starter setup"].run({ args: [], options: { interactive: true }, pm_root: "." });
-  assert.strictEqual(result.interactive, true);
-  assert.ok(result.steps.includes("scaffold"));
+test("SDK-bound laboratory returns certified receipts and refuses mutation without writes", async (t) => {
+  const { harness, pmRoot, client } = await smokeTracker(t);
+  await client.create({ id: "receipt", type: "Task", title: "Receipt" });
+  const before = await client.get("receipt");
+  const outcome = await harness.runCommand({ command: "starter lab", options: { capability: "commands" }, pmRoot });
+  assert.equal(outcome.handled, true);
+  assert.deepEqual(outcome.warnings, []);
+  const receipt = outcome.result as LaboratoryRun;
+  assert.equal(receipt.identical, true);
+  assert.deepEqual(receipt.directory, { ok: true, schema: "pm-starter/laboratory/v1", capability: "commands", operation: "read", item_count: 1, evidence: { open: 1 } });
+  assert.deepEqual(receipt.directory, receipt.synthetic_remote);
+  const denied = await harness.runCommand({ command: "starter lab", options: { operation: "mutate" }, pmRoot });
+  assert.equal(denied.exitCode, 1);
+  assert.equal(denied.errorCode, "laboratory_refused");
+  assert.equal((denied.result as LaboratoryCommandRefusal).receipt?.directory_refusal.ok, false);
+  assert.deepEqual(await client.get("receipt"), before);
+});
+
+test("registered write hook observes a real mutation context without changing its item", async (t) => {
+  const { harness, pmRoot, client } = await smokeTracker(t);
+  const created = await client.create({ id: "write-context", type: "Task", title: "Before" });
+  const located = await locateItem(pmRoot, created.item.id);
+  assert.ok(located);
+  const before = (await readLocatedItem(located)).document;
+  const updated = await client.update("write-context", { title: "After" });
+  const after = (await readLocatedItem(located)).document;
+  const item = await client.get("write-context");
+  assert.equal(item.item.title, "After");
+  const savedHooks = process.env.PM_STARTER_HOOKS;
+  process.env.PM_STARTER_HOOKS = "1";
+  t.after(() => {
+    if (savedHooks === undefined) delete process.env.PM_STARTER_HOOKS;
+    else process.env.PM_STARTER_HOOKS = savedHooks;
+  });
+  const log = t.mock.method(console, "error", () => {});
+  // The harness dispatches this hook explicitly; it does not auto-install the extension on the client.
+  const warnings = await harness.runHook({ kind: "on_write", context: {
+    path: located.itemPath, scope: "project", op: "update", item_id: item.item.id,
+    item_type: item.item.type, before, after, changed_fields: updated.changed_fields,
+  } });
+  assert.deepEqual(warnings, []);
+  assert.deepEqual(log.mock.calls.map((call) => call.arguments), [[`[pm-starter] onWrite: update project ${located.itemPath}`]]);
+  assert.deepEqual(await client.get("write-context"), item);
 });
 
 test("positive integer options honor numeric and string SDK values", () => {
@@ -177,22 +180,17 @@ test("positive integer options honor numeric and string SDK values", () => {
 // test suite.
 // ---------------------------------------------------------------------------
 
-test("output_format override declines unclaimed payloads instead of echoing the context", async () => {
-  const harness = await createExtensionTestHarness(extension, {
-    name: "pm-starter",
-    capabilities: ["commands", "renderers", "hooks", "schema", "importers", "search", "parser", "preflight", "services"],
-  });
-  assert.deepEqual(harness.activation.failed, [], "activation must not fail");
-
-  // The override must actually be registered for the `output_format` service.
+test("output_format override declines unclaimed payloads instead of echoing the context", async (t) => {
+  const { harness, pmRoot } = await smokeTracker(t);
   harness.assertServiceOverride({ name: "output_format" });
 
   const payload = { command: "list", format: "toon", result: { items: [{ id: "probe-1" }], count: 1 } };
-  const outcome = await runRegisteredServiceOverrideForTest(harness.activation.services, {
+  const outcome = await harness.runServiceOverride({
     service: "output_format",
     command: "list",
     payload,
-  } as Parameters<typeof runRegisteredServiceOverrideForTest>[1]);
+    global: {}, pm_root: pmRoot,
+  });
 
   assert.equal(
     outcome.handled,
@@ -259,18 +257,12 @@ test("extension self-reported version matches package.json and manifest.json", (
 
 
 test("readPmItems returns the complete large tracker beyond the default output budget", async (t) => {
-  const directory = mkdtempSync(join(tmpdir(), "pm-starter-complete-read-"));
-  t.after(() => rmSync(directory, { recursive: true, force: true }));
-  const pmRoot = join(directory, ".agents", "pm");
-  execFileSync("pm", ["init", "--pm-path", pmRoot], { cwd: directory, stdio: "ignore" });
+  const { pmRoot, client } = await smokeTracker(t);
   const body = "Complete corpus regression text. ".repeat(400).trim();
   for (let index = 0; index < 6; index++) {
-    execFileSync("pm", ["create", "Issue", `Budget probe ${index}`, "--pm-path", pmRoot, "--body", body, "--author", "test"], {
-      cwd: directory,
-      stdio: "ignore",
-    });
+    await client.create({ type: "Issue", title: `Budget probe ${index}`, body, author: "test" });
   }
-  const outcome = await readPmItems({ sdk: createExtensionCommandSdk(pmRoot, new PmClient({ pmRoot, noExtensions: true })) });
+  const outcome = await readPmItems({ sdk: createExtensionCommandSdk(pmRoot, client) });
   assert.ok(outcome.ok, outcome.ok ? "complete read" : outcome.reason);
   assert.equal(outcome.items.length, 6);
   assert.ok(outcome.items.every((item) => item.body === body));

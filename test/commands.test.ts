@@ -158,8 +158,9 @@ function setEnv(t: TestContext, key: string, value: string | undefined): void {
 
 /**
  * Mock ExtensionApi that captures every registered handler so tests can call
- * them directly with controlled contexts. Mirrors the pattern in smoke.test.ts
- * but captures callbacks for hooks, schema, search, parser, preflight, etc.
+ * them directly with controlled contexts. These focused unit doubles exercise
+ * subprocess failures, malformed values and callback branches. Positive host
+ * registration and dispatch belong in smoke.test.ts using the SDK harness.
  */
 interface CapturedApi {
   readonly commands: Record<string, CapturedValue>;
