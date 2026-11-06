@@ -213,6 +213,73 @@ npm run build
 pm install ./my-extension --project
 ```
 
+## Recommended extension tests
+
+Use `createExtensionTestHarness` from `@unbrained/pm-cli/sdk/testing` for positive
+registration and handler tests. It activates the real host registration API and
+runs registered handlers through host dispatch. Pair it with an initialized
+`PmClient` tracker in a temporary directory, including a tracker outside Git:
+
+```ts
+import assert from "node:assert/strict";
+import { mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import test from "node:test";
+import { PmClient } from "@unbrained/pm-cli/sdk";
+import { createExtensionTestHarness } from "@unbrained/pm-cli/sdk/testing";
+import extension from "../index.ts";
+
+test("registered command reads a real tracker", async (t) => {
+  const directory = mkdtempSync(join(tmpdir(), "extension-test-"));
+  t.after(() => rmSync(directory, { recursive: true, force: true }));
+  const pmRoot = join(directory, ".agents", "pm"); // Tracker storage, not workspace root.
+  const client = new PmClient({ pmRoot, noExtensions: true, author: "test" });
+  await client.init("example", { defaults: true, mergeFence: false, agentGuidance: "skip" });
+  await client.create({ id: "example", type: "Task", title: "Example" });
+
+  const manifest: unknown = JSON.parse(readFileSync(new URL("../manifest.json", import.meta.url), "utf8"));
+  const harness = await createExtensionTestHarness({ default: extension, manifest });
+  t.after(() => harness.deactivate());
+  harness.assertCommandContract({ name: "starter greet", flags: ["--name", "--uppercase"] });
+  harness.assertFlags({ name: "list", flags: ["--starter-tag"] });
+  harness.assertItemField({ name: "starter_origin", type: "string" });
+  harness.assertItemType({ name: "StarterNote", folder: "starter-notes" });
+
+  // A nonempty pmRoot makes the harness inject a real host-bound ctx.sdk.
+  const outcome = await harness.runCommand({ command: "starter demo", pmRoot });
+  assert.equal(outcome.handled, true);
+  assert.deepEqual(outcome.warnings, []);
+  assert.equal((outcome.result as { item_count: number }).item_count, 1);
+});
+```
+
+Keep the manifest's capabilities accurate; this example uses the package's actual
+manifest so missing declarations fail activation. Copy the assertion names and
+expected receipts to match your own extension. The pinned development SDK supplies
+these testing helpers; they do not change the installed extension's host floor.
+
+Use `assertHook`, `assertImporter`, `assertExporter` and the other `assert*`
+methods to verify registered surfaces, then `runCommand`, `runRendererOverride`,
+`runImporter`, `runExporter` or `runHook` to exercise behavior. Importers and
+exporters also register command paths, so they appear in the host command registry.
+The harness dispatches one requested surface; it does not run the entire CLI
+parser/preflight/render pipeline or automatically install hooks on a separate
+`PmClient`. Pass parsed command flags in `options`, global host options in `global`,
+and real committed mutation data when invoking an observe-only write hook.
+
+Retain package rules as assertions: USAGE errors, inert importer and laboratory
+mutation refusals, renderer ownership, and receipt contents are starter behavior
+the SDK cannot prescribe. Pure option tests and the focused callback/subprocess
+failure doubles in `test/commands.test.ts` stay unit tests; use
+`activateExtensionForTest` directly for deliberate failed-activation or old-host
+compatibility tests. Positive smoke tests must use the supported harness instead
+of a handwritten `ExtensionApi` registration sink. See `test/smoke.test.ts` for
+registration, invocation, output receipt and mutation-context examples.
+
+Run `node --test --test-concurrency=2 test/smoke.test.ts` and `npm run build:test`
+when adapting this pattern, then the package's full gate.
+
 ## License
 
 MIT
