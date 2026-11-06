@@ -6,11 +6,12 @@ status: closed
 priority: 2
 tags[2]: "gh:unbraind/pm-starter#190","github_author:unbraind"
 created_at: "2026-11-04T14:05:38Z"
-updated_at: "2026-11-05T09:32:12.944Z"
+updated_at: "2026-11-06T09:26:57.429Z"
 closed_at: "2026-11-04T23:39:00Z"
 completed_at: "2026-11-04T23:39:00Z"
 author: codex-toolchain-1104
 acceptance_criteria: All eight genuine native consumer tests pass with six formerly sentinel-valued fields absent; complete coverage remains 100 percent without reduced thresholds; record each root cause and gate result.
+release: v2026.11.05
 comments[5]{created_at,author,text}:
   "2026-11-04T19:16:18.545Z",codex-toolchain-1104,"Test: verified issue #190 on pm-cli 2026.11.4. test/paginated-consumer.test.ts reports 1/9 passing; its eight native-consumer cases fail during setup because GH-1614 (2026.10.30) rejects typed parent:none. Replace all six intended empty fields with unset:[parent,goal,objective,sprint,release,assignee] and assert each create result has those fields absent. Preserve every pagination/cancellation/snapshot/native-read assertion; no production consumer change."
   "2026-11-04T19:17:17.381Z",codex-toolchain-1104,"The first repaired run exposed two additional sentinel-generating creates in the same file: peer snapshot mutation and between-read/write transition fixtures. Migrate those and scripts/validate-consumer-pack.ts too. The snapshot test reached its intended continuation assertions before the remaining peer-create sentinel failed; this is the same GH-1614 test migration, not evidence of a consumer runtime regression."
@@ -32,7 +33,7 @@ github_closed_at: "2026-11-04T23:39:00Z"
 github_created_at: "2026-11-04T14:05:38Z"
 github_link_only: false
 github_number: 190
-github_release: ""
+github_release: v2026.11.05
 github_state: closed
 github_state_reason: completed
 github_updated_at: "2026-11-04T23:39:00Z"
