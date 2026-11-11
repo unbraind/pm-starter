@@ -159,9 +159,9 @@
 
 ### Fixed
 
-- A failed provenance publish silently falls back to an unattested one ([pm-starter-uxmy](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/issues/pm-starter-uxmy.toon))
 - The publish-attestation gate misses a publish routed through an unquoted shell variable ([pm-starter-74p9](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/issues/pm-starter-74p9.toon))
 - Fix same-line scalar assignment bypass in publish attestation scanner ([pm-starter-2899](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/issues/pm-starter-2899.toon))
+- A failed provenance publish silently falls back to an unattested one ([pm-starter-uxmy](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/issues/pm-starter-uxmy.toon))
 
 ### Closed
 
