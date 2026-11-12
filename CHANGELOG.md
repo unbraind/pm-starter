@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026.11.12 - 2026-11-12
+
+### Dependencies
+
+- Bump @unbrained/pm-cli ([#205](https://github.com/unbraind/pm-starter/pull/205))
+
 ## 2026.11.11 - 2026-11-11
 
 ### Dependencies
