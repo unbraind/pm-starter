@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+No changes.
+
 ## 2026.11.13 - 2026-11-13
 
 ### Dependencies
@@ -45,6 +49,14 @@
 
 - Ignore managed extension files so the scheduled issue sync can commit ([pm-starter-p0nt](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/issues/pm-starter-p0nt.toon))
 
+## 2026.11.1 - 2026-11-01
+
+No changes.
+
+## 2026.10.30 - 2026-10-30
+
+No changes.
+
 ## 2026.10.29 - 2026-10-29
 
 ### Added
@@ -85,6 +97,10 @@
 
 - Correct PR 147 tracker audit evidence ([pm-starter-ubt7](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/chores/pm-starter-ubt7.toon))
 
+## 2026.10.24 - 2026-10-24
+
+No changes.
+
 ## 2026.10.23 - 2026-10-23
 
 ### Changed
@@ -106,11 +122,51 @@
 
 - Closed: Fix release publish ordering before protected main push ([pm-starter-nf9d](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/issues/pm-starter-nf9d.toon))
 
+## 2026.10.20 - 2026-10-20
+
+No changes.
+
+## 2026.10.19 - 2026-10-19
+
+No changes.
+
+## 2026.10.18 - 2026-10-18
+
+No changes.
+
+## 2026.10.17 - 2026-10-17
+
+No changes.
+
+## 2026.10.16 - 2026-10-16
+
+No changes.
+
+## 2026.10.15 - 2026-10-15
+
+No changes.
+
+## 2026.10.12 - 2026-10-12
+
+No changes.
+
+## 2026.10.11 - 2026-10-11
+
+No changes.
+
+## 2026.10.9 - 2026-10-09
+
+No changes.
+
 ## 2026.10.5 - 2026-10-05
 
 ### Other
 
 - Auto-merge green Dependabot updates and group the pm toolchain into one daily PR ([pm-starter-enr4](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/tasks/pm-starter-enr4.toon))
+
+## 2026.10.3 - 2026-10-03
+
+No changes.
 
 ## 2026.9.26 - 2026-09-26
 
@@ -146,6 +202,10 @@
 
 - Certify pm CLI 2026.9.10 and pick up the canonical auditor fixes the lockfile was holding back ([pm-starter-dco5](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/chores/pm-starter-dco5.toon))
 
+## 2026.9.9 - 2026-09-09
+
+No changes.
+
 ## 2026.9.8 - 2026-09-08
 
 ### Security
@@ -155,6 +215,10 @@
 ### Other
 
 - Harden the attestation consumer suite to match the rest of the converged fleet ([pm-starter-csko](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/chores/pm-starter-csko.toon))
+
+## 2026.9.6 - 2026-09-06
+
+No changes.
 
 ## 2026.9.1 - 2026-09-01
 
@@ -252,11 +316,19 @@
 
 - Resolve pm-changelog to the release that derives release dates in UTC ([pm-starter-9fbt](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/chores/pm-starter-9fbt.toon))
 
+## 2026.8.3 - 2026-08-03
+
+No changes.
+
 ## 2026.8.1 - 2026-08-01
 
 ### Fixed
 
 - Release commits discard the rebuilt dist, so the git-install path serves the previous version ([pm-starter-sthp](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/issues/pm-starter-sthp.toon))
+
+## 2026.7.31 - 2026-07-31
+
+No changes.
 
 ## 2026.7.29 - 2026-07-29
 
@@ -314,6 +386,14 @@
 
 - Closed: Recommend pm merge reconcile (2026.7.22) over raw history-repair in Multi-agent merge safety docs ([pm-starter-ll3f](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/issues/pm-starter-ll3f.toon))
 
+## 2026.7.22 - 2026-07-22
+
+No changes.
+
+## 2026.7.20 - 2026-07-20
+
+No changes.
+
 ## 2026.7.19 - 2026-07-19
 
 ### Added
@@ -323,6 +403,14 @@
 ### Other
 
 - Harden release bun-verify so registry-mirror lag cannot block the GitHub release ([pm-starter-p9ez](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/chores/pm-starter-p9ez.toon))
+
+## 2026.7.13 - 2026-07-13
+
+No changes.
+
+## 2026.7.11 - 2026-07-11
+
+No changes.
 
 ## 2026.7.10 - 2026-07-10
 
@@ -341,11 +429,23 @@
 - Align Node engine with pm CLI runtime ([pm-starter-z28y](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/tasks/pm-starter-z28y.toon))
 - Regenerate CHANGELOG after pm close item ([pm-starter-4mkx](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/tasks/pm-starter-4mkx.toon))
 
+## 2026.6.14 - 2026-06-14
+
+No changes.
+
 ## 2026.6.13 - 2026-06-13
 
 ### Other
 
 - Daily Release publish step runs prepublishOnly post-tag: align npm publish with --ignore-scripts ([pm-starter-5wig](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/tasks/pm-starter-5wig.toon))
+
+## 2026.6.10 - 2026-06-10
+
+No changes.
+
+## 2026.6.9 - 2026-06-09
+
+No changes.
 
 ## 2026.6.8 - 2026-06-08
 
@@ -367,11 +467,19 @@
 
 - Fix README to document all 9 capabilities accurately + strengthen smoke test ([pm-starter-xwkh](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/chores/pm-starter-xwkh.toon))
 
+## 2026.6.3 - 2026-06-03
+
+No changes.
+
 ## 2026.6.2 - 2026-06-02
 
 ### Added
 
 - Make pm-starter the canonical full ExtensionApi reference ([pm-starter-oi1i](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/features/pm-starter-oi1i.toon))
+
+## 2026.5.31 - 2026-05-31
+
+No changes.
 
 ## 2026.5.30 - 2026-05-30
 
