@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Other
+
+- Adopt SDK harness for starter smoke registration and invocation ([pm-starter-sdk-harness-1106](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/chores/pm-starter-sdk-harness-1106.toon))
+
 ## 2026.11.13 - 2026-11-13
 
 ### Dependencies
