@@ -4,6 +4,7 @@
 
 ### Other
 
+- Close delivered pm items and reserve in progress for active work (2026-10-24) ([pm-starter-n9nq](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/chores/pm-starter-n9nq.toon))
 - Adopt SDK harness for starter smoke registration and invocation ([pm-starter-sdk-harness-1106](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/chores/pm-starter-sdk-harness-1106.toon))
 
 ## 2026.11.13 - 2026-11-13
