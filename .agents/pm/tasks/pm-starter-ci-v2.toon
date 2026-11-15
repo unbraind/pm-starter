@@ -6,9 +6,7 @@ status: in_progress
 priority: 2
 tags[2]: ci,performance
 created_at: "2026-11-15T14:10:20.191Z"
-updated_at: "2026-11-15T20:10:10.255Z"
-assignee: codex-sol-round-d
-claim_principal: codex-sol-round-d
+updated_at: "2026-11-15T20:45:07.583Z"
 author: codex-sol
 comments[8]{created_at,author,text}:
   "2026-11-15T14:10:23.797Z",codex-sol,"Required checks are test (22) and test (26); CodeQL is optional. No open CI or flaky-gate item was found. Latest successful main run 43681245615: Node 22 npm/Bun gates 64s/61s, Node 26 56s/55s. Individual job log fallback was needed because gh run view --log returned empty. Slowest corpus is the 500-sequence recipes property (16.10s), followed by CLI acceptance (11.76s) and pagination property (5.30s). Preserve current coverage scope and thresholds and every old check in the tier inventory."
