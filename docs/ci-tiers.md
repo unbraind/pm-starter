@@ -82,5 +82,9 @@ Node 22 npm/Bun gates 64s/61s; Node 26 56s/55s. Overall run wall time was 12m48s
 including queueing. Individual job logs supplied timings because
 `gh run view --log` returned no content. Slowest tests: recipes property 16.10s,
 CLI pagination acceptance 11.76s, pagination property 5.30s. Quick local results
-and exact-head PR status are recorded in the package Task and PR body. Full
+and exact-head PR status are recorded in the package Task and PR body.
+The touched-file quick batch passes 31/31 in 59.73s. One quick coverage command
+passes in 94.26s with all seven configured sources at unchanged 100% lines,
+branches and functions. These local timings are not a controlled comparison
+with the hosted full-depth baseline above. Full
 depth is not run locally; deep certification remains pending after merge.
