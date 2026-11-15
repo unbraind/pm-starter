@@ -1,3 +1,4 @@
+import { testDepth } from "./support/depth.ts";
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
@@ -205,7 +206,7 @@ test("strict request and declaration schema fuzz their dense, bounded domains", 
   assert.throws(() => subtractRationals({ n: Number.MAX_SAFE_INTEGER, d: 1 }, { n: -1, d: 1 }));
   assert.equal(bytesDiv4Estimate(0).display, "0");
   assert.deepEqual(exactRational(0, -3), { n: 0, d: 1 });
-  for (let count = 0; count < 500; count++) {
+  for (let count = 0; count < testDepth(500); count++) {
     const numerator = (count * 7919) % 100003;
     const ratio = exactRational(numerator, 7);
     assert.equal(rationalCompare(ratio, ratio), 0);
@@ -281,7 +282,7 @@ test("native refusal boundaries never return a success for malformed read contra
   assert.ok(!(await runTaskCostBaselines(host, { corpus_id: "wrong", declarations: declarationRun.declarations })).ok);
 });
 
-test("producer reports and declarations validate and replay under 500 seeded sequences", async (t) => {
+test("producer reports and declarations validate and replay under seeded sequences", async (t) => {
   const { client, host } = await tracker(t);
   await client.create({ id: "item-a", title: "Model anchor", type: "Task", unset: ["parent", "assignee", "sprint", "release"] });
   const declared = await runTaskCostBaselines(host, { mode: "declare", scenario: "all", corpus_id: "model", repeats: 1 });
@@ -290,7 +291,7 @@ test("producer reports and declarations validate and replay under 500 seeded seq
   let seed = 0x51f17e;
   const next = () => { seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0; return seed; };
   const model = new Map(history.map((d) => [d.id, d]));
-  for (let sequence = 0; sequence < 500; sequence++) {
+  for (let sequence = 0; sequence < testDepth(500); sequence++) {
     const older = history[next() % history.length]!;
     const variant = next() % 2 === 0 ? older : { ...older, id: ` ${older.id}\r\n`, corpus: { id: ` ${older.corpus.id}\r\n`, version: `${older.corpus.version}\r\n` }, expected_answer: `${older.expected_answer}\r\n` };
     const decoded = parseTaskCostDeclaration(JSON.parse(JSON.stringify(variant)));

@@ -1,3 +1,4 @@
+import { testDepth } from "./support/depth.ts";
 /** Genuine non-git SDK reads, model-based resume proofs and transport fault injection. */
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
@@ -232,7 +233,7 @@ test("producer-output agreement refuses each corrupt native response alone, with
   assert.equal(omitted.checkpoint?.admitted, 0); assert.ok(omitted.checkpoint && omitted.checkpoint.spent_tokens > 0);
 });
 
-test("500 seeded operation sequences compare SDK-read native state and reference admission through old checkpoint replays", async (t) => {
+test("seeded operation sequences compare SDK-read native state and reference admission through old checkpoint replays", async (t) => {
   const { host, client, pmRoot, directory } = await tracker(t);
   const native = (await client.listAllComplete({ includeBody: true })).items;
   const model = (await client.list({ status: "all", fields: "id", sort: "created_at", order: "asc", noTruncate: true })).items.map(({ id }) => id);
@@ -240,7 +241,7 @@ test("500 seeded operation sequences compare SDK-read native state and reference
   let seed = 0xcace1129;
   const next = () => { seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0; return seed; };
   const old: ConsumerCheckpoint[] = [];
-  for (let sequence = 0; sequence < 500; sequence++) {
+  for (let sequence = 0; sequence < testDepth(500); sequence++) {
     const previous = old.length > 0 && next() % 2 === 0 ? old[next() % old.length] : undefined;
     const checkpoint: ConsumerCheckpoint | undefined = previous === undefined ? undefined
       : JSON.parse(` \r\n${JSON.stringify(previous, null, next() % 2 === 0 ? 2 : undefined).replaceAll("\n", "\r\n")}\t `);

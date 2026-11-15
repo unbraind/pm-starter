@@ -1,0 +1,35 @@
+id: pm-starter-ci-v2
+title: Apply Fleet CI v2 with quick PR gates and exhaustive deep validation
+description: "Companion pm-cli-website-dyhg. Preserve required check names, all existing release-gate contracts and starter copy workflows; add deterministic quick depth and bounded deep jobs without modifying release rollout files."
+type: Task
+status: in_progress
+priority: 2
+tags[2]: ci,performance
+created_at: "2026-11-15T14:10:20.191Z"
+updated_at: "2026-11-15T14:15:11.453Z"
+assignee: codex-sol
+claim_principal: codex-sol
+author: codex-sol
+comments[4]{created_at,author,text}:
+  "2026-11-15T14:10:23.797Z",codex-sol,"Required checks are test (22) and test (26); CodeQL is optional. No open CI or flaky-gate item was found. Latest successful main run 43681245615: Node 22 npm/Bun gates 64s/61s, Node 26 56s/55s. Individual job log fallback was needed because gh run view --log returned empty. Slowest corpus is the 500-sequence recipes property (16.10s), followed by CLI acceptance (11.76s) and pagination property (5.30s). Preserve current coverage scope and thresholds and every old check in the tier inventory."
+  "2026-11-15T14:11:38.135Z",codex-sol,"Clone-based scaffolding already inherits the repository tree; README now explicitly retains ci.yml, ci-deep.yml, codeql.yml and test/support/depth.ts. The setup wizard returns scaffolded:false and does not generate a second package, so no generator is invented. Four 500-case property/arithmetic corpora use the same 50-case deterministic prefix; fixed pagination-boundary fixtures remain unchanged. Standalone validate-consumer-pack proves Bun global and bunx host paths but is not part of release:check, so PRs retain explicit Bun install and bunx local-bin smoke. Deep certifies npm and fresh Bun graphs on Node 22/26."
+  "2026-11-15T14:14:01.239Z",codex-sol,"Initial quick touched-file batch passes 31/31 in 59.73s. Canonical lint found a pre-existing literal sparse-array adversarial fixture; expressed the identical hole-bearing fixture with Object.assign(Array(3), indices) so lint can pass without weakening refusal coverage. This package has no lint script/parser peers; used an existing external canonical pm-ops lint installation read-only. Strict health initially found a CLI/extension host version mismatch; install the already-declared pm-github 2026.10.4 project extension before health in both tiers to remove ambient host resolution. The managed registry is restored after provisioning."
+  "2026-11-15T14:15:11.453Z",codex-sol,"Pre-push: typecheck, test compilation, build, strict YAML and tier invariants pass. Canonical lint passes all six changed TypeScript files after preserving the sparse fixture without a literal hole. Strict health now passes after project-owned extension provisioning. Quick touched-file run passes 31/31 in 59.73s; one quick coverage run is in progress with unchanged 100/100/100 thresholds and a 20-minute bound. Full depth is reserved for deep CI."
+files[10]{path,scope}:
+  .github/workflows/ci-deep.yml,project
+  .github/workflows/ci.yml,project
+  .github/workflows/codeql.yml,project
+  README.md,project
+  scripts/validate-consumer-pack.ts,project
+  test/baselines.test.ts,project
+  test/depth.test.ts,project
+  test/paginated-consumer.test.ts,project
+  test/recipes.test.ts,project
+  test/support/depth.ts,project
+tests[3]{command,scope,timeout_seconds,provenance{author,created_at,source_kind,source_ref}}:
+  "npm run typecheck && npm run build:test && node --test test/depth.test.ts",project,240,codex-sol,"2026-11-15T14:11:38.903Z",local_mutation,ci/quick-pr-tier-deep-local-tier
+  PM_TEST_DEPTH=quick node --test --test-concurrency=2 test/baselines.test.ts test/paginated-consumer.test.ts test/recipes.test.ts test/depth.test.ts,project,600,codex-sol,"2026-11-15T14:12:04.859Z",local_mutation,ci/quick-pr-tier-deep-local-tier
+  PM_TEST_DEPTH=quick npm run coverage,project,1200,codex-sol,"2026-11-15T14:14:02.394Z",local_mutation,ci/quick-pr-tier-deep-local-tier
+docs[1]{path,scope}:
+  docs/ci-tiers.md,project
+body: ""
