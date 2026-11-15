@@ -1,8 +1,10 @@
 # Changelog
 
-## Unreleased
+## 2026.11.15 - 2026-11-15
 
-No changes.
+### Dependencies
+
+- Bump unbraind/pm-github/.github/workflows/pm-github-sync.yml ([#211](https://github.com/unbraind/pm-starter/pull/211))
 
 ## 2026.11.13 - 2026-11-13
 
