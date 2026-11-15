@@ -3,8 +3,8 @@
 Required checks remain `test (22)` and `test (26)`. PRs and dispatch run on
 hosted Ubuntu at quick depth, with superseded PR cancellation and ten-minute
 job ceilings. CodeQL is optional and runs separately. Docs/tracker-only PRs
-retain strict health, changelog and identity/absolute-home-path history audits;
-executable tracker JavaScript/TypeScript selects the code tier.
+retain strict health, changelog, SDK-floor evidence tests and identity/absolute-home-path history audits;
+executable tracker JavaScript/TypeScript selects the code tier and remains eligible for CodeQL.
 
 | Check | Code PR Node 22 | Code PR Node 26 | Docs/tracker PR, both | Deep Node 22 + 26 |
 | --- | --- | --- | --- | --- |
@@ -17,6 +17,7 @@ executable tracker JavaScript/TypeScript selects the code tier.
 | Coverage, unchanged 100% lines/branches/functions | — | yes | — | npm + Bun |
 | Identity and absolute-home-path history audits | via tests | via tests | yes | npm + Bun |
 | Production audit and pack dry-run | — | yes | — | npm + Bun |
+| SDK-floor evidence | via tests | via tests | yes | npm + Bun |
 | Changelog consistency | — | yes | yes | npm + Bun |
 | Publish attestation verifier | — | yes | — | npm + Bun |
 | Bun graph install and bunx local compiler smoke | — | yes | — | fresh Bun graph; bunx in PR |
@@ -32,11 +33,11 @@ optional parser peers.
 
 Deep runs on main pushes, dispatch and daily at 02:29 UTC, separate from release
 at 03:23 UTC and its hourly minute-41 recovery, and weekly CodeQL on Monday at
-05:53 UTC. The checks are `deep (22)` and `deep (26)`; both run full npm and Bun
-release gates with a 120-minute job ceiling, `PM_TEST_DEPTH=full` and
-`PM_TEST_TIME_SCALE=3`. The Bun gate follows a fresh Bun graph installation.
-Per-ref concurrency cancels superseded deep runs. Jobs use the `pm-local` pool
-unless `PM_LOCAL_DEEP=off` selects hosted fallback. Only the fleet controller
+05:53 UTC. The four checks are `deep (22, npm)`, `deep (22, bun)`, `deep (26, npm)`
+and `deep (26, bun)`; each runs one full release gate with a 120-minute job ceiling, `PM_TEST_DEPTH=full` and
+`PM_TEST_TIME_SCALE=3`. Each Bun gate uses a fresh Bun graph installation. All deep actions are pinned to full commit SHAs.
+Per-ref concurrency cancels superseded deep runs. Jobs default to hosted Ubuntu;
+`PM_LOCAL_DEEP=on` explicitly selects the `pm-local` pool. Only the fleet controller
 changes that variable. Local setup-node skips remote npm cache restoration;
 setup-bun runs only on hosted fallback and all deep jobs log `bun --version`.
 
