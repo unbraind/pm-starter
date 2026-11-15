@@ -1,3 +1,4 @@
+import { testDepth } from "./support/depth.ts";
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
@@ -157,7 +158,7 @@ test("native contract boundary fuzzing rejects malformed remedies and nonfinite 
     assert.throws(() => assertMissingItemRecovery(error, classified), FailureFirstContractError);
   }
   assertUnsupportedCapabilityRecovery({ context: { code: "unknown_subcommand", recovery: { allowed_values: ["ancestors"] } } });
-  for (const allowed of [undefined, null, {}, [], new Array(2), ["ancestors", , "audit"], ["ancestors", 1], ["index"], ["ancestors", "x".repeat(33)], Array(65).fill("ancestors")]) {
+  for (const allowed of [undefined, null, {}, [], new Array(2), Object.assign(Array(3), { 0: "ancestors", 2: "audit" }), ["ancestors", 1], ["index"], ["ancestors", "x".repeat(33)], Array(65).fill("ancestors")]) {
     assert.throws(() => assertUnsupportedCapabilityRecovery({ context: { code: "unknown_subcommand", recovery: { allowed_values: allowed } } }), FailureFirstContractError);
   }
   for (const value of [undefined, [], { context: { code: "foreign" } }, { context: { code: "unknown_subcommand" } }]) assert.throws(() => assertUnsupportedCapabilityRecovery(value), FailureFirstContractError);
@@ -204,7 +205,7 @@ test("packaged JSON and TOON commands recover in a non-git tracker with no git e
   assert.equal(fingerprint(pmRoot), before);
 });
 
-test("500 seeded model-based operation sequences preserve SDK-read state, including old request replays", async (t) => {
+test("seeded model-based operation sequences preserve SDK-read state, including old request replays", async (t) => {
   const { directory, pmRoot, client, sdk } = await tracker(t);
   let seed = 0x51f17e;
   const next = () => { seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0; return seed; };
@@ -225,7 +226,7 @@ test("500 seeded model-based operation sequences preserve SDK-read state, includ
   const durable = fingerprint(pmRoot);
   process.env.PATH = directory;
   const requests: Array<{ recipe?: "missing-item" | "unsupported-capability" | "insufficient-budget" }> = [{}, { recipe: "missing-item" }, { recipe: "unsupported-capability" }, { recipe: "insufficient-budget" }];
-  for (let sequence = 0; sequence < 500; sequence++) {
+  for (let sequence = 0; sequence < testDepth(500); sequence++) {
     // Each sequence is a fresh request, a historical replay and an authoritative state read.
     const request = requests[next() % requests.length];
     const result = await runFailureFirstRecipes(sdk, request);

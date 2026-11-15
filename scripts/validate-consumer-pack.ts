@@ -1,4 +1,5 @@
 /** Test one captured tarball with npm/Bun global, npx/bunx and project-local hosts. */
+import { testTimeout } from "../test/support/depth.ts";
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
@@ -23,7 +24,7 @@ for (const name of ["home", "tmp"]) mkdirSync(join(directory, name));
 
 /** Execute a known package-manager or host command without a shell or inherited credentials. */
 function run(command: string, args: readonly string[], cwd = directory): string {
-  const result = spawnSync(command, [...args], { cwd, env: childEnv, encoding: "utf8", timeout: 180000, maxBuffer: 8 * 1024 * 1024 });
+  const result = spawnSync(command, [...args], { cwd, env: childEnv, encoding: "utf8", timeout: testTimeout(180000), maxBuffer: 8 * 1024 * 1024 });
   assert.equal(result.status, 0, `${command} failed: ${result.stderr}`); return result.stdout;
 }
 
