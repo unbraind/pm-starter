@@ -196,7 +196,7 @@ The starter demonstrates several patterns introduced or stabilized in the
 ## Creating a New Extension
 
 ```bash
-# 1. Clone this repo
+# 1. Clone this repo (keep .github/workflows and test/support/depth.ts)
 git clone https://github.com/unbraind/pm-starter.git my-extension
 cd my-extension
 
