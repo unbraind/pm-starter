@@ -4,7 +4,7 @@
 
 ### Dependencies
 
-- Bump the pm-toolchain group with 2 updates
+- Bump the pm-toolchain group with 2 updates ([#217](https://github.com/unbraind/pm-starter/pull/217))
 - Bump unbraind/pm-github/.github/workflows/pm-github-sync.yml ([#211](https://github.com/unbraind/pm-starter/pull/211))
 
 ## 2026.11.13 - 2026-11-13
