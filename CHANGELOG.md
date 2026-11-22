@@ -1,6 +1,38 @@
 # Changelog
 
-## 2026.11.15 - 2026-11-15
+## 2026.11.22 - 2026-11-22
+
+### Dependencies
+
+- Bump unbraind/pm-ops/.github/workflows/daily-release.yml ([#230](https://github.com/unbraind/pm-starter/pull/230))
+- Bump unbraind/pm-github/.github/workflows/pm-github-sync.yml ([#228](https://github.com/unbraind/pm-starter/pull/228))
+- Bump unbraind/pm-github/.github/workflows/pm-github-closeout.yml ([#229](https://github.com/unbraind/pm-starter/pull/229))
+
+## 2026.11.20 - 2026-11-20
+
+### Dependencies
+
+- Bump the pm-toolchain group with 3 updates ([#226](https://github.com/unbraind/pm-starter/pull/226))
+
+## 2026.11.19 - 2026-11-19
+
+### Dependencies
+
+- Bump @unbrained/pm-cli ([#224](https://github.com/unbraind/pm-starter/pull/224))
+
+## 2026.11.18 - 2026-11-18
+
+### Dependencies
+
+- Bump the pm-toolchain group with 2 updates ([#222](https://github.com/unbraind/pm-starter/pull/222))
+
+## 2026.11.17 - 2026-11-17
+
+### Dependencies
+
+- Bump the pm-toolchain group with 2 updates ([#220](https://github.com/unbraind/pm-starter/pull/220))
+
+## 2026.11.15 - 2026-11-16
 
 ### Dependencies
 
@@ -33,9 +65,12 @@
 
 ## 2026.11.9 - 2026-11-09
 
-### Other
+### Dependencies
 
-- Adopt SDK harness for starter smoke registration and invocation ([pm-starter-sdk-harness-1106](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/chores/pm-starter-sdk-harness-1106.toon))
+- Bump the pm-toolchain group with 3 updates ([#199](https://github.com/unbraind/pm-starter/pull/199))
+- Bump unbraind/pm-github/.github/workflows/pm-github-closeout.yml ([#198](https://github.com/unbraind/pm-starter/pull/198))
+- Bump unbraind/pm-github/.github/workflows/pm-github-sync.yml ([#197](https://github.com/unbraind/pm-starter/pull/197))
+- Bump the codeql-action group with 2 updates ([#196](https://github.com/unbraind/pm-starter/pull/196))
 
 ## 2026.11.5 - 2026-11-05
 

@@ -1,6 +1,6 @@
 {
   "name": "pm-starter",
-  "version": "2026.11.15",
+  "version": "2026.11.22",
   "description": "Complete starter/scaffold extension for pm-cli showing all capability types",
   "repository": {
     "type": "git",
@@ -51,9 +51,9 @@
   },
   "devDependencies": {
     "@types/node": "26.6.6",
-    "@unbrained/pm-cli": "2026.11.12",
-    "pm-changelog": "2026.11.12",
-    "pm-ops": "2026.11.14",
+    "@unbrained/pm-cli": "2026.11.16",
+    "pm-changelog": "2026.11.16",
+    "pm-ops": "2026.11.15",
     "typescript": "7.0.2",
     "yaml": "2.9.1"
   },
