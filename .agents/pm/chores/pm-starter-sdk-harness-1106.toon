@@ -6,12 +6,12 @@ status: closed
 priority: 2
 tags[2]: sdk-adoption,testing
 created_at: "2026-11-06T15:47:27.112Z"
-updated_at: "2026-11-14T10:14:44.413Z"
+updated_at: "2026-11-22T23:51:29.791Z"
 closed_at: "2026-11-14T09:00:38.224Z"
 completed_at: "2026-11-06T20:18:49.000Z"
 author: codex-sol
 acceptance_criteria: "Positive registration and invocation smoke tests use the SDK harness; real non-git trackers exercise schema, flags, output and mutation context; README documents the recommended pattern; targeted tests fail on behavioral revert."
-release: 2026.11.9
+release: 2026.11.09
 comments[6]{created_at,author,text}:
   "2026-11-06T15:47:38.859Z",codex-sol,"Scope: companion pm-cli-website-28c9 (G9), audit pm-cli-website-7zcy. Companion evidence read only. Remove smoke registration sinks and opaque callback casts; use createExtensionTestHarness assertions and invocation against real non-git temp trackers. Preserve domain assertions and pure option unit tests. Pinned SDK 2026.11.4 already exports the required harness; keep dependency pins unchanged. Registry latest reports 2026.11.6."
   "2026-11-06T15:53:13.708Z",codex-sol,"Implementation: removed both smoke ExtensionApi sinks and CapturedValue callable/index casts. SDK assertions now check the full command registry (including importer/exporter paths), native list flags, schema, all hooks and remaining capability surfaces. Invocation uses the shipped manifest plus real initialized non-git temp trackers; tests cover renderer ownership, USAGE failures, interactive receipts, laboratory refusal, observe-only write context and complete reads. README recommends this pattern and explains focused unit doubles. Targeted smoke tests: 13/13 pass. build:test, typecheck and docstring pass; no separate lint script exists."
