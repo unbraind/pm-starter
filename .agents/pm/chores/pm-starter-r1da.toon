@@ -6,16 +6,18 @@ status: in_progress
 priority: 3
 tags[3]: changelog,"gh:unbraind/pm-starter#209",maintenance
 created_at: "2026-11-16T15:11:50.033Z"
-updated_at: "2026-11-23T10:02:23.172Z"
+updated_at: "2026-11-23T10:14:31.029Z"
 author: pi-glm
 estimated_minutes: 30
 acceptance_criteria: "A decision records whether changelog:full should render git-derived dependency bullets alongside item-covered windows; any script change regenerates and checks the changelog and passes release gates"
-comments[5]{created_at,author,text}:
+comments[7]{created_at,author,text}:
   "2026-11-16T15:21:51.876Z",codex-sol,"Verified the unresolved dependency-note review against published tag v2026.11.09: dependency PRs 196, 197, 198, 199 are present there. The configured changelog:full omits --dependency-updates; the pinned generator enriches item-covered windows only with that option. A persistent fix requires package-script or generator changes, outside the authorized tracker/changelog scope. Reused this follow-up; no review reply or resolution was sent."
   "2026-11-23T09:52:01.840Z",codex-agent,"Closure follow-up: changelog dependency updates. Verify against current main and the existing PR head before recording the result."
   "2026-11-23T09:53:10.619Z",codex-agent,The closure verifier allows tracker files and CHANGELOG.md only. This follow-up explicitly calls for package.json flags so the verifier will still report the manifest as out of scope.
   "2026-11-23T09:56:59.675Z",codex-agent,"Package changelog generation, verification and release notes use --dependency-updates, including checks that delegate to the full generator. With the same tracker and fetched tags, the original manifest omitted published dependency bullets for #196, #197, #198, #199. The flag restored all of them. Changelog byte check and release notes rendering passed."
   "2026-11-23T10:02:19.234Z",codex-agent,"Linked Node tests passed 17/17 with no skips, and the changelog check passed. Final verification will use the committed branch. CI checks for the closure follow-up are tracked at https://github.com/unbraind/pm-starter/pull/209/checks."
+  "2026-11-23T10:11:41.385Z",codex-agent,"Node 26 CI run 45152671218 checked a synthetic merge that included Dependabot PR #232 on main, upgrading pm-changelog from 2026.11.16 to 2026.11.18. That generator refused the changelog generated before the main sync. Integrated current main to regenerate with the same lockfile that CI uses."
+  "2026-11-23T10:14:29.933Z",codex-agent,"Linked Node tests passed 17/17 with no skips, and the changelog check passed. Final verification will use the committed branch. CI checks for the closure follow-up are tracked at https://github.com/unbraind/pm-starter/pull/209/checks."
 files[2]{path,scope}:
   CHANGELOG.md,project
   package.json,project
