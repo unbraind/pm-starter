@@ -6,11 +6,11 @@ status: in_progress
 priority: 3
 tags[3]: changelog,"gh:unbraind/pm-starter#209",maintenance
 created_at: "2026-11-16T15:11:50.033Z"
-updated_at: "2026-11-23T16:17:41.911Z"
+updated_at: "2026-11-23T16:37:51.488Z"
 author: pi-glm
 estimated_minutes: 30
 acceptance_criteria: "A decision records whether changelog:full should render git-derived dependency bullets alongside item-covered windows; any script change regenerates and checks the changelog and passes release gates"
-comments[9]{created_at,author,text}:
+comments[12]{created_at,author,text}:
   "2026-11-16T15:21:51.876Z",codex-sol,"Verified the unresolved dependency-note review against published tag v2026.11.09: dependency PRs 196, 197, 198, 199 are present there. The configured changelog:full omits --dependency-updates; the pinned generator enriches item-covered windows only with that option. A persistent fix requires package-script or generator changes, outside the authorized tracker/changelog scope. Reused this follow-up; no review reply or resolution was sent."
   "2026-11-23T09:52:01.840Z",codex-agent,"Closure follow-up: changelog dependency updates. Verify against current main and the existing PR head before recording the result."
   "2026-11-23T09:53:10.619Z",codex-agent,The closure verifier allows tracker files and CHANGELOG.md only. This follow-up explicitly calls for package.json flags so the verifier will still report the manifest as out of scope.
@@ -20,12 +20,18 @@ comments[9]{created_at,author,text}:
   "2026-11-23T10:14:29.933Z",codex-agent,"Linked Node tests passed 17/17 with no skips, and the changelog check passed. Final verification will use the committed branch. CI checks for the closure follow-up are tracked at https://github.com/unbraind/pm-starter/pull/209/checks."
   "2026-11-23T16:12:55.540Z",codex-agent,The dependency-note switch belongs in fix/changelog-keep-dependency-updates. Restore this closure branch's package scripts to main and regenerate with the unflagged invocation. The flag PR will restore the dependency notes separately.
   "2026-11-23T16:17:38.580Z",codex-agent,"The registered focused Node tests and changelog check passed. Identity, public-content and history prefix checks are part of the final-head gate. The full release gate runs in package CI."
-files[2]{path,scope}:
+  "2026-11-23T16:20:53.582Z",codex-agent,"Use the opt-in in every package changelog invocation, including delegated verification. The same-tag comparison and generated release headings verify the previously published dependency PRs: 196,197,198,199."
+  "2026-11-23T16:24:54.995Z",codex-agent,"The linked release notes command, direct release notes and package identity test passed. With the flag enabled, the generated ledger contains all identified published dependency PRs at their release headings. Changelog verification is repeated after this tracker update."
+  "2026-11-23T16:37:50.255Z",codex-agent,The release-workflow regression now protects the dependency flag on every package changelog entry point and preserves delegated verification where configured. Removing only the flag from the package scripts in a disposable copy fails this regression. The fixed release-workflow suite passes.
+files[3]{path,scope}:
   CHANGELOG.md,project
   package.json,project
-tests[2]{command,scope,provenance{author,created_at,source_kind,source_ref}}:
+  test/release-workflow.test.ts,project
+tests[4]{command,scope,provenance{author,created_at,source_kind,source_ref}}:
   node --test --test-concurrency=2 test/identity-audit.test.ts test/sdk-floor.test.ts test/prepare-merge-driver.test.ts,project,codex-agent,"2026-11-23T09:53:08.540Z",local_mutation,codex/closure-1122/chore/in-progress-sweep-2026-11-14
   "npm run changelog:check",project,codex-agent,"2026-11-23T16:13:14.876Z",local_mutation,codex/closure-1122/chore/in-progress-sweep-2026-11-14
+  "npm run release:notes",project,codex-agent,"2026-11-23T16:21:01.018Z",local_mutation,fix/changelog-keep-dependency-updates
+  node --test --test-concurrency=2 test/release-workflow.test.ts,project,codex-agent,"2026-11-23T16:37:46.319Z",local_mutation,fix/changelog-keep-dependency-updates
 docs[2]{path,scope}:
   CHANGELOG.md,project
   README.md,project
