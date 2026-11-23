@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026.11.23 - 2026-11-23
+
+### Dependencies
+
+- Bump the pm-toolchain group with 3 updates ([#232](https://github.com/unbraind/pm-starter/pull/232))
+
 ## 2026.11.22 - 2026-11-22
 
 ### Dependencies
