@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 2026.11.23 - 2026-11-23
 
 ### Dependencies
 
@@ -88,33 +88,19 @@
 
 - SDK 2026.11.1 upgrade: parent "none" fixture blocks all eight paginated-consumer tests ([pm-starter-toolchain-1104](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/issues/pm-starter-toolchain-1104.toon))
 
-### Dependencies
-
-- Bump the pm-toolchain group across 1 directory with 3 updates ([#187](https://github.com/unbraind/pm-starter/pull/187))
-
 ## 2026.11.4 - 2026-11-04
 
 ### Fixed
 
 - Ignore managed extension files so the scheduled issue sync can commit ([pm-starter-p0nt](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/issues/pm-starter-p0nt.toon))
 
-### Dependencies
-
-- Bump @types/node ([#180](https://github.com/unbraind/pm-starter/pull/180))
-- Bump the pm-toolchain group with 3 updates ([#179](https://github.com/unbraind/pm-starter/pull/179))
-
 ## 2026.11.1 - 2026-11-01
 
-### Dependencies
-
-- Bump unbraind/pm-github/.github/workflows/pm-github-sync.yml ([#177](https://github.com/unbraind/pm-starter/pull/177))
-- Bump unbraind/pm-github/.github/workflows/pm-github-closeout.yml ([#176](https://github.com/unbraind/pm-starter/pull/176))
+No changes.
 
 ## 2026.10.30 - 2026-10-30
 
-### Dependencies
-
-- Bump the pm-toolchain group with 3 updates ([#173](https://github.com/unbraind/pm-starter/pull/173))
+No changes.
 
 ## 2026.10.29 - 2026-10-29
 
@@ -123,29 +109,17 @@
 - Resume budgeted paginated reads safely after cancellation ([pm-starter-cancellation-consumer](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/features/pm-starter-cancellation-consumer.toon))
 - Measure agent task cost baselines for extension authors ([pm-starter-4kvb](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/features/pm-starter-4kvb.toon))
 
-### Dependencies
-
-- Bump the pm-toolchain group with 3 updates ([#170](https://github.com/unbraind/pm-starter/pull/170))
-
 ## 2026.10.28 - 2026-10-28
 
 ### Other
 
 - Make the 2026.10.23 pm toolchain bump pass: the recipes test host double dropped the SDK's generic ReadPromise get signature ([pm-starter-7tp5](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/chores/pm-starter-7tp5.toon))
 
-### Dependencies
-
-- Bump the pm-toolchain group with 3 updates ([#168](https://github.com/unbraind/pm-starter/pull/168))
-
 ## 2026.10.27 - 2026-10-27
 
 ### Other
 
 - Use SDK-certified complete reads in starter commands and exports ([pm-starter-sdk-adoption-1025](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/tasks/pm-starter-sdk-adoption-1025.toon))
-
-### Dependencies
-
-- Bump the pm-toolchain group across 1 directory with 3 updates ([#159](https://github.com/unbraind/pm-starter/pull/159))
 
 ## 2026.10.26 - 2026-10-26
 
@@ -168,17 +142,9 @@
 
 - Correct PR 147 tracker audit evidence ([pm-starter-ubt7](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/chores/pm-starter-ubt7.toon))
 
-### Dependencies
-
-- Bump the codeql-action group across 1 directory with 2 updates ([#152](https://github.com/unbraind/pm-starter/pull/152))
-- Bump unbraind/pm-github/.github/workflows/pm-github-sync.yml ([#153](https://github.com/unbraind/pm-starter/pull/153))
-- Bump unbraind/pm-github/.github/workflows/pm-github-closeout.yml ([#154](https://github.com/unbraind/pm-starter/pull/154))
-
 ## 2026.10.24 - 2026-10-24
 
-### Dependencies
-
-- Bump the pm-toolchain group across 1 directory with 3 updates ([#146](https://github.com/unbraind/pm-starter/pull/146))
+No changes.
 
 ## 2026.10.23 - 2026-10-23
 
@@ -203,27 +169,19 @@
 
 ## 2026.10.20 - 2026-10-20
 
-### Dependencies
-
-- Bump the pm-toolchain group with 2 updates ([#143](https://github.com/unbraind/pm-starter/pull/143))
+No changes.
 
 ## 2026.10.19 - 2026-10-19
 
-### Dependencies
-
-- Bump the pm-toolchain group with 3 updates ([#141](https://github.com/unbraind/pm-starter/pull/141))
+No changes.
 
 ## 2026.10.18 - 2026-10-18
 
-### Dependencies
-
-- Bump the codeql-action group with 2 updates ([#139](https://github.com/unbraind/pm-starter/pull/139))
+No changes.
 
 ## 2026.10.17 - 2026-10-17
 
-### Dependencies
-
-- Bump the pm-toolchain group across 1 directory with 3 updates ([#135](https://github.com/unbraind/pm-starter/pull/135))
+No changes.
 
 ## 2026.10.16 - 2026-10-16
 
@@ -231,28 +189,19 @@ No changes.
 
 ## 2026.10.15 - 2026-10-15
 
-### Dependencies
-
-- Bump @types/node ([#133](https://github.com/unbraind/pm-starter/pull/133))
-- Bump @unbrained/pm-cli ([#132](https://github.com/unbraind/pm-starter/pull/132))
+No changes.
 
 ## 2026.10.12 - 2026-10-12
 
-### Dependencies
-
-- Bump the pm-toolchain group with 3 updates ([#129](https://github.com/unbraind/pm-starter/pull/129))
+No changes.
 
 ## 2026.10.11 - 2026-10-11
 
-### Dependencies
-
-- Bump the codeql-action group with 2 updates ([#127](https://github.com/unbraind/pm-starter/pull/127))
+No changes.
 
 ## 2026.10.9 - 2026-10-09
 
-### Dependencies
-
-- Bump the pm-toolchain group with 2 updates ([#125](https://github.com/unbraind/pm-starter/pull/125))
+No changes.
 
 ## 2026.10.5 - 2026-10-05
 
@@ -280,21 +229,11 @@ No changes.
 
 - Certify pm CLI 2026.9.21 and install merge drivers through the canonical pm-ops launcher ([pm-starter-8vta](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/tasks/pm-starter-8vta.toon))
 
-### Dependencies
-
-- Bump @types/node from 26.5.1 to 26.6.2 ([#112](https://github.com/unbraind/pm-starter/pull/112))
-
 ## 2026.9.18 - 2026-09-18
 
 ### Other
 
 - Certify pm CLI 2026.9.17 ([pm-starter-o6xh](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/chores/pm-starter-o6xh.toon))
-
-### Dependencies
-
-- Bump pm-changelog from 2026.9.6 to 2026.9.13 ([#106](https://github.com/unbraind/pm-starter/pull/106))
-- Bump @types/node from 26.4.1 to 26.5.1 ([#107](https://github.com/unbraind/pm-starter/pull/107))
-- Bump the codeql-action group across 1 directory with 2 updates ([#108](https://github.com/unbraind/pm-starter/pull/108))
 
 ## 2026.9.13 - 2026-09-13
 
@@ -322,17 +261,9 @@ No changes.
 
 - Harden the attestation consumer suite to match the rest of the converged fleet ([pm-starter-csko](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/chores/pm-starter-csko.toon))
 
-### Dependencies
-
-- Bump @unbrained/pm-cli from 2026.8.27 to 2026.9.3 ([#93](https://github.com/unbraind/pm-starter/pull/93))
-- Bump pm-ops from 2026.8.17 to 2026.9.2 ([#94](https://github.com/unbraind/pm-starter/pull/94))
-- Bump pm-changelog from 2026.8.30 to 2026.9.2 ([#95](https://github.com/unbraind/pm-starter/pull/95))
-
 ## 2026.9.6 - 2026-09-06
 
-### Dependencies
-
-- Bump @types/node from 26.4.0 to 26.4.1 ([#96](https://github.com/unbraind/pm-starter/pull/96))
+No changes.
 
 ## 2026.9.1 - 2026-09-01
 
@@ -350,11 +281,6 @@ No changes.
 ### Closed
 
 - Closed: Pin pm-changelog 2026.8.30 before the next release ([pm-starter-pjdl](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/issues/pm-starter-pjdl.toon))
-
-### Dependencies
-
-- Bump @unbrained/pm-cli from 2026.8.23 to 2026.8.27 ([#86](https://github.com/unbraind/pm-starter/pull/86))
-- Bump @types/node from 26.1.2 to 26.4.0 ([#87](https://github.com/unbraind/pm-starter/pull/87))
 
 ## 2026.8.29 - 2026-08-29
 
@@ -381,10 +307,6 @@ No changes.
 ### Closed
 
 - Closed: The identity gate deadlocks the one remediation its own failure message prescribes ([pm-starter-tf19](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/issues/pm-starter-tf19.toon))
-
-### Dependencies
-
-- Bump pm-ops from 2026.8.8 to 2026.8.17 ([#72](https://github.com/unbraind/pm-starter/pull/72))
 
 ## 2026.8.17 - 2026-08-17
 
@@ -441,10 +363,7 @@ No changes.
 
 ## 2026.8.3 - 2026-08-03
 
-### Dependencies
-
-- Bump @types/node from 26.1.1 to 26.1.2 ([#49](https://github.com/unbraind/pm-starter/pull/49))
-- Bump pm-changelog from 2026.7.25 to 2026.7.29 ([#50](https://github.com/unbraind/pm-starter/pull/50))
+No changes.
 
 ## 2026.8.1 - 2026-08-01
 
@@ -492,10 +411,6 @@ No changes.
 
 - Closed: Starter template used any throughout, hiding three wrong SDK contracts and three unguarded pm reads ([pm-starter-kre3](https://github.com/unbraind/pm-starter/blob/main/.agents/pm/issues/pm-starter-kre3.toon))
 
-### Dependencies
-
-- Bump @unbrained/pm-cli from 2026.7.25 to 2026.7.26 ([#37](https://github.com/unbraind/pm-starter/pull/37))
-
 ## 2026.7.25 - 2026-07-25
 
 ### Other
@@ -522,11 +437,7 @@ No changes.
 
 ## 2026.7.20 - 2026-07-20
 
-### Dependencies
-
-- Bump actions/setup-node from 6 to 7 ([#25](https://github.com/unbraind/pm-starter/pull/25))
-- Bump @unbrained/pm-cli from 2026.7.11 to 2026.7.18 ([#26](https://github.com/unbraind/pm-starter/pull/26))
-- Bump pm-changelog from 2026.7.11 to 2026.7.18 ([#27](https://github.com/unbraind/pm-starter/pull/27))
+No changes.
 
 ## 2026.7.19 - 2026-07-19
 
@@ -540,20 +451,11 @@ No changes.
 
 ## 2026.7.13 - 2026-07-13
 
-### Dependencies
-
-- Bump pm-changelog from 2026.7.10 to 2026.7.11 ([#24](https://github.com/unbraind/pm-starter/pull/24))
-- Bump @unbrained/pm-cli from 2026.7.10 to 2026.7.11 ([#23](https://github.com/unbraind/pm-starter/pull/23))
+No changes.
 
 ## 2026.7.11 - 2026-07-11
 
-### Dependencies
-
-- Bump @types/node from 25.9.2 to 26.1.1
-- Bump @unbrained/pm-cli from 2026.7.5 to 2026.7.10
-- Bump pm-changelog from 2026.6.30 to 2026.7.10
-- Bump typescript from 6.0.3 to 7.0.2
-- Bump actions/checkout from 6 to 7
+No changes.
 
 ## 2026.7.10 - 2026-07-10
 
