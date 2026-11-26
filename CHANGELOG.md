@@ -4,7 +4,8 @@
 
 ### Dependencies
 
-- Bump @unbrained/pm-cli
+- Bump the pm-toolchain group with 2 updates
+- Bump @unbrained/pm-cli from 2026.11.20 to 2026.11.21 in the pm-toolchain group ([#237](https://github.com/unbraind/pm-starter/pull/237))
 
 ## 2026.11.24 - 2026-11-24
 
